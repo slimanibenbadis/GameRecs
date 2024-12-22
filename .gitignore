@@ -1,0 +1,86 @@
+# Environment files
+.env
+*.env
+.env.*
+!.env.example
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker volumes and data
+postgres_dev_data/
+postgres_test_data/
+postgres_prod_data/
+pgadmin_data/
+**/docker-volumes/
+
+# Build outputs and dependencies
+**/target/
+**/dist/
+**/build/
+**/node_modules/
+**/.angular/
+**/coverage/
+
+# Application properties with credentials
+**/src/main/resources/application-*.yml
+**/src/main/resources/application-*.properties
+!**/src/main/resources/application.yml
+!**/src/main/resources/application-example.yml
+
+# Security and certificates
+*.jks
+*.keystore
+*.p12
+*.pem
+*.cer
+*.crt
+*.key
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Test coverage reports
+**/coverage/
+**/reports/
+**/test-results/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Spring Boot specific
+.spring-boot-devtools.properties
+
+# Angular specific
+.angular/cache/
+.sass-cache/
+connect.lock
+libpeerconnection.log
+testem.log
+/typings/
+
+# Cypress
+**/cypress/videos/
+**/cypress/screenshots/
+
+PRD.md
+.cursorrules

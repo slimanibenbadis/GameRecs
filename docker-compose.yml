@@ -1,0 +1,146 @@
+services:
+  postgres-dev:
+    image: postgres:17.2
+    container_name: gamerecs-postgres-dev
+    environment:
+      POSTGRES_DB: gamerecs_dev
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - gamerecs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d gamerecs_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-test:
+    image: postgres:17.2
+    container_name: gamerecs-postgres-test
+    environment:
+      POSTGRES_DB: gamerecs_test
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - gamerecs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d gamerecs_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-prod:
+    image: postgres:17.2
+    container_name: gamerecs-postgres-prod
+    environment:
+      POSTGRES_DB: gamerecs_prod
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - gamerecs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d gamerecs_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gamerecs-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gamerecs.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - gamerecs-network
+    depends_on:
+      - postgres-dev
+      - postgres-test
+      - postgres-prod
+
+  backend:
+    build:
+      context: ./gamerecs-back
+      dockerfile: Dockerfile
+    container_name: gamerecs-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-dev:5432/gamerecs_dev
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - IGDB_CLIENT_ID=${IGDB_CLIENT_ID}
+      - IGDB_CLIENT_SECRET=${IGDB_CLIENT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
+      - PROMETHEUS_PASSWORD=${PROMETHEUS_PASSWORD}
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - ./gamerecs-back/logs:/app/logs
+      - ./gamerecs-back/src/main/resources/config:/app/config
+      - backend_data:/app/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    networks:
+      - gamerecs-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./gamerecs-front
+      dockerfile: Dockerfile
+    container_name: gamerecs-frontend
+    volumes:
+      - ./gamerecs-front/src:/usr/share/nginx/html/src
+      - ./gamerecs-front/nginx:/etc/nginx/conf.d
+      - frontend_data:/usr/share/nginx/html/data
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - gamerecs-network
+    environment:
+      - API_URL=${BACKEND_URL}
+
+volumes:
+  postgres_dev_data:
+    name: gamerecs-postgres-dev-data
+  postgres_test_data:
+    name: gamerecs-postgres-test-data
+  postgres_prod_data:
+    name: gamerecs-postgres-prod-data
+  pgadmin_data:
+    name: gamerecs-pgadmin-data
+  backend_data:
+    name: gamerecs-backend-data
+  frontend_data:
+    name: gamerecs-frontend-data
+
+networks:
+  gamerecs-network:
+    name: gamerecs-network
