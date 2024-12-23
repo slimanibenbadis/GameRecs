@@ -127,7 +127,9 @@ jobs:
 
       - name: Build Backend
         working-directory: ./gamerecs-back
-        run: mvn clean compile
+        run: |
+          mvn clean compile
+          mvn dependency:copy-dependencies
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
