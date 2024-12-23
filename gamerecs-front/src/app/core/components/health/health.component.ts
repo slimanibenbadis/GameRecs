@@ -20,12 +20,14 @@ import { HealthService } from '../../services/health.service';
 export class HealthComponent {
   healthStatus = 'UP';
 
-  constructor(private healthService: HealthService) {
-    this.checkHealth();
+  constructor(
+    private readonly _healthService: HealthService
+  ) {
+    this._checkHealth();
   }
 
-  private checkHealth(): void {
-    this.healthService.checkHealth().subscribe(
+  private _checkHealth(): void {
+    this._healthService.checkHealth().subscribe(
       isHealthy => {
         this.healthStatus = isHealthy ? 'UP' : 'DOWN';
       }

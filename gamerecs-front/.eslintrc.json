@@ -13,7 +13,7 @@
   "parserOptions": {
     "ecmaVersion": 2024,
     "sourceType": "module",
-    "project": ["./tsconfig.json"]
+    "project": ["./gamerecs-front/tsconfig.json", "./gamerecs-front/tsconfig.app.json", "./gamerecs-front/tsconfig.spec.json"]
   },
   "plugins": [
     "@typescript-eslint"
