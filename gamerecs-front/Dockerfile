@@ -7,7 +7,7 @@ COPY package*.json ./
 
 # Install dependencies with cache mounting
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production
+    npm ci
 
 # Stage 2: Build the application
 FROM node:20-alpine AS builder
@@ -33,9 +33,15 @@ RUN adduser -D -u 1001 gamerecs && \
     touch /var/run/nginx.pid && \
     chown -R gamerecs:gamerecs /var/run/nginx.pid
 
-# Copy the build output and nginx config
+# Copy the build output
 COPY --from=builder --chown=gamerecs:gamerecs /app/dist/gamerecs-front/browser .
-COPY --chown=gamerecs:gamerecs nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy nginx configuration
+COPY --chown=gamerecs:gamerecs nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Create a script to replace environment variables in nginx config
+COPY --chown=gamerecs:gamerecs docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
 
 # Switch to non-root user
 USER 1001
@@ -46,4 +52,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 80
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"] 
