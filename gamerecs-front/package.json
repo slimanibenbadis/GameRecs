@@ -9,7 +9,8 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test:coverage": "ng test --no-watch --code-coverage --browsers=ChromeHeadless"
   },
   "private": true,
   "dependencies": {
