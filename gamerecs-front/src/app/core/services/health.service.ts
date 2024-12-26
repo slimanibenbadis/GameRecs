@@ -1,36 +1,49 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, forkJoin, map } from 'rxjs';
+
+export interface IHealthResponse {
+  status: string;
+  components?: {
+    [key: string]: {
+      status: string;
+      details?: any;
+    };
+  };
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class HealthService {
-  private readonly healthEndpoint = '/health';
+  private readonly _backendHealthEndpoint = '/actuator/health';
+  private readonly _frontendHealthEndpoint = '/health';
 
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Check the health status of the application
-   * @returns Observable<boolean> - true if healthy, false otherwise
-   */
-  checkHealth(): Observable<boolean> {
-    return of(true).pipe(
-      map(() => true),
-      catchError(() => of(false))
-    );
+  constructor(private _http: HttpClient) {
+    console.log('[HealthService] Initializing health service');
   }
 
-  /**
-   * Get detailed health information
-   * @returns Observable<any> - detailed health status
-   */
-  getHealthDetails(): Observable<any> {
-    return this.http.get(this.healthEndpoint).pipe(
-      catchError(error => {
-        console.error('Health check failed:', error);
-        return of({ status: 'DOWN', error: error.message });
+  checkHealth(): Observable<IHealthResponse> {
+    console.log('[HealthService] Checking health status');
+    
+    return forkJoin({
+      frontend: this._http.get<IHealthResponse>(this._frontendHealthEndpoint),
+      backend: this._http.get<IHealthResponse>(this._backendHealthEndpoint)
+    }).pipe(
+      map(({ frontend, backend }) => {
+        console.log('[HealthService] Frontend health:', frontend);
+        console.log('[HealthService] Backend health:', backend);
+        
+        return {
+          status: frontend.status === 'UP' && backend.status === 'UP' ? 'UP' : 'DOWN',
+          components: {
+            frontend: { status: frontend.status },
+            backend: { 
+              status: backend.status,
+              details: backend.components 
+            }
+          }
+        };
       })
     );
   }

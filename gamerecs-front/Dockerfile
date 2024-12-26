@@ -1,28 +1,27 @@
-# Stage 1: Install dependencies
-FROM node:20-alpine AS dependencies
-WORKDIR /app
-
-# Copy package files for dependency installation
-COPY package*.json ./
-
-# Install dependencies with cache mounting
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production
-
-# Stage 2: Build the application
+# Stage 1: Install dependencies and build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy dependencies from previous stage
-COPY --from=dependencies /app/node_modules ./node_modules
+# Copy package files
+COPY package*.json ./
+
+# Clean install dependencies, forcing platform-specific rebuild
+RUN npm cache clean --force && \
+    rm -rf node_modules && \
+    npm install
+
+# Copy source code
 COPY . .
 
-# Build with production optimization
+# Build the application
 RUN npm run build
 
-# Stage 3: Production image
+# Stage 2: Production image
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
+
+# Install wget for health checks
+RUN apk add --no-cache wget
 
 # Add non-root user
 RUN adduser -D -u 1001 gamerecs && \

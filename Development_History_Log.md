@@ -1,0 +1,87 @@
+- Initial commit for GameRecs application, including backend and frontend setup. Added Docker configurations, environment variables, and initial database schema. Implemented basic Spring Boot application structure with OpenAPI support. Frontend built with Angular, including routing and health check component. Configured ESLint and Tailwind CSS for styling. Added test utilities and mock store for NgRx state management.     
+  - .env.example
+  - .gitignore
+  - docker-compose.yml
+  - gamerecs-back/.gitattributes
+  - gamerecs-back/.gitignore
+  - gamerecs-back/.mvn/wrapper/maven-wrapper.properties
+  - gamerecs-back/Dockerfile
+  - gamerecs-back/mvnw
+  - gamerecs-back/mvnw.cmd
+  - gamerecs-back/pom.xml
+  - gamerecs-back/src/main/java/com/gamerecs/back/GamerecsBackApplication.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/OpenApiConfig.java
+  - gamerecs-back/src/main/resources/application.yml
+  - gamerecs-back/src/main/resources/db/migration/V1__Initial_schema.sql
+  - gamerecs-back/src/main/resources/logback-spring.xml
+  - gamerecs-back/src/test/java/com/gamerecs/back/GamerecsBackApplicationTests.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/BaseTest.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/TestConfig.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/util/BaseIntegrationTest.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/util/BaseUnitTest.java
+  - gamerecs-front/.editorconfig
+  - gamerecs-front/.eslintrc.json
+  - gamerecs-front/.gitignore
+  - gamerecs-front/Dockerfile
+  - gamerecs-front/README.md
+  - gamerecs-front/angular.json
+  - gamerecs-front/karma.conf.js
+  - gamerecs-front/nginx.conf
+  - gamerecs-front/package-lock.json
+  - gamerecs-front/package.json
+  - gamerecs-front/public/favicon.ico
+  - gamerecs-front/src/app/app.component.css
+  - gamerecs-front/src/app/app.component.html
+  - gamerecs-front/src/app/app.component.spec.ts
+  - gamerecs-front/src/app/app.component.ts
+  - gamerecs-front/src/app/app.config.ts
+  - gamerecs-front/src/app/app.routes.ts
+  - gamerecs-front/src/app/core/components/health/health.component.ts
+  - gamerecs-front/src/app/core/services/health.service.ts
+  - gamerecs-front/src/app/testing/mock-store.ts
+  - gamerecs-front/src/app/testing/test-utils.ts
+  - gamerecs-front/src/index.html
+  - gamerecs-front/src/main.ts
+  - gamerecs-front/src/styles.css
+  - gamerecs-front/src/test.ts
+  - gamerecs-front/tailwind.config.js
+  - gamerecs-front/tsconfig.app.json
+  - gamerecs-front/tsconfig.json
+  - gamerecs-front/tsconfig.spec.json
+
+- Enhanced health check functionality and added comprehensive logging for local development setup verification. Updated health service to use proper typing and improved error handling. Added detailed console logging for debugging component communication.
+  - gamerecs-front/src/app/core/components/health/health.component.ts
+  - gamerecs-front/src/app/core/services/health.service.ts
+
+- Fixed backend Dockerfile base image configuration to use a more stable Eclipse Temurin JRE tag, resolving Docker build issues.
+  - gamerecs-back/Dockerfile
+
+- Updated frontend Dockerfile to handle platform-specific dependencies correctly, fixing esbuild compatibility issues between Windows development and Linux container environments.
+  - gamerecs-front/Dockerfile
+
+- Added comprehensive local development setup verification process. Documented manual steps for environment setup, starting Docker services, and verifying service health. Enhanced logging in health checks for better debugging capabilities.
+  - .env
+  - docker-compose.yml
+  - gamerecs-front/src/app/core/components/health/health.component.ts
+  - gamerecs-front/src/app/core/services/health.service.ts
+  - gamerecs-back/src/main/resources/application-dev.yml
+
+- Fixed frontend container configuration in docker-compose.yml to resolve empty server response. Removed unnecessary volume mounts, added proper health checks and logging configuration, and ensured proper service dependencies.
+  - docker-compose.yml
+
+- Enhanced nginx configuration and frontend container setup to resolve empty server response. Added proper error logging, updated security headers, fixed volume mounts, and improved nginx configuration for better debugging capabilities.
+  - gamerecs-front/nginx.conf
+  - docker-compose.yml
+
+- Performed complete local development setup verification. All services are running and healthy, with backend health checks passing successfully. Frontend container is running but health check endpoint needs investigation.
+  - docker-compose.yml
+  - gamerecs-front/src/app/core/components/health/health.component.ts
+  - gamerecs-front/src/app/core/services/health.service.ts
+  - gamerecs-back/src/main/resources/application-dev.yml
+  - .env
+
+- Fixed frontend health check issues by implementing comprehensive health monitoring. Updated health service to check both frontend and backend status, enhanced health component UI with detailed status display, configured proper CORS and proxy settings in nginx, and ensured health check dependencies in Docker.
+  - gamerecs-front/src/app/core/services/health.service.ts
+  - gamerecs-front/src/app/core/components/health/health.component.ts
+  - gamerecs-front/nginx.conf
+  - gamerecs-front/Dockerfile

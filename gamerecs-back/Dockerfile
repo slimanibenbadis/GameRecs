@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.m2 \
     -Dmaven.test.skip=true
 
 # Runtime stage with minimal image
-FROM eclipse-temurin:21-jre-jammy-focal
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Add non-root user with minimal permissions
