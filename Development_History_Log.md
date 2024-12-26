@@ -85,3 +85,7 @@
   - gamerecs-front/src/app/core/components/health/health.component.ts
   - gamerecs-front/nginx.conf
   - gamerecs-front/Dockerfile
+
+- Updated ESLint configuration for less strict but maintainable Angular development. Changed error levels to warnings, added Angular-specific rules, improved TypeScript configuration, and added console logging allowances for development. Updated package.json with Angular ESLint dependencies.
+  - gamerecs-front/.eslintrc.json
+  - gamerecs-front/package.json

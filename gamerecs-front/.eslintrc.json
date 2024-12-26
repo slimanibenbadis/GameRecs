@@ -7,7 +7,8 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@angular-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -16,7 +17,8 @@
     "project": ["./tsconfig.json"]
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "@angular-eslint"
   ],
   "ignorePatterns": [
     "dist",
@@ -26,22 +28,30 @@
     "tailwind.config.js"
   ],
   "rules": {
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "windows"],
-    "quotes": ["error", "single"],
-    "semi": ["error", "always"],
-    "@typescript-eslint/explicit-function-return-type": "error",
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unused-vars": "error",
+    // Console logging for development
+    "no-console": ["warn", { "allow": ["log", "warn", "error", "debug", "info"] }],
+    
+    // Basic formatting
+    "indent": ["warn", 2],
+    "linebreak-style": ["warn", "windows"],
+    "quotes": ["warn", "single", { "allowTemplateLiterals": true }],
+    "semi": ["warn", "always"],
+    
+    // TypeScript specific
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    
+    // Naming conventions
     "@typescript-eslint/naming-convention": [
-      "error",
+      "warn",
       {
         "selector": "default",
-        "format": ["camelCase"]
+        "format": ["camelCase", "PascalCase", "UPPER_CASE"]
       },
       {
         "selector": "variable",
-        "format": ["camelCase", "UPPER_CASE"]
+        "format": ["camelCase", "UPPER_CASE", "PascalCase"]
       },
       {
         "selector": "parameter",
@@ -62,6 +72,24 @@
         "selector": "interface",
         "format": ["PascalCase"],
         "prefix": ["I"]
+      }
+    ],
+    
+    // Angular specific
+    "@angular-eslint/component-selector": [
+      "warn",
+      {
+        "type": "element",
+        "prefix": "app",
+        "style": "kebab-case"
+      }
+    ],
+    "@angular-eslint/directive-selector": [
+      "warn",
+      {
+        "type": "attribute",
+        "prefix": "app",
+        "style": "camelCase"
       }
     ]
   }
