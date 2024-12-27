@@ -138,6 +138,29 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: gamerecs-sonarqube
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - gamerecs-network
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_dev_data:
     name: gamerecs-postgres-dev-data
@@ -151,6 +174,12 @@ volumes:
     name: gamerecs-backend-data
   frontend_data:
     name: gamerecs-frontend-data
+  sonarqube_data:
+    name: gamerecs-sonarqube-data
+  sonarqube_extensions:
+    name: gamerecs-sonarqube-extensions
+  sonarqube_logs:
+    name: gamerecs-sonarqube-logs
 
 networks:
   gamerecs-network:

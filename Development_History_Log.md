@@ -93,3 +93,65 @@
 - Fixed test configuration by adding H2 in-memory database for testing. Added test configuration file and disabled Flyway for tests.
   - gamerecs-back/src/test/resources/application-test.yml
   - gamerecs-back/pom.xml
+
+- Added SonarQube configuration for code quality analysis. Set up local SonarQube server with Docker and configured both backend and frontend for analysis.
+  - docker-compose.yml
+  - gamerecs-back/pom.xml
+  - gamerecs-front/sonar-project.properties
+
+- Enhanced code coverage configuration for SonarQube analysis:
+  - Added JaCoCo plugin to backend for Java code coverage reporting
+  - Updated frontend test configuration for LCOV report generation
+  - Configured Karma for ChromeHeadless testing and coverage thresholds
+  - gamerecs-back/pom.xml
+  - gamerecs-front/karma.conf.js
+  - gamerecs-front/angular.json
+
+- Fixed JaCoCo report path configuration to match actual report location:
+  - Bound JaCoCo report generation to verify phase
+  - Added sonar.jacoco.reportPaths property
+  - Set sonar.language to java explicitly
+  - gamerecs-back/pom.xml
+
+- Enhanced SonarQube coverage configuration:
+  - Added explicit JaCoCo coverage plugin configuration
+  - Enabled dynamic analysis with report reuse
+  - gamerecs-back/pom.xml
+
+- Fixed JaCoCo report path configuration to match actual report location:
+  - Bound JaCoCo report generation to verify phase
+  - Added sonar.jacoco.reportPaths property
+  - Set sonar.language to java explicitly
+  - gamerecs-back/pom.xml
+
+- Completed SonarQube local server setup:
+  - Added sonar script to frontend package.json for running analysis
+  - Verified SonarQube configuration in docker-compose.yml
+  - gamerecs-front/package.json
+
+- Configured SonarQube quality gates according to PRD requirements:
+  - Set up quality gate with 80% minimum coverage
+  - Configured code smells, security, and maintainability metrics
+  - Added project-specific configurations for both frontend and backend
+  - docker-compose.yml
+  - gamerecs-back/pom.xml
+  - gamerecs-front/sonar-project.properties
+
+- Fixed backend code coverage reporting in SonarQube:
+  - Enhanced JaCoCo configuration with proper XML report generation
+  - Added coverage exclusions for config, model, and dto classes
+  - Configured coverage check rule to enforce 80% minimum coverage
+  - Added SonarQube properties for coverage analysis
+  - gamerecs-back/pom.xml
+
+- Removed deprecated JaCoCo configuration:
+  - Removed deprecated sonar.jacoco.reportPath property
+  - Updated to use only XML report path as per latest SonarQube recommendations
+  - gamerecs-back/pom.xml
+
+- Switched to Maven-based sonar-jacoco plugin:
+  - Added sonar-jacoco-plugin as Maven dependency
+  - Added sonar.core.codeCoveragePlugin property
+  - Removed manual plugin installation from docker-compose.yml
+  - gamerecs-back/pom.xml
+  - docker-compose.yml

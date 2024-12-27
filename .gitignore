@@ -84,3 +84,6 @@ testem.log
 
 PRD.md
 .cursorrules
+
+# SonarQube
+.scannerwork/
