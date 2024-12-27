@@ -89,3 +89,7 @@
 - Updated ESLint configuration for less strict but maintainable Angular development. Changed error levels to warnings, added Angular-specific rules, improved TypeScript configuration, and added console logging allowances for development. Updated package.json with Angular ESLint dependencies.
   - gamerecs-front/.eslintrc.json
   - gamerecs-front/package.json
+
+- Fixed test configuration by adding H2 in-memory database for testing. Added test configuration file and disabled Flyway for tests.
+  - gamerecs-back/src/test/resources/application-test.yml
+  - gamerecs-back/pom.xml
