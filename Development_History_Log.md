@@ -174,3 +174,18 @@
   - Set up manual trigger capability and branch-specific triggers
   - Added caching for npm dependencies and Docker layers
   - .github/workflows/frontend-ci.yml
+
+- Added comprehensive CORS configuration:
+  - Created WebConfig class for CORS configuration with proper logging
+  - Added CORS properties to application configuration files
+  - Configured allowed origins, methods, headers, and credentials
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/WebConfig.java
+  - gamerecs-back/src/main/resources/application.yml
+  - gamerecs-back/src/test/resources/application-test.yml
+
+- Added Spring Security configuration to allow Swagger UI access:
+  - Created SecurityConfig class with proper security chain configuration
+  - Whitelisted Swagger UI and OpenAPI endpoints
+  - Disabled CSRF for API endpoints
+  - Allowed access to actuator endpoints
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java

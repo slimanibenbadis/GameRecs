@@ -11,6 +11,10 @@ spring:
   flyway:
     enabled: false
 
+# CORS Configuration for tests
+allowed:
+  origins: http://localhost:4200
+
 logging:
   level:
     com.gamerecs: DEBUG

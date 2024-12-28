@@ -4,6 +4,10 @@ spring:
   profiles:
     active: dev
 
+# CORS Configuration
+allowed:
+  origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
