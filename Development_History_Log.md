@@ -155,3 +155,10 @@
   - Removed manual plugin installation from docker-compose.yml
   - gamerecs-back/pom.xml
   - docker-compose.yml
+
+- Added GitHub Actions workflow for backend CI/CD pipeline:
+  - Configured build, test, and code quality checks with SonarQube
+  - Set up Docker image build and push for main and develop branches
+  - Added manual trigger capability and branch-specific triggers
+  - Configured H2 database for testing environment
+  - .github/workflows/backend-ci.yml
