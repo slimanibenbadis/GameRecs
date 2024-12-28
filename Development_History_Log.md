@@ -162,3 +162,9 @@
   - Added manual trigger capability and branch-specific triggers
   - Configured H2 database for testing environment
   - .github/workflows/backend-ci.yml
+
+- Updated backend CI/CD workflow to use SonarCloud instead of local SonarQube:
+  - Added SonarCloud specific configuration
+  - Added caching for SonarCloud packages
+  - Configured organization and project key as secrets
+  - .github/workflows/backend-ci.yml

@@ -34,13 +34,22 @@ jobs:
     - name: Run Tests
       run: mvn -B test -Dspring.profiles.active=test
 
-    - name: Run SonarQube Analysis
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+
+    - name: Run SonarCloud Analysis
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         mvn -B verify sonar:sonar \
-        -Dsonar.projectKey=gamerecs-back \
-        -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+        -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+        -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
         -Dsonar.java.coveragePlugin=jacoco \
         -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
