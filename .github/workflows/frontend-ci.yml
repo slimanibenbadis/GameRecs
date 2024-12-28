@@ -1,0 +1,73 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ main, develop, 'feature-*' ]
+    paths:
+      - 'gamerecs-front/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'gamerecs-front/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./gamerecs-front
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: './gamerecs-front/package-lock.json'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Build
+      run: npm run build
+
+    - name: Test
+      run: npm run test:ci
+
+  docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./gamerecs-front
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:${{ env.BRANCH_NAME }}
+          ${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:latest
+        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:buildcache
+        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:buildcache,mode=max 

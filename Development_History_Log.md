@@ -168,3 +168,9 @@
   - Added caching for SonarCloud packages
   - Configured organization and project key as secrets
   - .github/workflows/backend-ci.yml
+
+- Added GitHub Actions workflow for frontend CI/CD pipeline:
+  - Configured build, test, lint, and Docker image build steps
+  - Set up manual trigger capability and branch-specific triggers
+  - Added caching for npm dependencies and Docker layers
+  - .github/workflows/frontend-ci.yml
