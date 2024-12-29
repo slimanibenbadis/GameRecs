@@ -246,3 +246,10 @@
   - Added password hashing with PasswordEncoder
   - Added comprehensive logging
   - gamerecs-back/src/main/java/com/gamerecs/back/service/UserService.java
+
+- Implemented User Registration Controller with DTO:
+  - Created UserRegistrationDto for handling registration requests with validation
+  - Implemented UserController with registration endpoint following REST principles
+  - Added proper error handling and logging
+  - gamerecs-back/src/main/java/com/gamerecs/back/dto/UserRegistrationDto.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
