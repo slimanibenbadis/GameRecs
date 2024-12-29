@@ -239,3 +239,10 @@
   - Implemented custom query methods for email and username lookups
   - Added existence check methods for email and username
   - gamerecs-back/src/main/java/com/gamerecs/back/repository/UserRepository.java
+
+- Created UserService for handling user registration:
+  - Added UserService class with registerUser method
+  - Implemented email and username uniqueness validation
+  - Added password hashing with PasswordEncoder
+  - Added comprehensive logging
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/UserService.java
