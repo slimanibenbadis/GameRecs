@@ -245,7 +245,6 @@
 				<version>0.8.12</version>
 				<configuration>
 					<excludes>
-						<exclude>**/config/**</exclude>
 						<exclude>**/model/**</exclude>
 						<exclude>**/dto/**</exclude>
 						<exclude>**/GamerecsBackApplication.*</exclude>
@@ -267,6 +266,7 @@
 						<configuration>
 							<formats>
 								<format>XML</format>
+                <format>HTML</format>
 							</formats>
 						</configuration>
 					</execution>

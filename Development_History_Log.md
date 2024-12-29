@@ -217,3 +217,19 @@
   - Added detailed logging for debugging
   - gamerecs-back/src/test/resources/application-test.yml
   - gamerecs-back/src/test/java/com/gamerecs/back/config/SecurityConfigTest.java
+
+- Added comprehensive tests for WebConfig CORS configuration:
+  - Created WebConfigTest class with tests for allowed origins, HTTP methods, headers, max age, and origin rejection
+  - Implemented proper logging for test execution and debugging
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/WebConfigTest.java
+
+- Fixed CORS test failures by enhancing SecurityConfig:
+  - Added CorsConfigurationSource bean for proper CORS handling
+  - Configured security to allow OPTIONS requests and test endpoints
+  - Added proper CORS configuration with allowed origins, methods, headers, and credentials
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Fixed CORS origin validation in SecurityConfig:
+  - Replaced wildcard origin pattern with specific allowed origins from configuration
+  - Added proper origin validation to ensure non-allowed origins are rejected
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
