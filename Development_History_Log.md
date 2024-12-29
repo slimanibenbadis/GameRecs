@@ -233,3 +233,9 @@
   - Replaced wildcard origin pattern with specific allowed origins from configuration
   - Added proper origin validation to ensure non-allowed origins are rejected
   - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Created UserRepository interface for User entity database operations:
+  - Added standard JPA repository methods by extending JpaRepository
+  - Implemented custom query methods for email and username lookups
+  - Added existence check methods for email and username
+  - gamerecs-back/src/main/java/com/gamerecs/back/repository/UserRepository.java
