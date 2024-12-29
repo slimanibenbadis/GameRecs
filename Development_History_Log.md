@@ -196,3 +196,24 @@
   - Used Lombok annotations for boilerplate reduction
   - Added validation constraints for username and email
   - Configured automatic timestamp handling for joinDate and lastLogin
+
+- Added comprehensive tests for SecurityConfig to validate security configurations:
+  - Created SecurityConfigTest class with tests for Swagger UI, actuator endpoints, and protected endpoints access
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/SecurityConfigTest.java
+
+- Fixed SecurityConfig to return proper HTTP status codes:
+  - Added custom AuthenticationEntryPoint to return 401 Unauthorized instead of 403 Forbidden for unauthenticated requests
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Fixed Swagger UI access in SecurityConfig and tests:
+  - Updated SecurityConfig to allow access to all required Swagger UI resources
+  - Modified SecurityConfigTest to test correct Swagger UI endpoints and handle redirects
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/SecurityConfigTest.java
+
+- Enhanced Swagger UI test configuration and assertions:
+  - Added SpringDoc configuration to test properties
+  - Updated test assertions to handle various response codes
+  - Added detailed logging for debugging
+  - gamerecs-back/src/test/resources/application-test.yml
+  - gamerecs-back/src/test/java/com/gamerecs/back/config/SecurityConfigTest.java
