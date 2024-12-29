@@ -189,3 +189,10 @@
   - Disabled CSRF for API endpoints
   - Allowed access to actuator endpoints
   - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Created User entity with JPA annotations and validation constraints:
+  - gamerecs-back/src/main/java/com/gamerecs/back/model/User.java
+  - Added fields: userId, username, email, passwordHash, profilePictureUrl, bio, joinDate, lastLogin
+  - Used Lombok annotations for boilerplate reduction
+  - Added validation constraints for username and email
+  - Configured automatic timestamp handling for joinDate and lastLogin
