@@ -262,3 +262,38 @@
   - gamerecs-back/src/main/java/com/gamerecs/back/model/User.java
   - gamerecs-back/src/main/java/com/gamerecs/back/dto/UserRegistrationDto.java
   - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
+
+- Added comprehensive tests for User-related components:
+  - Created UserTest for entity validation testing
+  - Created UserRepositoryTest for database operations testing
+  - Created UserServiceTest for business logic testing
+  - Created UserControllerTest for REST endpoint testing
+  - Added proper logging and test coverage for all components
+  - gamerecs-back/src/test/java/com/gamerecs/back/model/UserTest.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/repository/UserRepositoryTest.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/service/UserServiceTest.java
+  - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java
+
+- Fixed missing PasswordEncoder bean issue:
+  - Added BCryptPasswordEncoder bean configuration in SecurityConfig
+  - Added /api/users/register to permitted endpoints
+  - Added proper logging for password encoder creation
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Fixed UserTest validation expectations:
+  - Updated shouldFailValidationWithBlankUsername test to expect both @NotBlank and @Size violations
+  - Added detailed validation message checking
+  - Improved test readability with explicit violation type checking
+  - gamerecs-back/src/test/java/com/gamerecs/back/model/UserTest.java
+
+- Fixed UserTest validation checking:
+  - Updated validation check to use constraint type instead of message content
+  - Added detailed violation logging for debugging
+  - Fixed constraint type comparison logic
+  - gamerecs-back/src/test/java/com/gamerecs/back/model/UserTest.java
+
+- Fixed UserServiceTest password encoding verification:
+  - Updated shouldRegisterUser test to use correct password values
+  - Added explicit password value checking in mock setup
+  - Added verification of password hashing in save operation
+  - gamerecs-back/src/test/java/com/gamerecs/back/service/UserServiceTest.java
