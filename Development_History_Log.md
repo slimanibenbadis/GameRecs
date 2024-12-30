@@ -253,3 +253,12 @@
   - Added proper error handling and logging
   - gamerecs-back/src/main/java/com/gamerecs/back/dto/UserRegistrationDto.java
   - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
+
+- Added comprehensive input validation for user registration:
+  - Created GlobalExceptionHandler for centralized validation error handling with proper logging
+  - Verified and enhanced validation annotations in User entity and UserRegistrationDto
+  - Confirmed @Valid annotation in UserController for registration endpoint
+  - gamerecs-back/src/main/java/com/gamerecs/back/exception/GlobalExceptionHandler.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/model/User.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/dto/UserRegistrationDto.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
