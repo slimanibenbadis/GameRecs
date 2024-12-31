@@ -33,7 +33,6 @@
     
     // Basic formatting
     "indent": ["warn", 2],
-    "linebreak-style": ["warn", "windows"],
     "quotes": ["warn", "single", { "allowTemplateLiterals": true }],
     "semi": ["warn", "always"],
     
