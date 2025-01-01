@@ -13,7 +13,7 @@
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('username')?.invalid && registrationForm.get('username')?.touched}"
         />
         <small class="text-red-500" *ngIf="registrationForm.get('username')?.invalid && registrationForm.get('username')?.touched">
-          Username is required (3-20 characters)
+          {{ getErrorMessage('username') }}
         </small>
       </div>
 
@@ -28,7 +28,7 @@
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched}"
         />
         <small class="text-red-500" *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
-          Please enter a valid email address
+          {{ getErrorMessage('email') }}
         </small>
       </div>
 
@@ -44,7 +44,7 @@
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched}"
         ></p-password>
         <small class="text-red-500" *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
-          Password must be at least 8 characters long
+          {{ getErrorMessage('password') }}
         </small>
       </div>
 
@@ -59,7 +59,7 @@
           [inputStyle]="{'width': '100%'}"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('confirmPassword')?.invalid && registrationForm.get('confirmPassword')?.touched}"
         ></p-password>
-        <small class="text-red-500" *ngIf="registrationForm.hasError('mismatch')">
+        <small class="text-red-500" *ngIf="registrationForm.hasError('mismatch') && registrationForm.get('confirmPassword')?.touched">
           Passwords do not match
         </small>
       </div>
@@ -72,7 +72,11 @@
           formControlName="bio"
           rows="3"
           class="w-full"
+          [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('bio')?.invalid && registrationForm.get('bio')?.touched}"
         ></textarea>
+        <small class="text-red-500" *ngIf="registrationForm.get('bio')?.invalid && registrationForm.get('bio')?.touched">
+          {{ getErrorMessage('bio') }}
+        </small>
       </div>
 
       <div class="form-field">
@@ -82,7 +86,11 @@
           id="profilePicture" 
           formControlName="profilePictureUrl"
           class="w-full p-inputtext-sm"
+          [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('profilePictureUrl')?.invalid && registrationForm.get('profilePictureUrl')?.touched}"
         />
+        <small class="text-red-500" *ngIf="registrationForm.get('profilePictureUrl')?.invalid && registrationForm.get('profilePictureUrl')?.touched">
+          {{ getErrorMessage('profilePictureUrl') }}
+        </small>
       </div>
 
       <div class="mt-6">

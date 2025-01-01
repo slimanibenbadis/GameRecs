@@ -36,12 +36,25 @@ export class RegistrationFormComponent implements OnInit {
   ) {
     console.log('[RegistrationFormComponent] Initializing component');
     this.registrationForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      username: ['', [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(20),
+        Validators.pattern('^[a-zA-Z0-9_-]*$')
+      ]],
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$')
+      ]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$')
+      ]],
       confirmPassword: ['', [Validators.required]],
-      bio: [''],
-      profilePictureUrl: ['']
+      bio: ['', [Validators.maxLength(500)]],
+      profilePictureUrl: ['', [Validators.pattern('^(https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif))$')]]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -75,5 +88,39 @@ export class RegistrationFormComponent implements OnInit {
         detail: 'Please check all fields and try again.'
       });
     }
+  }
+
+  // Helper methods for validation messages
+  getErrorMessage(controlName: string): string {
+    const control = this.registrationForm.get(controlName);
+    if (!control?.errors || !control.touched) return '';
+
+    const errors = control.errors;
+    console.log(`[RegistrationFormComponent] Form errors for ${controlName}:`, errors);
+
+    switch (controlName) {
+    case 'username':
+      if (errors['required']) return 'Username is required';
+      if (errors['minlength']) return 'Username must be at least 3 characters';
+      if (errors['maxlength']) return 'Username cannot exceed 20 characters';
+      if (errors['pattern']) return 'Username can only contain letters, numbers, underscores, and hyphens';
+      break;
+    case 'email':
+      if (errors['required']) return 'Email is required';
+      if (errors['email'] || errors['pattern']) return 'Please enter a valid email address';
+      break;
+    case 'password':
+      if (errors['required']) return 'Password is required';
+      if (errors['minlength']) return 'Password must be at least 8 characters';
+      if (errors['pattern']) return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      break;
+    case 'bio':
+      if (errors['maxlength']) return 'Bio cannot exceed 500 characters';
+      break;
+    case 'profilePictureUrl':
+      if (errors['pattern']) return 'Please enter a valid image URL (http/https ending in .png, .jpg, .jpeg, or .gif)';
+      break;
+    }
+    return '';
   }
 } 

@@ -342,3 +342,11 @@
   - gamerecs-front/src/app/app.component.ts
   - gamerecs-front/src/app/core/components/auth/registration-form.component.html
   - gamerecs-front/tailwind.config.js
+
+- Enhanced Registration Form validation:
+  - Added comprehensive client-side validation with specific patterns and rules
+  - Implemented detailed error messages with getErrorMessage helper method
+  - Added validation for optional fields (bio and profile picture URL)
+  - Improved validation UX by showing errors only on touched fields
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.html
