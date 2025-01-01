@@ -88,9 +88,13 @@
             "codeCoverage": true,
             "codeCoverageExclude": [
               "src/test.ts",
-              "src/**/*.spec.ts",
-              "src/app/testing/**/*"
-            ]
+              "src/testing/**/*",
+              "src/environments/**/*",
+              "src/main.ts",
+              "src/polyfills.ts"
+            ],
+            "sourceMap": true,
+            "progress": true
           }
         }
       }

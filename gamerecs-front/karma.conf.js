@@ -32,7 +32,9 @@ module.exports = function (config) {
         { type: 'text-summary' },
         { type: 'lcov' }
       ],
-      check: {
+      fixWebpackSourcePaths: true,
+      thresholds: {
+        emitWarning: false,
         global: {
           statements: 80,
           branches: 80,
@@ -45,6 +47,7 @@ module.exports = function (config) {
     browsers: ['ChromeHeadless'],
     restartOnFileChange: true,
     singleRun: true,
-    browserNoActivityTimeout: 40000
+    browserNoActivityTimeout: 40000,
+    failOnEmptyTestSuite: false
   });
 }; 

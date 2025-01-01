@@ -350,3 +350,13 @@
   - Improved validation UX by showing errors only on touched fields
   - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
   - gamerecs-front/src/app/core/components/auth/registration-form.component.html
+
+- Fixed SonarQube test coverage configuration:
+  - Updated sonar-project.properties with proper test inclusions and exclusions
+  - Added coverage exclusions for non-testable files
+  - Added quality gate settings with 80% minimum coverage requirement
+  - Fixed Karma configuration with proper coverage thresholds and reporting
+  - Updated Angular test configuration for accurate coverage tracking
+  - gamerecs-front/sonar-project.properties
+  - gamerecs-front/karma.conf.js
+  - gamerecs-front/angular.json
