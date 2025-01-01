@@ -1,4 +1,5 @@
 @import "primeicons/primeicons.css";
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Rubik:wght@400;500;600&display=swap');
 
 @layer tailwind-base, primeng, tailwind-utilities;
 
@@ -9,4 +10,81 @@
 @layer tailwind-utilities {
 @tailwind components;
 @tailwind utilities;
+}
+
+:root {
+  /* Light mode */
+  --text-light: #062823;
+  --bg-light: #f2fdfb;
+  --primary-light: #158475;
+  --secondary-light: #76bbea;
+  --accent-light: #1d5bb9;
+
+  /* Dark mode */
+  --text-dark: #d7f9f4;
+  --bg-dark: #020d0b;
+  --primary-dark: #7beadb;
+  --secondary-dark: #155b89;
+  --accent-dark: #4684e2;
+}
+
+/* Base styles */
+html {
+  @apply font-rubik antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-fira;
+}
+
+/* Type scale: 1.333 (Perfect Fourth) */
+h1 { font-size: 3.157rem; }
+h2 { font-size: 2.369rem; }
+h3 { font-size: 1.777rem; }
+h4 { font-size: 1.333rem; }
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* PrimeNG theme overrides */
+:root {
+  --primary-color: var(--primary-light);
+  --text-color: var(--text-light);
+  --surface-ground: var(--bg-light);
+}
+
+.dark {
+  --primary-color: var(--primary-dark);
+  --text-color: var(--text-dark);
+  --surface-ground: var(--bg-dark);
+}
+
+/* Form styling */
+.p-inputtext,
+.p-password input,
+.p-button {
+  @apply rounded-lg transition-all duration-200;
+}
+
+.p-button {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.p-button:enabled:hover {
+  filter: brightness(110%) !important;
+}
+
+/* Toast styling */
+.p-toast {
+  @apply font-rubik;
+}
+
+/* Custom utility classes */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-accent-light dark:from-primary-dark dark:to-accent-dark;
 }

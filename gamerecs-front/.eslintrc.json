@@ -14,7 +14,8 @@
   "parserOptions": {
     "ecmaVersion": 2024,
     "sourceType": "module",
-    "project": ["./tsconfig.json"]
+    "project": ["./tsconfig.json"],
+    "extraFileExtensions": [".html"]
   },
   "plugins": [
     "@typescript-eslint",
@@ -25,7 +26,8 @@
     "coverage",
     "*.spec.ts",
     "karma.conf.js",
-    "tailwind.config.js"
+    "tailwind.config.js",
+    "*.html"
   ],
   "rules": {
     // Console logging for development
