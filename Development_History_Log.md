@@ -392,3 +392,9 @@
   - gamerecs-front/package.json
   - gamerecs-back/src/main/resources/application.yml
   - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+
+- Fixed User Registration API Communication:
+  - Added missing /api location block in nginx.conf to properly proxy API requests to the backend
+  - Configured proper CORS headers and OPTIONS request handling for API routes
+  - Ensured consistent proxy configuration between API and actuator endpoints
+  - gamerecs-front/nginx.conf
