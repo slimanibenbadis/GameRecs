@@ -360,3 +360,10 @@
   - gamerecs-front/sonar-project.properties
   - gamerecs-front/karma.conf.js
   - gamerecs-front/angular.json
+
+- Fixed AppComponent tests by removing default title tests and adding proper dark mode tests:
+  - Removed default Angular title-related tests that were causing TypeScript errors
+  - Added comprehensive tests for dark mode functionality
+  - Implemented proper window.matchMedia mocking
+  - Added test coverage for system preference changes
+  - gamerecs-front/src/app/app.component.spec.ts
