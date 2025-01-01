@@ -367,3 +367,28 @@
   - Implemented proper window.matchMedia mocking
   - Added test coverage for system preference changes
   - gamerecs-front/src/app/app.component.spec.ts
+
+- Implemented User Registration Service (Frontend):
+  - Created AuthService for handling user registration API calls
+  - Updated RegistrationFormComponent to use AuthService
+  - Added HttpClient configuration to app.config.ts
+  - gamerecs-front/src/app/core/services/auth.service.ts
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+  - gamerecs-front/src/app/app.config.ts
+
+- Fixed User Registration API Communication:
+  - Added proxy configuration to route API requests to backend server
+  - Enhanced AuthService with proper error handling and typing
+  - Added IApiError interface for backend error responses
+  - Updated Angular serve configuration to use proxy
+  - gamerecs-front/proxy.conf.json
+  - gamerecs-front/angular.json
+  - gamerecs-front/src/app/core/services/auth.service.ts
+
+- Fixed Angular Development Server Configuration:
+  - Updated package.json start script to always use proxy configuration
+  - Verified backend API communication with direct testing
+  - Confirmed proper CORS and security settings
+  - gamerecs-front/package.json
+  - gamerecs-back/src/main/resources/application.yml
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java

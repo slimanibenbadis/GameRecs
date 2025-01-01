@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '../../services/auth.service';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -32,7 +33,8 @@ export class RegistrationFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private authService: AuthService
   ) {
     console.log('[RegistrationFormComponent] Initializing component');
     this.registrationForm = this.fb.group({
@@ -72,14 +74,31 @@ export class RegistrationFormComponent implements OnInit {
     if (this.registrationForm.valid) {
       console.log('[RegistrationFormComponent] Form submitted:', this.registrationForm.value);
       this.loading = true;
-      // TODO: Implement actual registration logic with UserService
-      // For now, just show a success message
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Registration Successful',
-        detail: 'Your account has been created successfully!'
+
+      const { confirmPassword, ...registrationData } = this.registrationForm.value;
+      
+      this.authService.registerUser(registrationData).subscribe({
+        next: (response) => {
+          console.log('[RegistrationFormComponent] Registration successful:', response);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Registration Successful',
+            detail: 'Your account has been created successfully!'
+          });
+          this.registrationForm.reset();
+        },
+        error: (error) => {
+          console.error('[RegistrationFormComponent] Registration failed:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Registration Failed',
+            detail: error.error?.message || 'An error occurred during registration. Please try again.'
+          });
+        },
+        complete: () => {
+          this.loading = false;
+        }
       });
-      this.loading = false;
     } else {
       console.log('[RegistrationFormComponent] Form validation failed');
       this.messageService.add({
