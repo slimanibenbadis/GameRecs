@@ -34,31 +34,23 @@ public class UserController {
      * Handles user registration requests.
      *
      * @param registrationDto the user registration data
-     * @return ResponseEntity containing the registered user or error details
+     * @return ResponseEntity containing the registered user
      */
     @PostMapping("/register")
-    public ResponseEntity<?> handleUserRegistration(@Valid @RequestBody UserRegistrationDto registrationDto) {
+    public ResponseEntity<User> handleUserRegistration(@Valid @RequestBody UserRegistrationDto registrationDto) {
         logger.debug("Received registration request for user: {}", registrationDto.getUsername());
         
-        try {
-            User user = User.builder()
-                    .username(registrationDto.getUsername())
-                    .email(registrationDto.getEmail())
-                    .passwordHash(registrationDto.getPassword()) // Will be hashed by UserService
-                    .profilePictureUrl(registrationDto.getProfilePictureUrl())
-                    .bio(registrationDto.getBio())
-                    .build();
-            
-            User registeredUser = userService.registerUser(user);
-            logger.info("Successfully registered user: {}", registeredUser.getUsername());
-            
-            return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Registration failed: {}", e.getMessage());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            logger.error("Unexpected error during registration", e);
-            return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        User user = User.builder()
+                .username(registrationDto.getUsername())
+                .email(registrationDto.getEmail())
+                .passwordHash(registrationDto.getPassword()) // Will be hashed by UserService
+                .profilePictureUrl(registrationDto.getProfilePictureUrl())
+                .bio(registrationDto.getBio())
+                .build();
+        
+        User registeredUser = userService.registerUser(user);
+        logger.info("Successfully registered user: {}", registeredUser.getUsername());
+        
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 } 

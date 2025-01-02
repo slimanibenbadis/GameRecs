@@ -80,6 +80,7 @@ export class RegistrationFormComponent implements OnInit {
       this.authService.registerUser(registrationData).subscribe({
         next: (response) => {
           console.log('[RegistrationFormComponent] Registration successful:', response);
+          this.loading = false;
           this.messageService.add({
             severity: 'success',
             summary: 'Registration Successful',
@@ -89,14 +90,20 @@ export class RegistrationFormComponent implements OnInit {
         },
         error: (error) => {
           console.error('[RegistrationFormComponent] Registration failed:', error);
+          this.loading = false;
+          
+          let errorDetail = 'An error occurred during registration. Please try again.';
+          
+          if (error instanceof Error) {
+            errorDetail = error.message;
+          }
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Registration Failed',
-            detail: error.error?.message || 'An error occurred during registration. Please try again.'
+            detail: errorDetail,
+            life: 5000
           });
-        },
-        complete: () => {
-          this.loading = false;
         }
       });
     } else {
@@ -104,7 +111,8 @@ export class RegistrationFormComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
-        detail: 'Please check all fields and try again.'
+        detail: 'Please check all fields and try again.',
+        life: 5000
       });
     }
   }

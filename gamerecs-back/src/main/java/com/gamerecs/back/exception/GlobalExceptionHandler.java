@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
      * @return ResponseEntity containing validation error details
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiError> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         
         ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -39,7 +39,12 @@ public class GlobalExceptionHandler {
         });
         
         logger.warn("Validation failed: {}", errors);
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        ApiError apiError = new ApiError(
+            HttpStatus.BAD_REQUEST.value(),
+            "Validation failed",
+            errors
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
     
     /**
@@ -49,9 +54,13 @@ public class GlobalExceptionHandler {
      * @return ResponseEntity containing error message
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.warn("Invalid argument: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        ApiError apiError = new ApiError(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
     
     /**
@@ -61,8 +70,12 @@ public class GlobalExceptionHandler {
      * @return ResponseEntity containing generic error message
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
+    public ResponseEntity<ApiError> handleGenericException(Exception ex) {
         logger.error("Unexpected error occurred", ex);
-        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        ApiError apiError = new ApiError(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected error occurred"
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 } 

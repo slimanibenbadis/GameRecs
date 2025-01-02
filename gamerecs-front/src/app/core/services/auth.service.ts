@@ -23,9 +23,8 @@ export interface IRegistrationResponse {
 export interface IApiError {
   timestamp: string;
   status: number;
-  error: string;
   message: string;
-  path: string;
+  errors?: { [key: string]: string };
 }
 
 @Injectable({
@@ -64,10 +63,17 @@ export class AuthService {
         `body was:`, error.error
       );
       
-      // Try to parse the error message from the response
-      if (error.error && typeof error.error === 'object') {
+      try {
         const apiError = error.error as IApiError;
-        errorMessage = apiError.message || 'An error occurred during registration';
+        if (apiError.errors && Object.keys(apiError.errors).length > 0) {
+          // If we have field-specific errors, join them
+          errorMessage = Object.values(apiError.errors).join('. ');
+        } else {
+          errorMessage = apiError.message || 'An error occurred during registration';
+        }
+      } catch (e) {
+        console.error('[AuthService] Error parsing error response:', e);
+        errorMessage = 'An error occurred during registration';
       }
     }
 

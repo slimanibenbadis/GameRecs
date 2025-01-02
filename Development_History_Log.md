@@ -398,3 +398,34 @@
   - Configured proper CORS headers and OPTIONS request handling for API routes
   - Ensured consistent proxy configuration between API and actuator endpoints
   - gamerecs-front/nginx.conf
+
+- Fixed error handling for user registration:
+  - Created standardized ApiError class for consistent error responses
+  - Updated GlobalExceptionHandler to use ApiError format
+  - Enhanced frontend error handling in AuthService and RegistrationFormComponent
+  - Added proper error message display with PrimeNG Toast
+  - gamerecs-back/src/main/java/com/gamerecs/back/exception/ApiError.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/exception/GlobalExceptionHandler.java
+  - gamerecs-front/src/app/core/services/auth.service.ts
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+
+- Fixed user registration error handling in UserController:
+  - Updated error responses to use consistent JSON format with ApiError
+  - Removed plain text error responses
+  - Ensured proper error message propagation to frontend
+  - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/dto/ErrorResponseDto.java
+
+- Improved error handling architecture:
+  - Removed redundant try-catch blocks from UserController
+  - Leveraged GlobalExceptionHandler for centralized error handling
+  - Removed redundant ErrorResponseDto in favor of ApiError
+  - Simplified controller code and improved maintainability
+  - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/dto/ErrorResponseDto.java
+
+- Fixed loading state issue in registration form:
+  - Updated loading state management in onSubmit method to properly reset on both success and error
+  - Removed redundant complete handler since it's not called on error
+  - Ensures button returns to normal state after failed registration attempts
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
