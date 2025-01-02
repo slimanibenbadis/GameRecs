@@ -429,3 +429,18 @@
   - Removed redundant complete handler since it's not called on error
   - Ensures button returns to normal state after failed registration attempts
   - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+
+- Fixed UserControllerTest to expect JSON responses:
+  - Updated shouldHandleUnexpectedErrors test to expect ApiError JSON format
+  - Updated shouldReturn400WhenEmailExists and shouldReturn400WhenUsernameExists tests to expect JSON responses
+  - Added proper assertions for status, message, timestamp, and errors fields
+  - Ensured consistency with GlobalExceptionHandler's ApiError responses
+  - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java
+
+- Fixed validation error tests in UserControllerTest:
+  - Updated shouldReturn400ForInvalidEmailFormat to expect ApiError format
+  - Updated shouldReturn400ForBlankUsername to expect ApiError format
+  - Updated shouldReturn400ForPasswordTooShort to expect ApiError format
+  - Added proper assertions for status, message, timestamp, and errors fields
+  - Ensured validation errors are checked in the errors map of ApiError
+  - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java
