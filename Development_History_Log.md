@@ -444,3 +444,15 @@
   - Added proper assertions for status, message, timestamp, and errors fields
   - Ensured validation errors are checked in the errors map of ApiError
   - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java
+
+- Added comprehensive unit tests for Registration Form Component:
+  - Created test suite with extensive coverage for form validation, submission, and error handling
+  - Added tests for all form fields including required and optional fields
+  - Implemented tests for successful registration and error scenarios
+  - Added tests for error message display and validation
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.spec.ts
+
+- Added comprehensive tests for registration functionality:
+  - Created AuthService unit tests with full coverage for successful registration and error handling
+  - Tested form validation, submission, error handling
+  - gamerecs-front/src/app/core/services/auth.service.spec.ts

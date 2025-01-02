@@ -10,7 +10,11 @@
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "sonar": "sonar-scanner"
+    "sonar": "sonar-scanner",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "e2e": "ng e2e",
+    "e2e:ci": "start-server-and-test start http://localhost:4200 cypress:run"
   },
   "private": true,
   "dependencies": {
@@ -45,11 +49,13 @@
     "@angular-eslint/template-parser": "^19.0.0",
     "@angular/cli": "^19.0.6",
     "@angular/compiler-cli": "^19.0.0",
+    "@cypress/schematic": "^2.5.2",
     "@eslint/js": "^8.57.0",
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "autoprefixer": "^10.4.20",
+    "cypress": "^13.17.0",
     "eslint": "^8.57.0",
     "globals": "^15.14.0",
     "jasmine-core": "~5.4.0",
