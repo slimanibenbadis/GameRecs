@@ -5,6 +5,7 @@ import { providePrimeNG } from 'primeng/config';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { routes } from './app.routes';
 import Aura from '@primeng/themes/aura';
+import { MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -13,12 +14,14 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(withFetch()),
     providePrimeNG({
+      ripple: true,
       theme: {
         preset: Aura,
         options: {
           darkModeSelector: '.dark'
         }
       }
-    })
+    }),
+    MessageService
   ]
 };

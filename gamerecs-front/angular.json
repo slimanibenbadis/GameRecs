@@ -43,12 +43,29 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "cypress": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.cypress.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -61,6 +78,9 @@
             },
             "development": {
               "buildTarget": "gamerecs-front:build:development"
+            },
+            "cypress": {
+              "buildTarget": "gamerecs-front:build:cypress"
             }
           },
           "defaultConfiguration": "development",

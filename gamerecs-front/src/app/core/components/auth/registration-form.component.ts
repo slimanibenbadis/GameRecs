@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../../environments/environment';
+import { Toast } from 'primeng/toast';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -28,8 +30,11 @@ import { TextareaModule } from 'primeng/textarea';
   providers: [MessageService]
 })
 export class RegistrationFormComponent implements OnInit {
+  @ViewChild('toast') toast!: Toast;
+  
   registrationForm: FormGroup;
   loading = false;
+  environment = environment;
 
   constructor(
     private fb: FormBuilder,
@@ -96,8 +101,10 @@ export class RegistrationFormComponent implements OnInit {
           
           if (error instanceof Error) {
             errorDetail = error.message;
+            console.log('[RegistrationFormComponent] Using error.message:', errorDetail);
           }
           
+          console.log('[RegistrationFormComponent] Showing error toast with detail:', errorDetail);
           this.messageService.add({
             severity: 'error',
             summary: 'Registration Failed',

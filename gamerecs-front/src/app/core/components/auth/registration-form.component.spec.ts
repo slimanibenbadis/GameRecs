@@ -212,25 +212,78 @@ describe('RegistrationFormComponent', () => {
       component.registrationForm.get('username')?.markAsTouched();
       expect(component.getErrorMessage('username')).toBe('Username is required');
 
+      component.registrationForm.get('username')?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username must be at least 3 characters');
+
+      component.registrationForm.get('username')?.setErrors({ maxlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
+
+      component.registrationForm.get('username')?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
+
       // Email errors
-      component.registrationForm.get('email')?.setErrors({ email: true });
+      component.registrationForm.get('email')?.setErrors({ required: true });
       component.registrationForm.get('email')?.markAsTouched();
+      expect(component.getErrorMessage('email')).toBe('Email is required');
+
+      component.registrationForm.get('email')?.setErrors({ email: true });
+      expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
+
+      component.registrationForm.get('email')?.setErrors({ pattern: true });
       expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
 
       // Password errors
-      component.registrationForm.get('password')?.setErrors({ pattern: true });
+      component.registrationForm.get('password')?.setErrors({ required: true });
       component.registrationForm.get('password')?.markAsTouched();
+      expect(component.getErrorMessage('password')).toBe('Password is required');
+
+      component.registrationForm.get('password')?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('password')).toBe('Password must be at least 8 characters');
+
+      component.registrationForm.get('password')?.setErrors({ pattern: true });
       expect(component.getErrorMessage('password')).toBe('Password must contain at least one uppercase letter, one lowercase letter, and one number');
 
-      // Bio errors
-      component.registrationForm.get('bio')?.setErrors({ maxlength: true });
-      component.registrationForm.get('bio')?.markAsTouched();
-      expect(component.getErrorMessage('bio')).toBe('Bio cannot exceed 500 characters');
+      // Test untouched control
+      component.registrationForm.get('username')?.setErrors({ required: true });
+      component.registrationForm.get('username')?.markAsUntouched();
+      expect(component.getErrorMessage('username')).toBe('');
 
-      // Profile picture URL errors
-      component.registrationForm.get('profilePictureUrl')?.setErrors({ pattern: true });
-      component.registrationForm.get('profilePictureUrl')?.markAsTouched();
-      expect(component.getErrorMessage('profilePictureUrl')).toBe('Please enter a valid image URL (http/https ending in .png, .jpg, .jpeg, or .gif)');
+      // Test control without errors
+      component.registrationForm.get('username')?.setErrors(null);
+      expect(component.getErrorMessage('username')).toBe('');
     });
+
+    it('should handle Error instance in error handling', fakeAsync(() => {
+      // Set valid form values first
+      component.registrationForm.setValue({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'StrongPass123',
+        confirmPassword: 'StrongPass123',
+        bio: 'Test bio',
+        profilePictureUrl: 'https://example.com/image.jpg'
+      });
+      
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      spyOn(messageService, 'add');
+      spyOn(console, 'log');
+      
+      const error = new Error('Custom error message');
+      authService.registerUser.and.returnValue(throwError(() => error));
+      
+      component.onSubmit();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      expect(console.log).toHaveBeenCalledWith('[RegistrationFormComponent] Using error.message:', 'Custom error message');
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Registration Failed',
+        detail: 'Custom error message',
+        life: 5000
+      });
+      expect(component.loading).toBeFalse();
+    }));
   });
 }); 

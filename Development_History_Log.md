@@ -456,3 +456,15 @@
   - Created AuthService unit tests with full coverage for successful registration and error handling
   - Tested form validation, submission, error handling
   - gamerecs-front/src/app/core/services/auth.service.spec.ts
+
+- Added comprehensive E2E tests for registration form:
+  - Created Cypress configuration and support files
+  - Implemented custom commands for form filling
+  - Added extensive test cases for form validation and submission
+  - Added tests for error handling and loading states
+  - Configured TypeScript for Cypress tests
+  - gamerecs-front/cypress.config.ts
+  - gamerecs-front/cypress/support/e2e.ts
+  - gamerecs-front/cypress/support/commands.ts
+  - gamerecs-front/cypress/e2e/registration.cy.ts
+  - gamerecs-front/cypress/tsconfig.json

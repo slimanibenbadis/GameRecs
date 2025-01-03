@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
+    "start:cypress": "ng serve --configuration=cypress --proxy-config proxy.conf.json",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -13,8 +14,8 @@
     "sonar": "sonar-scanner",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "e2e": "ng e2e",
-    "e2e:ci": "start-server-and-test start http://localhost:4200 cypress:run"
+    "e2e": "start-server-and-test start:cypress http://localhost:4200 cypress:run",
+    "e2e:ci": "start-server-and-test start:cypress http://localhost:4200 cypress:run"
   },
   "private": true,
   "dependencies": {
