@@ -57,4 +57,7 @@ public class User {
     @UpdateTimestamp
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 } 

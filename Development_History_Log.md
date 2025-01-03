@@ -468,3 +468,38 @@
   - gamerecs-front/cypress/support/commands.ts
   - gamerecs-front/cypress/e2e/registration.cy.ts
   - gamerecs-front/cypress/tsconfig.json
+
+- Added email verification field to User entity:
+  - Created new migration file V2__Add_email_verification.sql to add email_verified column
+  - Updated User entity with emailVerified field and appropriate annotations
+  - Added index for better query performance
+  - gamerecs-back/src/main/resources/db/migration/V2__Add_email_verification.sql
+  - gamerecs-back/src/main/java/com/gamerecs/back/model/User.java
+
+- Added email verification service:
+  - Created EmailService for handling verification emails
+  - Added Spring Mail and Thymeleaf dependencies
+  - Created email verification template
+  - Added email configuration to application.yml
+  - gamerecs-back/pom.xml
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java
+  - gamerecs-back/src/main/resources/templates/verification-email.html
+  - gamerecs-back/src/main/resources/application.yml
+
+- Added Mailhog for local email testing:
+  - Added Mailhog service to docker-compose.yml
+  - Configured development SMTP settings to use Mailhog
+  - docker-compose.yml
+  - gamerecs-back/src/main/resources/application-dev.yml
+
+- Reviewed and verified email verification implementation:
+  - Confirmed UserController has proper /verify endpoint
+  - Verified VerificationToken entity and repository setup
+  - Checked EmailService for verification email sending
+  - Validated UserService verification logic
+  - Confirmed proper error handling and token cleanup
+  - gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/UserService.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/model/VerificationToken.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/repository/VerificationTokenRepository.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java

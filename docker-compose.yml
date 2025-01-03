@@ -161,6 +161,15 @@ services:
       timeout: 10s
       retries: 3
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: gamerecs-mailhog
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    networks:
+      - gamerecs-network
+
 volumes:
   postgres_dev_data:
     name: gamerecs-postgres-dev-data

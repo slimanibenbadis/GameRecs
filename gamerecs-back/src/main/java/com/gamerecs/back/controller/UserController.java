@@ -9,10 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * Controller for handling user-related endpoints.
@@ -52,5 +51,26 @@ public class UserController {
         logger.info("Successfully registered user: {}", registeredUser.getUsername());
         
         return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+    }
+
+    /**
+     * Handles email verification requests.
+     *
+     * @param token the verification token
+     * @return ResponseEntity with verification status
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam String token) {
+        logger.debug("Received email verification request with token: {}", token);
+        
+        boolean verified = userService.verifyEmail(token);
+        
+        if (verified) {
+            logger.info("Email verification successful for token: {}", token);
+            return ResponseEntity.ok(Map.of("message", "Email verified successfully"));
+        } else {
+            logger.warn("Email verification failed for token: {}", token);
+            return ResponseEntity.badRequest().body(Map.of("message", "Email verification failed"));
+        }
     }
 } 

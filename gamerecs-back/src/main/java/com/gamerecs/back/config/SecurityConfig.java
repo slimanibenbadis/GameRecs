@@ -38,6 +38,11 @@ public class SecurityConfig {
         "/api-docs/**"
     };
 
+    private static final String[] PUBLIC_ENDPOINTS = {
+        "/api/users/register",
+        "/api/users/verify"
+    };
+
     private static final String[] TEST_ENDPOINTS = {
         "/api/test/**"
     };
@@ -50,16 +55,16 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        logger.debug("Configuring security with CORS, Swagger UI whitelist, and test endpoints");
+        logger.debug("Configuring security with CORS, Swagger UI whitelist, and public endpoints");
         
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(TEST_ENDPOINTS).permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/users/register").permitAll()
                 .requestMatchers(req -> req.getMethod().equals("OPTIONS")).permitAll()
                 .anyRequest().authenticated()
             )
