@@ -13,37 +13,7 @@ import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-email-verification',
-  template: `
-    <div class="flex flex-col items-center justify-center min-h-screen bg-surface-0 dark:bg-surface-900 p-4">
-      <div class="w-full max-w-lg p-6 bg-surface-0 dark:bg-surface-800 rounded-lg shadow-lg text-center">
-        <h2 class="text-2xl font-fira font-bold mb-6 text-surface-900 dark:text-surface-0">Email Verification</h2>
-        
-        <div *ngIf="loading" class="flex flex-col items-center gap-4">
-          <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
-          <p class="text-surface-700 dark:text-surface-200">Verifying your email...</p>
-        </div>
-
-        <div *ngIf="!loading" class="space-y-4">
-          <div *ngIf="verified" class="text-green-600 dark:text-green-400">
-            <i class="pi pi-check-circle text-3xl mb-2"></i>
-            <p class="text-lg">Your email has been successfully verified!</p>
-          </div>
-
-          <div *ngIf="error" class="text-red-600 dark:text-red-400">
-            <i class="pi pi-times-circle text-3xl mb-2"></i>
-            <p class="text-lg">{{ errorMessage }}</p>
-          </div>
-
-          <button pButton 
-                  [label]="verified ? 'Go to Login' : 'Back to Registration'"
-                  class="p-button-primary w-full mt-4"
-                  (click)="navigateToAuth()">
-          </button>
-        </div>
-      </div>
-    </div>
-    <p-toast></p-toast>
-  `,
+  templateUrl: './email-verification.component.html',
   standalone: true,
   imports: [
     CommonModule,
@@ -105,12 +75,13 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
           console.log('[EmailVerificationComponent] Verification response:', response);
           this.loading = false;
           
-          if (response.verified) {
+          if (response.message?.toLowerCase().includes('success')) {
             this.verified = true;
+            this.error = false;
             this.messageService.add({
               severity: 'success',
-              summary: 'Verification Successful',
-              detail: response.message
+              summary: 'Success',
+              detail: 'Your email has been successfully verified!'
             });
           } else {
             this.handleError(response.message || 'Email verification failed');

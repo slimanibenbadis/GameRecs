@@ -12,6 +12,7 @@ export const routes: Routes = [
       { path: 'verify-email', component: EmailVerificationComponent }
     ]
   },
-  { path: '', redirectTo: '/auth/register', pathMatch: 'full' }, // Redirect root to registration for now
-  { path: '**', redirectTo: '/auth/register' } // Catch all route
+  { path: 'verify', component: EmailVerificationComponent },
+  { path: '', redirectTo: '/auth/register', pathMatch: 'full' },
+  { path: '**', redirectTo: '/auth/register' }
 ];

@@ -518,3 +518,41 @@
   - gamerecs-front/src/app/core/services/auth.service.ts
   - gamerecs-front/src/app/app.routes.ts
   - Development_History_Log.md
+
+- Enhanced registration success message with more detailed email verification instructions:
+  - Updated message to include 24-hour expiration notice
+  - Updated corresponding test cases
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.spec.ts
+
+- Fixed email verification URL routing:
+  - Added redirect route for old URL pattern
+  - Updated backend to use correct frontend URL pattern
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java
+  - gamerecs-front/src/app/app.routes.ts
+
+- Enhanced email verification UI:
+  - Fixed success/error state logic
+  - Improved visual design with better spacing and icons
+  - Added more descriptive success message
+  - Updated button styles to match verification state
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.ts
+
+- Separated email verification component template:
+  - Moved template from component to dedicated HTML file
+  - Created email-verification.component.html
+  - Updated component to use external template
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.ts
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.html
+
+- Fixed email verification UI state handling:
+  - Added proper state checks to prevent mixed success/error messages
+  - Updated success message to be more consistent
+  - Fixed button states and colors
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.html
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.ts
+
+- Fixed email verification response handling:
+  - Updated success check to use message content instead of verified flag
+  - Resolved misleading UI state with mixed success/error messages
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.ts

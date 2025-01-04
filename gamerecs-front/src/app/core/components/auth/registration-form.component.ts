@@ -89,7 +89,7 @@ export class RegistrationFormComponent implements OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Registration Successful',
-            detail: 'Your account has been created successfully! Please check your email for a verification link.'
+            detail: 'Your account has been created! Please check your email inbox for a verification link. The link will expire in 24 hours.'
           });
           this.registrationForm.reset();
         },

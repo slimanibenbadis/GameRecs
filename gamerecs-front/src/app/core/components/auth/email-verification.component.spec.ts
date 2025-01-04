@@ -55,7 +55,7 @@ describe('EmailVerificationComponent', () => {
   });
 
   it('should handle successful email verification', fakeAsync(() => {
-    const mockResponse = { verified: true, message: 'Email verified successfully' };
+    const mockResponse = { verified: true, message: 'Your email has been successfully verified!' };
     authService.verifyEmail.and.returnValue(of(mockResponse));
     
     const messageService = fixture.debugElement.injector.get(MessageService);
@@ -71,7 +71,7 @@ describe('EmailVerificationComponent', () => {
     expect(component.error).toBeFalse();
     expect(messageService.add).toHaveBeenCalledWith({
       severity: 'success',
-      summary: 'Verification Successful',
+      summary: 'Success',
       detail: mockResponse.message
     });
   }));
