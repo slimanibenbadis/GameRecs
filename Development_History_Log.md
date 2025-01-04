@@ -503,3 +503,18 @@
   - gamerecs-back/src/main/java/com/gamerecs/back/model/VerificationToken.java
   - gamerecs-back/src/main/java/com/gamerecs/back/repository/VerificationTokenRepository.java
   - gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java
+
+- Enhanced registration success message to include email verification instructions:
+  - Updated success toast message in registration form component to inform users about checking their email for verification link
+  - gamerecs-front/src/app/core/components/auth/registration-form.component.ts
+
+- Added email verification functionality to frontend:
+  - Created EmailVerificationComponent for handling email token verification
+  - Added verifyEmail method to AuthService
+  - Added email verification route to app routing
+  - Added comprehensive tests for both component and service
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.ts
+  - gamerecs-front/src/app/core/components/auth/email-verification.component.spec.ts
+  - gamerecs-front/src/app/core/services/auth.service.ts
+  - gamerecs-front/src/app/app.routes.ts
+  - Development_History_Log.md

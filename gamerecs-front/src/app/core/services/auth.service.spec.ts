@@ -2,7 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { AuthService, IUserRegistration, IRegistrationResponse, IApiError } from './auth.service';
+import { AuthService, IUserRegistration, IRegistrationResponse, IApiError, IVerificationResponse } from './auth.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,6 +23,57 @@ describe('AuthService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('verifyEmail', () => {
+    const mockToken = 'valid-token';
+
+    it('should successfully verify email', () => {
+      const mockResponse: IVerificationResponse = {
+        verified: true,
+        message: 'Email verified successfully'
+      };
+
+      service.verifyEmail(mockToken).subscribe(response => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`/api/users/verify?token=${mockToken}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should handle verification failure', () => {
+      const mockResponse: IVerificationResponse = {
+        verified: false,
+        message: 'Token expired'
+      };
+
+      service.verifyEmail(mockToken).subscribe(response => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`/api/users/verify?token=${mockToken}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should handle server error', () => {
+      const apiError: IApiError = {
+        timestamp: new Date().toISOString(),
+        status: 400,
+        message: 'Invalid token'
+      };
+
+      service.verifyEmail(mockToken).subscribe({
+        error: error => {
+          expect(error.message).toBe('Invalid token');
+        }
+      });
+
+      const req = httpMock.expectOne(`/api/users/verify?token=${mockToken}`);
+      req.flush(apiError, { status: 400, statusText: 'Bad Request' });
+    });
   });
 
   describe('registerUser', () => {

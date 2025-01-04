@@ -165,7 +165,7 @@ describe('RegistrationFormComponent', () => {
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: 'Registration Successful',
-        detail: 'Your account has been created successfully!'
+        detail: 'Your account has been created successfully! Please check your email for a verification link.'
       });
       expect(component.loading).toBeFalse();
     }));

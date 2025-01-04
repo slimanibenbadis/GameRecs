@@ -20,6 +20,11 @@ export interface IRegistrationResponse {
   joinDate: string;
 }
 
+export interface IVerificationResponse {
+  message: string;
+  verified: boolean;
+}
+
 export interface IApiError {
   timestamp: string;
   status: number;
@@ -43,6 +48,16 @@ export class AuthService {
     return this._http.post<IRegistrationResponse>(`${this._apiUrl}/register`, user)
       .pipe(
         tap(response => console.log('[AuthService] User registration successful:', { userId: response.userId, username: response.username })),
+        catchError(this.handleError)
+      );
+  }
+
+  verifyEmail(token: string): Observable<IVerificationResponse> {
+    console.log('[AuthService] Verifying email with token');
+    
+    return this._http.get<IVerificationResponse>(`${this._apiUrl}/verify?token=${token}`)
+      .pipe(
+        tap(response => console.log('[AuthService] Email verification response:', response)),
         catchError(this.handleError)
       );
   }
