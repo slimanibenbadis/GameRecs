@@ -563,3 +563,9 @@
   - Implemented proper mocking of JavaMailSender and TemplateEngine
   - Added detailed logging for test execution
   - gamerecs-back/src/test/java/com/gamerecs/back/service/EmailServiceTest.java
+
+- Added comprehensive integration tests for email verification endpoint:
+  - Created tests for successful verification, invalid tokens, missing parameters, and error handling
+  - Added proper logging and assertions for all test cases
+  - Maintained consistent error response format checking
+  - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java

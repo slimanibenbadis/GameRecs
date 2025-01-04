@@ -60,7 +60,7 @@ public class UserController {
      * @return ResponseEntity with verification status
      */
     @GetMapping("/verify")
-    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam String token) {
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam(required = true) String token) {
         logger.debug("Received email verification request with token: {}", token);
         
         boolean verified = userService.verifyEmail(token);

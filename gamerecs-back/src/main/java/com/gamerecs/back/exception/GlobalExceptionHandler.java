@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -42,6 +43,26 @@ public class GlobalExceptionHandler {
         ApiError apiError = new ApiError(
             HttpStatus.BAD_REQUEST.value(),
             "Validation failed",
+            errors
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+    
+    /**
+     * Handles missing required request parameters.
+     *
+     * @param ex the missing parameter exception
+     * @return ResponseEntity containing error details
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> handleMissingParams(MissingServletRequestParameterException ex) {
+        logger.warn("Missing required parameter: {}", ex.getParameterName());
+        Map<String, String> errors = new HashMap<>();
+        errors.put(ex.getParameterName(), "Parameter is required");
+        
+        ApiError apiError = new ApiError(
+            HttpStatus.BAD_REQUEST.value(),
+            "Missing required parameter",
             errors
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);

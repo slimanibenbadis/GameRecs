@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -219,5 +220,70 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.bio").doesNotExist());
 
         verify(userService).registerUser(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should verify email successfully with valid token")
+    void shouldVerifyEmailSuccessfully() throws Exception {
+        logger.debug("Testing email verification with valid token");
+        
+        String validToken = "valid-token";
+        when(userService.verifyEmail(validToken)).thenReturn(true);
+
+        mockMvc.perform(get("/api/users/verify")
+                .param("token", validToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Email verified successfully"));
+
+        verify(userService).verifyEmail(validToken);
+    }
+
+    @Test
+    @DisplayName("Should return 400 for invalid or expired token")
+    void shouldReturn400ForInvalidToken() throws Exception {
+        logger.debug("Testing email verification with invalid token");
+        
+        String invalidToken = "invalid-token";
+        when(userService.verifyEmail(invalidToken)).thenReturn(false);
+
+        mockMvc.perform(get("/api/users/verify")
+                .param("token", invalidToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Email verification failed"));
+
+        verify(userService).verifyEmail(invalidToken);
+    }
+
+    @Test
+    @DisplayName("Should handle missing token parameter")
+    void shouldHandleMissingToken() throws Exception {
+        logger.debug("Testing email verification with missing token");
+
+        mockMvc.perform(get("/api/users/verify"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Missing required parameter"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.errors.token").value("Parameter is required"));
+    }
+
+    @Test
+    @DisplayName("Should handle unexpected errors during verification")
+    void shouldHandleUnexpectedVerificationErrors() throws Exception {
+        logger.debug("Testing email verification with unexpected error");
+        
+        String token = "error-token";
+        when(userService.verifyEmail(token))
+                .thenThrow(new RuntimeException("Unexpected verification error"));
+
+        mockMvc.perform(get("/api/users/verify")
+                .param("token", token))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        verify(userService).verifyEmail(token);
     }
 } 
