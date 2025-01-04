@@ -42,13 +42,29 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('[EmailVerificationComponent] Component initialized');
     
+    // Clear any existing messages
+    this.messageService.clear();
+    
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         const token = params['token'];
         if (!token) {
           console.error('[EmailVerificationComponent] No token provided');
-          this.handleError('Invalid verification link. Please request a new one.');
+          this.loading = false;
+          this.error = true;
+          this.errorMessage = 'Invalid verification link. Please request a new one.';
+          
+          // Ensure toast is shown after component is fully initialized
+          setTimeout(() => {
+            this.messageService.add({
+              key: 'verificationToast',
+              severity: 'error',
+              summary: 'Verification Failed',
+              detail: 'Invalid verification link. Please request a new one.',
+              life: 5000
+            });
+          }, 0);
           return;
         }
 
@@ -73,16 +89,23 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           console.log('[EmailVerificationComponent] Verification response:', response);
-          this.loading = false;
           
           if (response.message?.toLowerCase().includes('success')) {
-            this.verified = true;
-            this.error = false;
+            // Show success toast first
             this.messageService.add({
+              key: 'verificationToast',
               severity: 'success',
               summary: 'Success',
-              detail: 'Your email has been successfully verified!'
+              detail: 'Your email has been successfully verified!',
+              life: 5000
             });
+
+            // Update state after a small delay
+            setTimeout(() => {
+              this.loading = false;
+              this.verified = true;
+              this.error = false;
+            }, 100);
           } else {
             this.handleError(response.message || 'Email verification failed');
           }
@@ -96,12 +119,15 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
 
   private handleError(message: string): void {
     console.log('[EmailVerificationComponent] Handling error:', message);
+    
     this.loading = false;
     this.verified = false;
     this.error = true;
     this.errorMessage = message;
     
+    // Show toast with key
     this.messageService.add({
+      key: 'verificationToast',
       severity: 'error',
       summary: 'Verification Failed',
       detail: message,

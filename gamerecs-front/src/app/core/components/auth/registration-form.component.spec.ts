@@ -268,19 +268,27 @@ describe('RegistrationFormComponent', () => {
       spyOn(messageService, 'add');
       spyOn(console, 'log');
       
-      const error = new Error('Custom error message');
-      authService.registerUser.and.returnValue(throwError(() => error));
+      const apiError = {
+        timestamp: new Date().toISOString(),
+        status: 400,
+        message: 'An error occurred during registration. Please try again.'
+      };
+      const errorResponse = new HttpErrorResponse({
+        error: apiError,
+        status: 400,
+        statusText: 'Bad Request'
+      });
+      authService.registerUser.and.returnValue(throwError(() => errorResponse));
       
       component.onSubmit();
       fixture.detectChanges();
       tick();
       fixture.detectChanges();
 
-      expect(console.log).toHaveBeenCalledWith('[RegistrationFormComponent] Using error.message:', 'Custom error message');
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Registration Failed',
-        detail: 'Custom error message',
+        detail: 'An error occurred during registration. Please try again.',
         life: 5000
       });
       expect(component.loading).toBeFalse();

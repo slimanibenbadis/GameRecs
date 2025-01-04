@@ -19,18 +19,22 @@ Cypress.Commands.add('fillRegistrationForm', (
   }
 }); 
 
-Cypress.Commands.add('checkToast', (severity: string, summary: string, detail: string) => {
-  // Wait for toast container with longer timeout
-  cy.get('p-toast', { timeout: 10000 }).should('exist');
-  
-  // Use contains instead of find to locate the message
-  cy.contains('.p-toast-message', detail, { timeout: 10000 })
-    .should('be.visible')
-    .should('have.class', `p-toast-message-${severity}`)
+Cypress.Commands.add('checkToast', (severity, summary, detail) => {
+  // Wait for toast container to be present
+  cy.get('p-toast', { timeout: 10000 })
+    .should('exist')
     .within(() => {
-      // Use contains for text content to be more resilient
-      cy.contains('.p-toast-summary', summary).should('be.visible');
-      cy.contains('.p-toast-detail', detail).should('be.visible');
+      // Wait for specific toast message
+      cy.get('.p-toast-message', { timeout: 5000 })
+        .should('have.class', `p-toast-message-${severity}`)
+        .within(() => {
+          if (summary) {
+            cy.get('.p-toast-summary').should('contain', summary);
+          }
+          if (detail) {
+            cy.get('.p-toast-detail').should('contain', detail);
+          }
+        });
     });
 });
 
@@ -41,11 +45,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      checkToast(
-        severity: string,
-        summary: string,
-        detail: string
-      ): Chainable<void>;
+      checkToast(severity: 'success' | 'error', summary: string, detail: string): Chainable<void>;
     }
   }
 } 

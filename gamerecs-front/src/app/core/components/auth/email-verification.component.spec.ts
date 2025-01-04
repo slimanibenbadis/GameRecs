@@ -63,6 +63,7 @@ describe('EmailVerificationComponent', () => {
 
     fixture.detectChanges(); // Trigger ngOnInit
     tick(); // Wait for async operations
+    tick(100); // Wait for setTimeout
     fixture.detectChanges();
 
     expect(authService.verifyEmail).toHaveBeenCalledWith('valid-token');
@@ -70,9 +71,11 @@ describe('EmailVerificationComponent', () => {
     expect(component.verified).toBeTrue();
     expect(component.error).toBeFalse();
     expect(messageService.add).toHaveBeenCalledWith({
+      key: 'verificationToast',
       severity: 'success',
       summary: 'Success',
-      detail: mockResponse.message
+      detail: mockResponse.message,
+      life: 5000
     });
   }));
 
@@ -93,6 +96,7 @@ describe('EmailVerificationComponent', () => {
     expect(component.error).toBeTrue();
     expect(component.errorMessage).toBe(mockResponse.message);
     expect(messageService.add).toHaveBeenCalledWith({
+      key: 'verificationToast',
       severity: 'error',
       summary: 'Verification Failed',
       detail: mockResponse.message,
@@ -126,6 +130,7 @@ describe('EmailVerificationComponent', () => {
     expect(component.error).toBeTrue();
     expect(component.errorMessage).toBe(errorMessage);
     expect(messageService.add).toHaveBeenCalledWith({
+      key: 'verificationToast',
       severity: 'error',
       summary: 'Verification Failed',
       detail: errorMessage,
@@ -152,6 +157,7 @@ describe('EmailVerificationComponent', () => {
     expect(component.error).toBeTrue();
     expect(component.errorMessage).toBe('Invalid verification link. Please request a new one.');
     expect(messageService.add).toHaveBeenCalledWith({
+      key: 'verificationToast',
       severity: 'error',
       summary: 'Verification Failed',
       detail: 'Invalid verification link. Please request a new one.',

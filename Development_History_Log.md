@@ -569,3 +569,13 @@
   - Added proper logging and assertions for all test cases
   - Maintained consistent error response format checking
   - gamerecs-back/src/test/java/com/gamerecs/back/controller/UserControllerTest.java
+
+- Added comprehensive E2E tests for email verification:
+  - Created email-verification.cy.ts with tests for:
+    - Successful verification flow
+    - Invalid token handling
+    - Expired token handling
+    - Missing token handling
+    - Loading states
+    - Server error handling
+  - gamerecs-front/cypress/e2e/email-verification.cy.ts
