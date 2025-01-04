@@ -1,5 +1,3 @@
-/// <reference types="jasmine" />
-
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { EmailVerificationComponent } from './email-verification.component';
 import { ActivatedRoute, Router } from '@angular/router';
