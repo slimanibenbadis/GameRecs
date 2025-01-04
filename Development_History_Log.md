@@ -556,3 +556,10 @@
   - Updated success check to use message content instead of verified flag
   - Resolved misleading UI state with mixed success/error messages
   - gamerecs-front/src/app/core/components/auth/email-verification.component.ts
+
+- Added comprehensive tests for EmailService:
+  - Created EmailServiceTest class with full coverage of email sending functionality
+  - Added tests for successful email sending, token generation, and error handling
+  - Implemented proper mocking of JavaMailSender and TemplateEngine
+  - Added detailed logging for test execution
+  - gamerecs-back/src/test/java/com/gamerecs/back/service/EmailServiceTest.java
