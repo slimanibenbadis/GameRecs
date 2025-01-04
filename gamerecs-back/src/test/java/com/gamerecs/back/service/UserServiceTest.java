@@ -1,6 +1,7 @@
 package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.User;
+import com.gamerecs.back.model.VerificationToken;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.BaseUnitTest;
@@ -14,9 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest extends BaseUnitTest {
@@ -176,5 +181,64 @@ class UserServiceTest extends BaseUnitTest {
         verify(userRepository).save(any(User.class));
         verify(verificationTokenRepository).deleteByUser_UserId(testUser.getUserId());
         verify(emailService).sendVerificationEmail(eq(testUser.getEmail()), eq(testUser.getUsername()), eq(verificationToken));
+    }
+
+    @Test
+    @DisplayName("Should verify email successfully")
+    void shouldVerifyEmailSuccessfully() {
+        logger.debug("Testing successful email verification");
+        
+        String token = "valid-token";
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(testUser);
+        verificationToken.setExpiryDate(LocalDateTime.now().plusDays(1));
+
+        when(verificationTokenRepository.findByToken(token)).thenReturn(Optional.of(verificationToken));
+
+        boolean result = userService.verifyEmail(token);
+
+        assertTrue(result, "Email verification should be successful");
+        assertTrue(testUser.isEmailVerified(), "User email should be marked as verified");
+        verify(userRepository).save(testUser);
+        verify(verificationTokenRepository).delete(verificationToken);
+    }
+
+    @Test
+    @DisplayName("Should throw exception for invalid token")
+    void shouldThrowExceptionForInvalidToken() {
+        logger.debug("Testing email verification with invalid token");
+        
+        String invalidToken = "invalid-token";
+        when(verificationTokenRepository.findByToken(invalidToken)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.verifyEmail(invalidToken);
+        });
+
+        assertEquals("Invalid verification token", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception for expired token")
+    void shouldThrowExceptionForExpiredToken() {
+        logger.debug("Testing email verification with expired token");
+        
+        String token = "expired-token";
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(testUser);
+        verificationToken.setExpiryDate(LocalDateTime.now().minusDays(1));
+
+        when(verificationTokenRepository.findByToken(token)).thenReturn(Optional.of(verificationToken));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.verifyEmail(token);
+        });
+
+        assertEquals("Verification token has expired", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+        verify(verificationTokenRepository).delete(verificationToken);
     }
 } 

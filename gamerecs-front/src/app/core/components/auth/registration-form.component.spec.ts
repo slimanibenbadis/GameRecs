@@ -196,6 +196,26 @@ describe('RegistrationFormComponent', () => {
       expect(component.loading).toBeFalse();
     }));
 
+    it('should handle Error instance in registration error', fakeAsync(() => {
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      spyOn(messageService, 'add');
+      const errorInstance = new Error('Custom error message');
+      authService.registerUser.and.returnValue(throwError(() => errorInstance));
+      
+      component.onSubmit();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Registration Failed',
+        detail: 'Custom error message',
+        life: 5000
+      });
+      expect(component.loading).toBeFalse();
+    }));
+
     it('should not submit if form is invalid', () => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
@@ -206,92 +226,78 @@ describe('RegistrationFormComponent', () => {
   });
 
   describe('Error Messages', () => {
-    it('should return appropriate error messages for each field', () => {
-      // Username errors
-      component.registrationForm.get('username')?.setErrors({ required: true });
-      component.registrationForm.get('username')?.markAsTouched();
-      expect(component.getErrorMessage('username')).toBe('Username is required');
-
-      component.registrationForm.get('username')?.setErrors({ minlength: true });
-      expect(component.getErrorMessage('username')).toBe('Username must be at least 3 characters');
-
-      component.registrationForm.get('username')?.setErrors({ maxlength: true });
-      expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
-
-      component.registrationForm.get('username')?.setErrors({ pattern: true });
-      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
-
-      // Email errors
-      component.registrationForm.get('email')?.setErrors({ required: true });
-      component.registrationForm.get('email')?.markAsTouched();
-      expect(component.getErrorMessage('email')).toBe('Email is required');
-
-      component.registrationForm.get('email')?.setErrors({ email: true });
-      expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
-
-      component.registrationForm.get('email')?.setErrors({ pattern: true });
-      expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
-
-      // Password errors
-      component.registrationForm.get('password')?.setErrors({ required: true });
-      component.registrationForm.get('password')?.markAsTouched();
-      expect(component.getErrorMessage('password')).toBe('Password is required');
-
-      component.registrationForm.get('password')?.setErrors({ minlength: true });
-      expect(component.getErrorMessage('password')).toBe('Password must be at least 8 characters');
-
-      component.registrationForm.get('password')?.setErrors({ pattern: true });
-      expect(component.getErrorMessage('password')).toBe('Password must contain at least one uppercase letter, one lowercase letter, and one number');
-
-      // Test untouched control
-      component.registrationForm.get('username')?.setErrors({ required: true });
-      component.registrationForm.get('username')?.markAsUntouched();
-      expect(component.getErrorMessage('username')).toBe('');
-
-      // Test control without errors
-      component.registrationForm.get('username')?.setErrors(null);
-      expect(component.getErrorMessage('username')).toBe('');
+    beforeEach(() => {
+      // Reset form before each test
+      component.registrationForm.reset();
     });
 
-    it('should handle Error instance in error handling', fakeAsync(() => {
-      // Set valid form values first
-      component.registrationForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'StrongPass123',
-        confirmPassword: 'StrongPass123',
-        bio: 'Test bio',
-        profilePictureUrl: 'https://example.com/image.jpg'
-      });
-      
-      const messageService = fixture.debugElement.injector.get(MessageService);
-      spyOn(messageService, 'add');
-      spyOn(console, 'log');
-      
-      const apiError = {
-        timestamp: new Date().toISOString(),
-        status: 400,
-        message: 'An error occurred during registration. Please try again.'
-      };
-      const errorResponse = new HttpErrorResponse({
-        error: apiError,
-        status: 400,
-        statusText: 'Bad Request'
-      });
-      authService.registerUser.and.returnValue(throwError(() => errorResponse));
-      
-      component.onSubmit();
-      fixture.detectChanges();
-      tick();
-      fixture.detectChanges();
+    it('should return empty string for untouched controls', () => {
+      expect(component.getErrorMessage('username')).toBe('');
+      expect(component.getErrorMessage('email')).toBe('');
+      expect(component.getErrorMessage('password')).toBe('');
+      expect(component.getErrorMessage('bio')).toBe('');
+      expect(component.getErrorMessage('profilePictureUrl')).toBe('');
+    });
 
-      expect(messageService.add).toHaveBeenCalledWith({
-        severity: 'error',
-        summary: 'Registration Failed',
-        detail: 'An error occurred during registration. Please try again.',
-        life: 5000
-      });
-      expect(component.loading).toBeFalse();
-    }));
+    it('should return appropriate username error messages', () => {
+      const control = component.registrationForm.get('username');
+      control?.markAsTouched();
+
+      control?.setErrors({ required: true });
+      expect(component.getErrorMessage('username')).toBe('Username is required');
+
+      control?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username must be at least 3 characters');
+
+      control?.setErrors({ maxlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
+    });
+
+    it('should return appropriate email error messages', () => {
+      const control = component.registrationForm.get('email');
+      control?.markAsTouched();
+
+      control?.setErrors({ required: true });
+      expect(component.getErrorMessage('email')).toBe('Email is required');
+
+      control?.setErrors({ email: true });
+      expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('email')).toBe('Please enter a valid email address');
+    });
+
+    it('should return appropriate password error messages', () => {
+      const control = component.registrationForm.get('password');
+      control?.markAsTouched();
+
+      control?.setErrors({ required: true });
+      expect(component.getErrorMessage('password')).toBe('Password is required');
+
+      control?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('password')).toBe('Password must be at least 8 characters');
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('password')).toBe('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+    });
+
+    it('should return appropriate bio error messages', () => {
+      const control = component.registrationForm.get('bio');
+      control?.markAsTouched();
+
+      control?.setErrors({ maxlength: true });
+      expect(component.getErrorMessage('bio')).toBe('Bio cannot exceed 500 characters');
+    });
+
+    it('should return appropriate profile picture URL error messages', () => {
+      const control = component.registrationForm.get('profilePictureUrl');
+      control?.markAsTouched();
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('profilePictureUrl')).toBe('Please enter a valid image URL (http/https ending in .png, .jpg, .jpeg, or .gif)');
+    });
   });
 }); 

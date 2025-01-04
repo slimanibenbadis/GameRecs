@@ -166,5 +166,17 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/users/register');
       req.flush('Invalid response', { status: 500, statusText: 'Internal Server Error' });
     });
+
+    it('should handle error when parsing error response fails', () => {
+      service.registerUser(mockUser).subscribe({
+        error: error => {
+          expect(error.message).toBe('An error occurred during registration');
+        }
+      });
+
+      const req = httpMock.expectOne('/api/users/register');
+      // Send a response that will cause JSON parsing to fail
+      req.flush(null, { status: 500, statusText: 'Internal Server Error' });
+    });
   });
 }); 
