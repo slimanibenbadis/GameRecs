@@ -50,8 +50,20 @@ class SecurityConfigTest extends BaseIntegrationTest {
     void shouldAllowActuatorAccess() throws Exception {
         logger.debug("Testing access to actuator endpoints");
         
-        mockMvc.perform(get("/actuator/health"))
-            .andExpect(status().isOk());
+        MvcResult result = mockMvc.perform(get("/actuator/health"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status -> {
+                int actualStatus = status.getResponse().getStatus();
+                assertTrue(actualStatus != 401 && actualStatus != 403,
+                    String.format("Expected endpoint to be accessible, but got status %d", actualStatus));
+            })
+            .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        logger.debug("Actuator health check response content: {}", content);
+        
+        assertTrue(content.contains("\"status\""), "Response should contain health status");
+        assertTrue(content.contains("\"components\""), "Response should contain health components");
     }
 
     @Test

@@ -47,6 +47,14 @@ public class SecurityConfig {
         "/api/test/**"
     };
 
+    private static final String[] ACTUATOR_ENDPOINTS = {
+        "/actuator",
+        "/actuator/**",
+        "/actuator/health",
+        "/actuator/info",
+        "/actuator/metrics"
+    };
+
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         logger.debug("Creating authentication entry point to return 401 for unauthenticated requests");
@@ -64,7 +72,7 @@ public class SecurityConfig {
                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                 .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(TEST_ENDPOINTS).permitAll()
-                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers(ACTUATOR_ENDPOINTS).permitAll()
                 .requestMatchers(req -> req.getMethod().equals("OPTIONS")).permitAll()
                 .anyRequest().authenticated()
             )

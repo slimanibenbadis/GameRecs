@@ -2,7 +2,9 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
+import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.BaseUnitTest;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,12 @@ class UserServiceTest extends BaseUnitTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private VerificationTokenRepository verificationTokenRepository;
+
     @InjectMocks
     private UserService userService;
 
@@ -36,6 +44,7 @@ class UserServiceTest extends BaseUnitTest {
         logger.debug("Setting up test user");
         
         testUser = User.builder()
+                .userId(1L)
                 .username("testuser")
                 .email("test@example.com")
                 .passwordHash("password123")
@@ -44,15 +53,17 @@ class UserServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("Should register user successfully")
-    void shouldRegisterUser() {
+    void shouldRegisterUser() throws MessagingException {
         logger.debug("Testing successful user registration");
         
         String rawPassword = "password123";
         String hashedPassword = "hashedPassword";
+        String verificationToken = "test-token";
         
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(rawPassword)).thenReturn(hashedPassword);
+        when(emailService.generateVerificationToken()).thenReturn(verificationToken);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User savedUser = invocation.getArgument(0);
             assertEquals(hashedPassword, savedUser.getPasswordHash(), "Password should be hashed");
@@ -64,16 +75,20 @@ class UserServiceTest extends BaseUnitTest {
         assertNotNull(registeredUser, "Registered user should not be null");
         assertEquals(testUser.getUsername(), registeredUser.getUsername(), "Username should match");
         assertEquals(testUser.getEmail(), registeredUser.getEmail(), "Email should match");
+        assertFalse(registeredUser.isEmailVerified(), "Email should not be verified initially");
 
         verify(userRepository).existsByEmail(testUser.getEmail());
         verify(userRepository).existsByUsername(testUser.getUsername());
         verify(passwordEncoder).encode(rawPassword);
         verify(userRepository).save(any(User.class));
+        verify(verificationTokenRepository).deleteByUser_UserId(testUser.getUserId());
+        verify(emailService).generateVerificationToken();
+        verify(emailService).sendVerificationEmail(eq(testUser.getEmail()), eq(testUser.getUsername()), eq(verificationToken));
     }
 
     @Test
     @DisplayName("Should throw exception when email exists")
-    void shouldThrowExceptionWhenEmailExists() {
+    void shouldThrowExceptionWhenEmailExists() throws MessagingException {
         logger.debug("Testing registration with existing email");
         
         when(userRepository.existsByEmail(anyString())).thenReturn(true);
@@ -85,11 +100,12 @@ class UserServiceTest extends BaseUnitTest {
         assertEquals("Email already exists", exception.getMessage());
         verify(userRepository).existsByEmail(testUser.getEmail());
         verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
     }
 
     @Test
     @DisplayName("Should throw exception when username exists")
-    void shouldThrowExceptionWhenUsernameExists() {
+    void shouldThrowExceptionWhenUsernameExists() throws MessagingException {
         logger.debug("Testing registration with existing username");
         
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
@@ -103,20 +119,23 @@ class UserServiceTest extends BaseUnitTest {
         verify(userRepository).existsByEmail(testUser.getEmail());
         verify(userRepository).existsByUsername(testUser.getUsername());
         verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
     }
 
     @Test
     @DisplayName("Should hash password during registration")
-    void shouldHashPasswordDuringRegistration() {
+    void shouldHashPasswordDuringRegistration() throws MessagingException {
         logger.debug("Testing password hashing during registration");
         
         String rawPassword = "password123";
         String hashedPassword = "hashedPassword123";
+        String verificationToken = "test-token";
         testUser.setPasswordHash(rawPassword);
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(rawPassword)).thenReturn(hashedPassword);
+        when(emailService.generateVerificationToken()).thenReturn(verificationToken);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User savedUser = invocation.getArgument(0);
             assertEquals(hashedPassword, savedUser.getPasswordHash(), "Password should be hashed");
@@ -127,19 +146,23 @@ class UserServiceTest extends BaseUnitTest {
 
         verify(passwordEncoder).encode(rawPassword);
         verify(userRepository).save(any(User.class));
+        verify(verificationTokenRepository).deleteByUser_UserId(testUser.getUserId());
+        verify(emailService).sendVerificationEmail(eq(testUser.getEmail()), eq(testUser.getUsername()), eq(verificationToken));
     }
 
     @Test
     @DisplayName("Should preserve user fields during registration")
-    void shouldPreserveUserFieldsDuringRegistration() {
+    void shouldPreserveUserFieldsDuringRegistration() throws MessagingException {
         logger.debug("Testing preservation of user fields during registration");
         
         testUser.setProfilePictureUrl("http://example.com/pic.jpg");
         testUser.setBio("Test bio");
+        String verificationToken = "test-token";
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        when(emailService.generateVerificationToken()).thenReturn(verificationToken);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User savedUser = invocation.getArgument(0);
             assertEquals(testUser.getProfilePictureUrl(), savedUser.getProfilePictureUrl(), 
@@ -151,5 +174,7 @@ class UserServiceTest extends BaseUnitTest {
         userService.registerUser(testUser);
 
         verify(userRepository).save(any(User.class));
+        verify(verificationTokenRepository).deleteByUser_UserId(testUser.getUserId());
+        verify(emailService).sendVerificationEmail(eq(testUser.getEmail()), eq(testUser.getUsername()), eq(verificationToken));
     }
 } 
