@@ -61,15 +61,15 @@ public class UserController {
      */
     @GetMapping("/verify")
     public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam(required = true) String token) {
-        logger.debug("Received email verification request with token: {}", token);
+        logger.debug("Received email verification request");
         
         boolean verified = userService.verifyEmail(token);
         
         if (verified) {
-            logger.info("Email verification successful for token: {}", token);
+            logger.info("Email verification successful");
             return ResponseEntity.ok(Map.of("message", "Email verified successfully"));
         } else {
-            logger.warn("Email verification failed for token: {}", token);
+            logger.warn("Email verification failed");
             return ResponseEntity.badRequest().body(Map.of("message", "Email verification failed"));
         }
     }

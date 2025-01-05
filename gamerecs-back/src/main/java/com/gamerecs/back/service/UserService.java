@@ -126,16 +126,16 @@ public class UserService {
      */
     @Transactional
     public boolean verifyEmail(String token) {
-        logger.debug("Attempting to verify email with token: {}", token);
+        logger.debug("Attempting to verify email with token");
         
         VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
                 .orElseThrow(() -> {
-                    logger.warn("Email verification failed: Token not found: {}", token);
+                    logger.warn("Email verification failed: Token not found");
                     return new IllegalArgumentException("Invalid verification token");
                 });
         
         if (verificationToken.isExpired()) {
-            logger.warn("Email verification failed: Token expired: {}", token);
+            logger.warn("Email verification failed: Token expired");
             verificationTokenRepository.delete(verificationToken);
             throw new IllegalArgumentException("Verification token has expired");
         }
