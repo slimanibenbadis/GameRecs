@@ -175,8 +175,54 @@ describe('AuthService', () => {
       });
 
       const req = httpMock.expectOne('/api/users/register');
-      // Send a response that will cause JSON parsing to fail
       req.flush(null, { status: 500, statusText: 'Internal Server Error' });
+    });
+  });
+
+  describe('login', () => {
+    const mockLoginRequest = {
+      username: 'testuser',
+      password: 'password123',
+      rememberMe: false
+    };
+
+    it('should handle malformed error response', () => {
+      service.login(mockLoginRequest).subscribe({
+        error: error => {
+          expect(error.message).toBe('An error occurred during login');
+        }
+      });
+
+      const req = httpMock.expectOne('/api/users/login');
+      req.flush('Invalid response', { status: 500, statusText: 'Internal Server Error' });
+    });
+
+    it('should handle unauthorized error', () => {
+      service.login(mockLoginRequest).subscribe({
+        error: error => {
+          expect(error.message).toBe('Invalid username or password');
+        }
+      });
+
+      const req = httpMock.expectOne('/api/users/login');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+    });
+
+    it('should handle server error with message', () => {
+      const apiError: IApiError = {
+        timestamp: new Date().toISOString(),
+        status: 500,
+        message: 'Server error occurred'
+      };
+
+      service.login(mockLoginRequest).subscribe({
+        error: error => {
+          expect(error.message).toBe('Server error occurred');
+        }
+      });
+
+      const req = httpMock.expectOne('/api/users/login');
+      req.flush(apiError, { status: 500, statusText: 'Internal Server Error' });
     });
   });
 }); 

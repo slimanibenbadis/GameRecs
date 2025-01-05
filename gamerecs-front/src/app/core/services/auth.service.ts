@@ -32,6 +32,21 @@ export interface IApiError {
   errors?: { [key: string]: string };
 }
 
+export interface ILoginRequest {
+  username: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+export interface ILoginResponse {
+  token: string;
+  userId: string;
+  username: string;
+  email: string;
+  bio?: string;
+  profilePictureUrl?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -48,7 +63,7 @@ export class AuthService {
     return this._http.post<IRegistrationResponse>(`${this._apiUrl}/register`, user)
       .pipe(
         tap(response => console.log('[AuthService] User registration successful:', { userId: response.userId, username: response.username })),
-        catchError(this.handleError)
+        catchError((error) => this.handleError(error))
       );
   }
 
@@ -58,15 +73,25 @@ export class AuthService {
     return this._http.get<IVerificationResponse>(`${this._apiUrl}/verify?token=${token}`)
       .pipe(
         tap(response => console.log('[AuthService] Email verification response:', response)),
-        catchError(this.handleError)
+        catchError((error) => this.handleError(error))
+      );
+  }
+
+  login(loginData: ILoginRequest): Observable<ILoginResponse> {
+    console.log('[AuthService] Attempting login for user:', loginData.username);
+    
+    return this._http.post<ILoginResponse>(`${this._apiUrl}/login`, loginData)
+      .pipe(
+        tap(response => console.log('[AuthService] Login successful for user:', response.username)),
+        catchError((error) => this.handleError(error))
       );
   }
 
   private handleError(error: HttpErrorResponse) {
     console.error('[AuthService] An error occurred:', error);
 
-    let errorMessage = 'An unknown error occurred';
-    
+    let errorMessage: string;
+
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       console.error('[AuthService] Client error:', error.error.message);
@@ -78,20 +103,38 @@ export class AuthService {
         `body was:`, error.error
       );
       
-      try {
-        const apiError = error.error as IApiError;
-        if (apiError.errors && Object.keys(apiError.errors).length > 0) {
-          // If we have field-specific errors, join them
-          errorMessage = Object.values(apiError.errors).join('. ');
-        } else {
-          errorMessage = apiError.message || 'An error occurred during registration';
+      // Handle 401 Unauthorized specifically
+      if (error.status === 401) {
+        errorMessage = 'Invalid username or password';
+      } else {
+        try {
+          const apiError = error.error as IApiError;
+          if (apiError?.errors && Object.keys(apiError.errors).length > 0) {
+            // If we have field-specific errors, join them
+            errorMessage = Object.values(apiError.errors).join('. ');
+          } else {
+            // Determine context based on URL
+            const context = this.getOperationContext(error.url);
+            errorMessage = apiError?.message || `An error occurred during ${context}`;
+          }
+        } catch (e) {
+          console.error('[AuthService] Error parsing error response:', e);
+          const context = this.getOperationContext(error.url);
+          errorMessage = `An error occurred during ${context}`;
         }
-      } catch (e) {
-        console.error('[AuthService] Error parsing error response:', e);
-        errorMessage = 'An error occurred during registration';
       }
     }
 
     return throwError(() => new Error(errorMessage));
+  }
+
+  private getOperationContext(url: string | null): string {
+    if (!url) return 'the operation';
+    
+    if (url.includes('/register')) return 'registration';
+    if (url.includes('/login')) return 'login';
+    if (url.includes('/verify')) return 'email verification';
+    
+    return 'the operation';
   }
 } 
