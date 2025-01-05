@@ -201,6 +201,12 @@ gamerecs-front/src/environments/environment.cypress.ts
 gamerecs-front/src/environments/environment.test.ts
 gamerecs-front/src/environments/environment.ts
 
+Add isAuthenticated method to AuthService
+- Added public isAuthenticated() method to check JWT token validity
+- Added comprehensive tests for authentication status checking
+  - gamerecs-front/src/app/core/services/auth.service.ts
+  - gamerecs-front/src/app/core/services/auth.service.spec.ts
+
 Implement email verification feature for user registration
 docker-compose.yml
 gamerecs-back/pom.xml
@@ -240,15 +246,6 @@ gamerecs-front/src/app/core/services/auth.service.spec.ts
 gamerecs-front/tsconfig.json
 
 Enhance email verification process and UI
-gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java
-gamerecs-front/src/app/app.routes.ts
-gamerecs-front/src/app/core/components/auth/email-verification.component.html
-gamerecs-front/src/app/core/components/auth/email-verification.component.spec.ts
-gamerecs-front/src/app/core/components/auth/email-verification.component.ts
-gamerecs-front/src/app/core/components/auth/registration-form.component.spec.ts
-gamerecs-front/src/app/core/components/auth/registration-form.component.ts
-
-Enhance EmailService with input validation and comprehensive tests
 gamerecs-back/src/main/java/com/gamerecs/back/service/EmailService.java
 gamerecs-back/src/test/java/com/gamerecs/back/service/EmailServiceTest.java
 
@@ -361,3 +358,22 @@ Implement comprehensive tests for login form component
   - Added tests for error handling
   - Added tests for loading state
   - Added tests for toast messages
+
+Enhance AuthService with JWT Storage and Authentication State Management
+- gamerecs-front/src/app/core/services/auth.service.ts
+  - Added JWT token storage in localStorage/sessionStorage based on "Remember me"
+  - Implemented authentication state management with BehaviorSubject
+  - Added methods for token retrieval and user state management
+- gamerecs-front/src/app/core/services/auth.service.spec.ts
+  - Added comprehensive tests for JWT storage
+  - Added tests for authentication state management
+  - Added tests for token retrieval and storage location
+
+Update ILoginResponse interface to match backend LoginResponseDto
+- gamerecs-front/src/app/core/services/auth.service.ts
+- gamerecs-front/src/app/core/services/auth.service.spec.ts
+
+Verified Logout Functionality Implementation
+- Confirmed proper implementation of logout method in AuthService with comprehensive test coverage
+  - gamerecs-front/src/app/core/services/auth.service.ts
+  - gamerecs-front/src/app/core/services/auth.service.spec.ts

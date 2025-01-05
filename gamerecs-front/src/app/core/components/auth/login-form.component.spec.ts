@@ -22,11 +22,9 @@ describe('LoginFormComponent', () => {
 
   const mockLoginResponse: ILoginResponse = {
     token: 'mock-jwt-token',
-    userId: '123',
     username: 'testuser',
     email: 'test@example.com',
-    bio: 'Test bio',
-    profilePictureUrl: 'https://example.com/image.jpg'
+    emailVerified: true
   };
 
   beforeEach(async () => {
