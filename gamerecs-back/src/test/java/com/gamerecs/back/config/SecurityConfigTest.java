@@ -6,13 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class SecurityConfigTest extends BaseIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfigTest.class);
@@ -52,11 +53,7 @@ class SecurityConfigTest extends BaseIntegrationTest {
         
         MvcResult result = mockMvc.perform(get("/actuator/health"))
             .andDo(MockMvcResultHandlers.print())
-            .andExpect(status -> {
-                int actualStatus = status.getResponse().getStatus();
-                assertTrue(actualStatus != 401 && actualStatus != 403,
-                    String.format("Expected endpoint to be accessible, but got status %d", actualStatus));
-            })
+            .andExpect(status().isOk())
             .andReturn();
 
         String content = result.getResponse().getContentAsString();
@@ -79,8 +76,38 @@ class SecurityConfigTest extends BaseIntegrationTest {
 
         for (String endpoint : protectedEndpoints) {
             logger.debug("Testing access to protected endpoint: {}", endpoint);
-            mockMvc.perform(get(endpoint))
-                .andExpect(status().isUnauthorized());
+            mockMvc.perform(get(endpoint)
+                    .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Unauthorized"));
+        }
+    }
+
+    @Test
+    @DisplayName("Should allow access to public endpoints without authentication")
+    void shouldAllowPublicEndpointsAccess() throws Exception {
+        logger.debug("Testing access to public endpoints");
+        
+        String[] publicEndpoints = {
+            "/api/users/register",
+            "/api/users/verify",
+            "/api/auth/login"
+        };
+
+        for (String endpoint : publicEndpoints) {
+            logger.debug("Testing access to public endpoint: {}", endpoint);
+            mockMvc.perform(post(endpoint)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(result -> {
+                    int status = result.getResponse().getStatus();
+                    assertTrue(status != 401 && status != 403,
+                        String.format("Public endpoint %s should not require auth, but got status %d", 
+                            endpoint, status));
+                });
         }
     }
 } 

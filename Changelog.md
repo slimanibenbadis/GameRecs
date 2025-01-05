@@ -275,3 +275,38 @@ gamerecs-front/src/app/core/services/auth.service.spec.ts
 Refactor email verification logging in UserController and UserService
 gamerecs-back/src/main/java/com/gamerecs/back/controller/UserController.java
 gamerecs-back/src/main/java/com/gamerecs/back/service/UserService.java
+
+Implement JWT Authentication and Security Filter
+gamerecs-back/pom.xml
+gamerecs-back/src/main/java/com/gamerecs/back/service/JwtService.java
+gamerecs-back/src/main/java/com/gamerecs/back/config/JwtAuthenticationFilter.java
+gamerecs-back/src/main/java/com/gamerecs/back/config/SecurityConfig.java
+gamerecs-back/src/main/resources/application.yml
+
+Verified JWT Authentication Filter and Service Implementation
+- Confirmed proper implementation of JWT authentication components:
+  - gamerecs-back/src/main/java/com/gamerecs/back/config/JwtAuthenticationFilter.java
+  - gamerecs-back/src/main/java/com/gamerecs/back/service/JwtService.java
+
+Verified JWT Dependencies in Backend
+- Confirmed JWT dependencies (jjwt-api, jjwt-impl, jjwt-jackson) are already present in:
+  - gamerecs-back/pom.xml
+
+Implement comprehensive JwtService tests for token generation, extraction, and validation
+- gamerecs-back/src/test/java/com/gamerecs/back/service/JwtServiceTest.java
+
+Implement comprehensive JwtAuthenticationFilter tests
+- gamerecs-back/src/test/java/com/gamerecs/back/config/JwtAuthenticationFilterTest.java
+  - Added tests for token extraction and validation
+  - Added tests for authentication process
+  - Added tests for error handling scenarios
+  - Added tests for security context management
+
+Implement CustomUserDetailsService for JWT Authentication
+gamerecs-back/src/main/java/com/gamerecs/back/service/CustomUserDetailsService.java
+gamerecs-back/src/test/java/com/gamerecs/back/service/CustomUserDetailsServiceTest.java
+- Implemented CustomUserDetailsService to integrate with Spring Security
+- Added comprehensive unit tests for user details loading scenarios
+- Integrated with existing UserRepository for username-based user lookup
+- Added support for email verification status in user authentication
+- Fixed JWT authentication dependency issue in application context
