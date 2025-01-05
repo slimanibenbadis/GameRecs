@@ -167,6 +167,6 @@ describe('EmailVerificationComponent', () => {
 
   it('should navigate to registration page on button click', () => {
     component.navigateToAuth();
-    expect(router.navigate).toHaveBeenCalledWith(['/auth/register']);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 }); 

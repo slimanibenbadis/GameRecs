@@ -5,6 +5,7 @@ import { MessageService } from 'primeng/api';
 import { AuthService, ILoginRequest, ILoginResponse } from '../../services/auth.service';
 import { environment } from '../../../../environments/environment';
 import { Toast } from 'primeng/toast';
+import { Router, RouterModule } from '@angular/router';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -21,6 +22,7 @@ import { CheckboxModule } from 'primeng/checkbox';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,
@@ -39,7 +41,8 @@ export class LoginFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private messageService: MessageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     console.log('[LoginFormComponent] Initializing component');
     this.loginForm = this.fb.group({
@@ -76,13 +79,14 @@ export class LoginFormComponent implements OnInit {
       this.authService.login(loginData).subscribe({
         next: (response: ILoginResponse) => {
           console.log('[LoginFormComponent] Login successful');
-          // Handle successful login (e.g., redirect to dashboard)
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
             detail: 'Login successful!',
             life: 3000
           });
+          // Navigate to home page after successful login
+          this.router.navigate(['/']);
         },
         error: (error: any) => {
           console.error('[LoginFormComponent] Login error:', error);
@@ -90,8 +94,8 @@ export class LoginFormComponent implements OnInit {
           
           if (error instanceof Error) {
             errorMessage = error.message;
-          } else if (error?.error instanceof ErrorEvent) {
-            errorMessage = error.error.message;
+          } else if (error?.error instanceof ErrorEvent || error?.status === 0) {
+            errorMessage = 'Network error. Please check your internet connection.';
           } else if (error?.error?.message) {
             errorMessage = error.error.message;
           } else if (typeof error === 'string') {
@@ -102,7 +106,7 @@ export class LoginFormComponent implements OnInit {
             severity: 'error',
             summary: 'Login Failed',
             detail: errorMessage,
-            life: 5000
+            life: error?.status === 0 ? 0 : 5000
           });
           this.loading = false;
         },

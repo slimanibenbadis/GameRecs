@@ -137,7 +137,6 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
 
   navigateToAuth(): void {
     console.log('[EmailVerificationComponent] Navigating to auth page');
-    // TODO: Update this path once login component is implemented
-    this.router.navigate(['/auth/register']);
+    this.router.navigate(['/auth/login']);
   }
 } 
