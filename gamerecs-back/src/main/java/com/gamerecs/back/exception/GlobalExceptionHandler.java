@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -82,6 +83,54 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles illegal state exceptions.
+     *
+     * @param ex the illegal state exception
+     * @return ResponseEntity containing error message
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex) {
+        logger.warn("Invalid state: {}", ex.getMessage());
+        ApiError apiError = new ApiError(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles authentication failures.
+     *
+     * @param ex the bad credentials exception
+     * @return ResponseEntity containing error message
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentialsException(BadCredentialsException ex) {
+        logger.warn("Authentication failed: {}", ex.getMessage());
+        ApiError apiError = new ApiError(
+            HttpStatus.UNAUTHORIZED.value(),
+            "Invalid credentials"
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
+    }
+    
+    /**
+     * Handles account disabled exceptions (e.g., unverified email).
+     *
+     * @param ex the disabled account exception
+     * @return ResponseEntity containing error message
+     */
+    @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
+    public ResponseEntity<ApiError> handleDisabledException(org.springframework.security.authentication.DisabledException ex) {
+        logger.warn("Account disabled: {}", ex.getMessage());
+        ApiError apiError = new ApiError(
+            HttpStatus.UNAUTHORIZED.value(),
+            "Account is disabled"
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
     
     /**

@@ -310,3 +310,31 @@ gamerecs-back/src/test/java/com/gamerecs/back/service/CustomUserDetailsServiceTe
 - Integrated with existing UserRepository for username-based user lookup
 - Added support for email verification status in user authentication
 - Fixed JWT authentication dependency issue in application context
+
+Implement Login Endpoint for JWT Authentication
+gamerecs-back/src/main/java/com/gamerecs/back/controller/AuthenticationController.java
+gamerecs-back/src/main/java/com/gamerecs/back/dto/LoginRequestDto.java
+gamerecs-back/src/main/java/com/gamerecs/back/dto/LoginResponseDto.java
+
+Implement LoginRequestDto for JWT Authentication
+gamerecs-back/src/main/java/com/gamerecs/back/dto/LoginRequestDto.java
+
+Enhance Login Endpoint with Comprehensive Error Handling and Tests
+- gamerecs-back/src/main/java/com/gamerecs/back/controller/AuthenticationController.java
+- gamerecs-back/src/test/java/com/gamerecs/back/controller/AuthenticationControllerTest.java
+
+Refactor Login Endpoint to Use GlobalExceptionHandler
+- gamerecs-back/src/main/java/com/gamerecs/back/controller/AuthenticationController.java
+- gamerecs-back/src/test/java/com/gamerecs/back/controller/AuthenticationControllerTest.java
+- gamerecs-back/src/main/java/com/gamerecs/back/exception/GlobalExceptionHandler.java
+
+Verified LoginResponseDto Implementation
+- Confirmed proper implementation of LoginResponseDto with JWT token and user details:
+  - gamerecs-back/src/main/java/com/gamerecs/back/dto/LoginResponseDto.java
+
+Enhance Authentication Tests and Error Handling for Unverified Email
+- gamerecs-back/src/test/java/com/gamerecs/back/controller/AuthenticationControllerTest.java
+- gamerecs-back/src/main/java/com/gamerecs/back/exception/GlobalExceptionHandler.java
+  - Added test for login attempt with unverified email
+  - Added DisabledException handler for unverified email accounts
+  - Enhanced error messages and logging for account verification status
