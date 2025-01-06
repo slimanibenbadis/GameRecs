@@ -38,6 +38,13 @@ Cypress.Commands.add('checkToast', (severity, summary, detail) => {
     });
 });
 
+Cypress.Commands.add('checkPrimeNGCheckbox', (selector: string) => {
+  // Find the hidden input and set its value
+  cy.get(selector)
+    .find('input[type="checkbox"]')
+    .check({ force: true });
+});
+
 export {};
 
 // Add the type definition to the Chainable interface
@@ -46,6 +53,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       checkToast(severity: 'success' | 'error', summary: string, detail: string): Chainable<void>;
+      checkPrimeNGCheckbox(selector: string): Chainable<void>;
     }
   }
 } 

@@ -128,7 +128,7 @@ public class GlobalExceptionHandler {
         logger.warn("Account disabled: {}", ex.getMessage());
         ApiError apiError = new ApiError(
             HttpStatus.UNAUTHORIZED.value(),
-            "Account is disabled"
+            "Please verify your email before logging in"
         );
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }

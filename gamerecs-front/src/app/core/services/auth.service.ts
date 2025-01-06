@@ -182,7 +182,12 @@ export class AuthService {
       
       // Handle 401 Unauthorized specifically
       if (error.status === 401) {
-        errorMessage = 'Invalid username or password';
+        const apiError = error.error as IApiError;
+        if (apiError?.message === 'Please verify your email before logging in') {
+          errorMessage = apiError.message;
+        } else {
+          errorMessage = 'Invalid username or password';
+        }
       } else {
         try {
           const apiError = error.error as IApiError;

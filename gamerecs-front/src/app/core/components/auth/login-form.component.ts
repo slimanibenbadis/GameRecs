@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -36,13 +36,15 @@ export class LoginFormComponent implements OnInit {
   
   loginForm: FormGroup;
   loading = false;
+  errorMessage: string = '';
   environment = environment;
 
   constructor(
     private fb: FormBuilder,
     private messageService: MessageService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cd: ChangeDetectorRef
   ) {
     console.log('[LoginFormComponent] Initializing component');
     this.loginForm = this.fb.group({
@@ -59,16 +61,39 @@ export class LoginFormComponent implements OnInit {
       ]],
       rememberMe: [false]
     });
+
+    // Initialize form controls as touched to show validation immediately
+    Object.keys(this.loginForm.controls).forEach(key => {
+      const control = this.loginForm.get(key);
+      if (control && key !== 'rememberMe') {
+        control.markAsTouched();
+      }
+    });
   }
 
   ngOnInit(): void {
     console.log('[LoginFormComponent] Component initialized');
+    // Clear any previous error messages
+    this.errorMessage = '';
   }
 
   onSubmit(): void {
+    this.errorMessage = '';
+    
+    Object.keys(this.loginForm.controls).forEach(key => {
+      const control = this.loginForm.get(key);
+      if (control && key !== 'rememberMe') {
+        control.markAsTouched();
+        control.updateValueAndValidity();
+      }
+    });
+    
+    this.cd.detectChanges();
+
     if (this.loginForm.valid) {
       console.log('[LoginFormComponent] Form submitted:', this.loginForm.value);
       this.loading = true;
+      this.cd.detectChanges();
 
       const loginData: ILoginRequest = {
         username: this.loginForm.get('username')?.value,
@@ -85,52 +110,62 @@ export class LoginFormComponent implements OnInit {
             detail: `Successfully logged in as ${response.username}`,
             life: 3000
           });
-          // Navigate to home page after successful login
-          this.router.navigate(['/']);
+          this.router.navigate(['/health']);
         },
         error: (error: any) => {
-          console.error('[LoginFormComponent] Login error:', error);
-          let errorMessage = 'An error occurred during login. Please try again.';
+          console.error('[LoginFormComponent] Login error full object:', error);
+          console.error('[LoginFormComponent] Error status:', error?.status);
+          console.error('[LoginFormComponent] Error response:', error?.error);
+          console.error('[LoginFormComponent] Error message:', error?.error?.message);
+          
           let errorLife = 5000;
           
           if (error instanceof Error) {
-            errorMessage = error.message;
+            this.errorMessage = error.message;
           } else if (error?.error instanceof ErrorEvent || error?.status === 0) {
-            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-            errorLife = 0; // Keep message until user dismisses it
+            this.errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+            errorLife = 0;
           } else if (error?.status === 401) {
-            if (error?.error?.message === 'Account is disabled') {
-              errorMessage = 'Your account is not verified. Please check your email for the verification link.';
-            } else {
-              errorMessage = 'Invalid username or password. Please try again.';
-            }
+            const errorResponse = error?.error;
+            console.log('[LoginFormComponent] Error response object:', errorResponse);
+            
+            // Use the message directly from the backend
+            this.errorMessage = errorResponse?.message || 'Invalid username or password';
           } else if (error?.error?.message) {
-            errorMessage = error.error.message;
+            this.errorMessage = error.error.message;
           } else if (typeof error === 'string') {
-            errorMessage = error;
+            this.errorMessage = error;
+          } else {
+            this.errorMessage = 'An error occurred during login. Please try again.';
           }
+
+          console.log('[LoginFormComponent] Final error message:', this.errorMessage);
 
           this.messageService.add({
             severity: 'error',
             summary: 'Login Failed',
-            detail: errorMessage,
+            detail: this.errorMessage,
             life: errorLife,
             closable: true,
             sticky: errorLife === 0
           });
+          
           this.loading = false;
+          this.cd.detectChanges();
         },
         complete: () => {
           console.log('[LoginFormComponent] Login request completed');
           this.loading = false;
+          this.cd.detectChanges();
         }
       });
     } else {
       console.log('[LoginFormComponent] Form validation failed');
+      this.errorMessage = 'Please fill in all required fields correctly.';
       this.messageService.add({
         severity: 'warn',
         summary: 'Invalid Form',
-        detail: 'Please fill in all required fields correctly.',
+        detail: this.errorMessage,
         life: 5000
       });
     }

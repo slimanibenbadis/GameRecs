@@ -3,6 +3,11 @@
   <div class="auth-card">
     <h2 class="text-3xl mb-8 text-center">Welcome Back</h2>
     
+    <!-- Global Error Message -->
+    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded" data-cy="error-message">
+      {{ errorMessage }}
+    </div>
+
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
       <!-- Username Field -->
       <div class="form-field">
@@ -14,8 +19,9 @@
           class="w-full" 
           [ngClass]="{'ng-invalid ng-dirty': loginForm.get('username')?.invalid && loginForm.get('username')?.touched}"
           placeholder="Enter your username"
+          data-cy="username-input"
         />
-        <small class="text-red-500" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+        <small class="text-red-500" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" data-cy="username-error">
           {{ getErrorMessage('username') }}
         </small>
       </div>
@@ -32,8 +38,9 @@
           [inputStyle]="{'width': '100%'}"
           placeholder="Enter your password"
           [ngClass]="{'ng-invalid ng-dirty': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+          data-cy="password-input"
         ></p-password>
-        <small class="text-red-500" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        <small class="text-red-500" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" data-cy="password-error">
           {{ getErrorMessage('password') }}
         </small>
       </div>
@@ -46,6 +53,7 @@
             [binary]="true" 
             inputId="rememberMe"
             styleClass="mr-2"
+            data-cy="remember-me-checkbox"
           ></p-checkbox>
           <label for="rememberMe" class="text-sm">Remember me</label>
         </div>
@@ -60,6 +68,7 @@
           [disabled]="loginForm.invalid || loading"
           styleClass="w-full"
           [loading]="loading"
+          data-cy="login-button"
         ></p-button>
       </div>
 
@@ -80,7 +89,5 @@
   [showTransitionOptions]="'0ms'"
   [hideTransitionOptions]="'0ms'"
   styleClass="w-full max-w-md mx-auto"
-  [breakpoints]="{'768px': {width: '100%', right: '0', left: '0'}}"
-  aria-live="polite"
-  aria-atomic="true"
-></p-toast> 
+  [breakpoints]="{'768px': {width: '100%', right: '0', left: '0'}}">
+</p-toast> 

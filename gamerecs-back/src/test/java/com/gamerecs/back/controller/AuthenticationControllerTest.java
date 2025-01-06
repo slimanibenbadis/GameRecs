@@ -201,7 +201,7 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.message").value("Account is disabled"))
+                .andExpect(jsonPath("$.message").value("Please verify your email before logging in"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(authenticationManager).authenticate(any(Authentication.class));

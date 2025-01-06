@@ -131,6 +131,7 @@ describe('LoginFormComponent', () => {
     it('should call login when form is valid', fakeAsync(() => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
+      spyOn(router, 'navigate');
       authService.login.and.returnValue(of(mockLoginResponse));
       
       component.onSubmit();
@@ -149,6 +150,7 @@ describe('LoginFormComponent', () => {
         detail: `Successfully logged in as ${mockLoginResponse.username}`,
         life: 3000
       });
+      expect(router.navigate).toHaveBeenCalledWith(['/health']);
       expect(component.loading).toBeFalse();
     }));
 
@@ -181,7 +183,7 @@ describe('LoginFormComponent', () => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
       const unverifiedError = new HttpErrorResponse({
-        error: { message: 'Account is disabled' },
+        error: { message: 'Please verify your email before logging in' },
         status: 401
       });
       authService.login.and.returnValue(throwError(() => unverifiedError));
@@ -194,7 +196,7 @@ describe('LoginFormComponent', () => {
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Login Failed',
-        detail: 'Your account is not verified. Please check your email for the verification link.',
+        detail: 'Please verify your email before logging in',
         life: 5000,
         closable: true,
         sticky: false
@@ -219,7 +221,7 @@ describe('LoginFormComponent', () => {
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Login Failed',
-        detail: 'Invalid username or password. Please try again.',
+        detail: 'Invalid credentials',
         life: 5000,
         closable: true,
         sticky: false
