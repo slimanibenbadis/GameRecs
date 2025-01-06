@@ -75,9 +75,10 @@ export class RegistrationFormComponent implements OnInit {
     const password = g.get('password')?.value;
     const confirmPassword = g.get('confirmPassword')?.value;
     
-    if (confirmPassword) {
+    if (password && confirmPassword) {
       const mismatch = password !== confirmPassword;
       g.get('confirmPassword')?.setErrors(mismatch ? { mismatch: true } : null);
+      return mismatch ? { mismatch: true } : null;
     }
     return null;
   }

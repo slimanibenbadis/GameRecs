@@ -109,10 +109,13 @@ describe('RegistrationFormComponent', () => {
       const form = component.registrationForm;
       form.get('password')?.setValue('StrongPass123');
       form.get('confirmPassword')?.setValue('DifferentPass123');
+      
       expect(form.hasError('mismatch')).toBeTruthy();
+      expect(form.get('confirmPassword')?.errors?.['mismatch']).toBeTruthy();
 
       form.get('confirmPassword')?.setValue('StrongPass123');
       expect(form.hasError('mismatch')).toBeFalsy();
+      expect(form.get('confirmPassword')?.errors).toBeNull();
     });
 
     it('should validate optional bio length', () => {
