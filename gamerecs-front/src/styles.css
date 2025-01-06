@@ -4,12 +4,12 @@
 @layer tailwind-base, primeng, tailwind-utilities;
 
 @layer tailwind-base {
-@tailwind base;
+  @tailwind base;
 }
 
 @layer tailwind-utilities {
-@tailwind components;
-@tailwind utilities;
+  @tailwind components;
+  @tailwind utilities;
 }
 
 :root {
@@ -26,15 +26,29 @@
   --primary-dark: #7beadb;
   --secondary-dark: #155b89;
   --accent-dark: #4684e2;
+
+  /* Default theme */
+  --text-color: var(--text-light);
+  --bg-color: var(--bg-light);
+  --primary-color: var(--primary-light);
+  --secondary-color: var(--secondary-light);
+  --accent-color: var(--accent-light);
 }
 
 /* Base styles */
 html {
   @apply font-rubik antialiased;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
+body {
+  @apply min-h-screen;
+}
+
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
-  @apply font-fira;
+  @apply font-fira font-bold;
 }
 
 /* Type scale: 1.333 (Perfect Fourth) */
@@ -42,41 +56,73 @@ h1 { font-size: 3.157rem; }
 h2 { font-size: 2.369rem; }
 h3 { font-size: 1.777rem; }
 h4 { font-size: 1.333rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.75rem; }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
-}
-
-/* PrimeNG theme overrides */
-:root {
-  --primary-color: var(--primary-light);
-  --text-color: var(--text-light);
-  --surface-ground: var(--bg-light);
-}
-
+/* Dark mode */
 .dark {
-  --primary-color: var(--primary-dark);
   --text-color: var(--text-dark);
-  --surface-ground: var(--bg-dark);
+  --bg-color: var(--bg-dark);
+  --primary-color: var(--primary-dark);
+  --secondary-color: var(--secondary-dark);
+  --accent-color: var(--accent-dark);
 }
 
-/* Form styling */
+/* PrimeNG Component Overrides */
+.p-component {
+  @apply font-rubik;
+}
+
 .p-inputtext,
 .p-password input,
 .p-button {
   @apply rounded-lg transition-all duration-200;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+}
+
+.p-inputtext:enabled:focus,
+.p-password input:enabled:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(21, 132, 117, 0.2);
+}
+
+.dark .p-inputtext:enabled:focus,
+.dark .p-password input:enabled:focus {
+  box-shadow: 0 0 0 2px rgba(123, 234, 219, 0.2);
 }
 
 .p-button {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--bg-color);
 }
 
 .p-button:enabled:hover {
-  filter: brightness(110%) !important;
+  filter: brightness(110%);
+  transform: translateY(-1px);
+}
+
+.p-button:enabled:active {
+  transform: translateY(0);
+}
+
+/* Card styling */
+.auth-card {
+  @apply w-full max-w-lg p-8 rounded-xl shadow-lg;
+  background-color: var(--bg-color);
+  border: 1px solid rgba(var(--primary-color), 0.1);
+}
+
+/* Form styling */
+.form-field {
+  @apply mb-6;
+}
+
+.form-label {
+  @apply block text-sm font-medium mb-2;
+  color: var(--text-color);
 }
 
 /* Toast styling */
@@ -84,7 +130,12 @@ h4 { font-size: 1.333rem; }
   @apply font-rubik;
 }
 
+.p-toast .p-toast-message {
+  border-radius: 0.5rem;
+}
+
 /* Custom utility classes */
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-accent-light dark:from-primary-dark dark:to-accent-dark;
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(to right, var(--primary-color), var(--accent-color));
 }

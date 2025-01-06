@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../../environments/environment';
@@ -21,6 +22,7 @@ import { TextareaModule } from 'primeng/textarea';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,

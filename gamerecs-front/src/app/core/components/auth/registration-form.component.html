@@ -1,15 +1,18 @@
-<div class="flex justify-center items-center min-h-screen bg-surface-0 dark:bg-surface-900">
-  <div class="w-full max-w-lg p-6 bg-surface-0 dark:bg-surface-800 rounded-lg shadow-lg">
-    <h2 class="text-2xl font-fira font-bold mb-6 text-center text-surface-900 dark:text-surface-0">Create Account</h2>
+<!-- Registration Form Container -->
+<div class="flex justify-center items-center min-h-screen bg-color">
+  <div class="auth-card">
+    <h2 class="text-3xl mb-8 text-center">Create Account</h2>
     
-    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Username Field -->
       <div class="form-field">
-        <label for="username" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Username</label>
+        <label for="username" class="form-label">Username</label>
         <input 
           pInputText 
           id="username" 
           formControlName="username"
-          class="w-full p-inputtext-sm" 
+          class="w-full" 
+          placeholder="Choose a username"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('username')?.invalid && registrationForm.get('username')?.touched}"
         />
         <small class="text-red-500" *ngIf="registrationForm.get('username')?.invalid && registrationForm.get('username')?.touched">
@@ -17,14 +20,16 @@
         </small>
       </div>
 
+      <!-- Email Field -->
       <div class="form-field">
-        <label for="email" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Email</label>
+        <label for="email" class="form-label">Email</label>
         <input 
           pInputText 
           id="email" 
           type="email" 
           formControlName="email"
-          class="w-full p-inputtext-sm"
+          class="w-full"
+          placeholder="Enter your email"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched}"
         />
         <small class="text-red-500" *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
@@ -32,8 +37,9 @@
         </small>
       </div>
 
+      <!-- Password Field -->
       <div class="form-field">
-        <label for="password" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Password</label>
+        <label for="password" class="form-label">Password</label>
         <p-password 
           id="password" 
           formControlName="password"
@@ -41,6 +47,7 @@
           [feedback]="!environment.testing"
           styleClass="w-full"
           [inputStyle]="{'width': '100%'}"
+          placeholder="Create a password"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched}"
         ></p-password>
         <small class="text-red-500" *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
@@ -48,8 +55,9 @@
         </small>
       </div>
 
+      <!-- Confirm Password Field -->
       <div class="form-field">
-        <label for="confirmPassword" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Confirm Password</label>
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
         <p-password 
           id="confirmPassword" 
           formControlName="confirmPassword"
@@ -57,21 +65,24 @@
           [feedback]="false"
           styleClass="w-full"
           [inputStyle]="{'width': '100%'}"
+          placeholder="Confirm your password"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('confirmPassword')?.invalid && registrationForm.get('confirmPassword')?.touched}"
         ></p-password>
-        <small class="text-red-500" *ngIf="registrationForm.hasError('mismatch') && registrationForm.get('confirmPassword')?.touched">
-          Passwords do not match
+        <small class="text-red-500" *ngIf="registrationForm.get('confirmPassword')?.invalid && registrationForm.get('confirmPassword')?.touched">
+          {{ getErrorMessage('confirmPassword') }}
         </small>
       </div>
 
+      <!-- Bio Field -->
       <div class="form-field">
-        <label for="bio" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Bio (Optional)</label>
+        <label for="bio" class="form-label">Bio (Optional)</label>
         <textarea 
           pTextarea
           id="bio" 
           formControlName="bio"
           rows="3"
           class="w-full"
+          placeholder="Tell us about yourself"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('bio')?.invalid && registrationForm.get('bio')?.touched}"
         ></textarea>
         <small class="text-red-500" *ngIf="registrationForm.get('bio')?.invalid && registrationForm.get('bio')?.touched">
@@ -79,13 +90,15 @@
         </small>
       </div>
 
+      <!-- Profile Picture URL Field -->
       <div class="form-field">
-        <label for="profilePicture" class="block text-sm font-rubik font-medium text-surface-700 dark:text-surface-200 mb-1">Profile Picture URL (Optional)</label>
+        <label for="profilePicture" class="form-label">Profile Picture URL (Optional)</label>
         <input 
           pInputText 
           id="profilePicture" 
           formControlName="profilePictureUrl"
-          class="w-full p-inputtext-sm"
+          class="w-full"
+          placeholder="Enter image URL"
           [ngClass]="{'ng-invalid ng-dirty': registrationForm.get('profilePictureUrl')?.invalid && registrationForm.get('profilePictureUrl')?.touched}"
         />
         <small class="text-red-500" *ngIf="registrationForm.get('profilePictureUrl')?.invalid && registrationForm.get('profilePictureUrl')?.touched">
@@ -93,24 +106,32 @@
         </small>
       </div>
 
-      <div class="mt-6">
+      <!-- Register Button -->
+      <div class="mt-8">
         <p-button 
           type="submit"
-          [label]="loading ? 'Creating Account...' : 'Create Account'"
+          [label]="loading ? 'Creating account...' : 'Create Account'"
           [disabled]="registrationForm.invalid || loading"
           styleClass="w-full"
           [loading]="loading"
         ></p-button>
       </div>
+
+      <!-- Login Link -->
+      <div class="mt-6 text-center">
+        <span class="text-sm">Already have an account? </span>
+        <a routerLink="/auth/login" class="text-sm hover:underline text-primary-color">Login</a>
+      </div>
     </form>
   </div>
 </div>
 
+<!-- Toast Messages -->
 <p-toast #toast
   position="top-center" 
   [baseZIndex]="9999"
   [preventDuplicates]="true"
   [showTransitionOptions]="'0ms'"
   [hideTransitionOptions]="'0ms'"
-  styleClass="w-full"
+  styleClass="w-full max-w-md mx-auto"
 ></p-toast> 

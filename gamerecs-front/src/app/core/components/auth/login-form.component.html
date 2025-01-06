@@ -1,25 +1,28 @@
-<div class="flex justify-center items-center min-h-screen bg-[#f2fdfb] dark:bg-[#020d0b]">
-  <div class="w-full max-w-lg p-8 bg-white dark:bg-[#062823] rounded-xl shadow-lg border border-[#158475]/10 dark:border-[#7beadb]/10">
-    <h2 class="text-3xl font-fira font-bold mb-8 text-center text-[#062823] dark:text-[#d7f9f4]">Welcome Back</h2>
+<!-- Login Form Container -->
+<div class="flex justify-center items-center min-h-screen bg-color">
+  <div class="auth-card">
+    <h2 class="text-3xl mb-8 text-center">Welcome Back</h2>
     
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Username Field -->
       <div class="form-field">
-        <label for="username" class="block text-sm font-rubik font-medium text-[#062823] dark:text-[#d7f9f4] mb-2">Username</label>
+        <label for="username" class="form-label">Username</label>
         <input 
           pInputText 
           id="username" 
           formControlName="username"
-          class="w-full p-inputtext-sm" 
+          class="w-full" 
           [ngClass]="{'ng-invalid ng-dirty': loginForm.get('username')?.invalid && loginForm.get('username')?.touched}"
           placeholder="Enter your username"
         />
-        <small class="text-red-500 font-rubik" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+        <small class="text-red-500" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
           {{ getErrorMessage('username') }}
         </small>
       </div>
 
+      <!-- Password Field -->
       <div class="form-field">
-        <label for="password" class="block text-sm font-rubik font-medium text-[#062823] dark:text-[#d7f9f4] mb-2">Password</label>
+        <label for="password" class="form-label">Password</label>
         <p-password 
           id="password" 
           formControlName="password"
@@ -30,11 +33,12 @@
           placeholder="Enter your password"
           [ngClass]="{'ng-invalid ng-dirty': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
         ></p-password>
-        <small class="text-red-500 font-rubik" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        <small class="text-red-500" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
           {{ getErrorMessage('password') }}
         </small>
       </div>
 
+      <!-- Remember Me & Forgot Password -->
       <div class="flex items-center justify-between">
         <div class="flex items-center">
           <p-checkbox 
@@ -43,29 +47,32 @@
             inputId="rememberMe"
             styleClass="mr-2"
           ></p-checkbox>
-          <label for="rememberMe" class="text-sm font-rubik text-[#062823] dark:text-[#d7f9f4]">Remember me</label>
+          <label for="rememberMe" class="text-sm">Remember me</label>
         </div>
-        <a href="#" class="text-sm font-rubik text-[#158475] dark:text-[#7beadb] hover:underline">Forgot password?</a>
+        <a routerLink="/auth/forgot-password" class="text-sm hover:underline text-primary-color">Forgot password?</a>
       </div>
 
+      <!-- Login Button -->
       <div class="mt-8">
         <p-button 
           type="submit"
           [label]="loading ? 'Logging in...' : 'Login'"
           [disabled]="loginForm.invalid || loading"
-          styleClass="w-full p-button-lg"
+          styleClass="w-full"
           [loading]="loading"
         ></p-button>
       </div>
 
+      <!-- Sign Up Link -->
       <div class="mt-6 text-center">
-        <span class="text-sm font-rubik text-[#062823] dark:text-[#d7f9f4]">Don't have an account? </span>
-        <a routerLink="/auth/register" class="text-sm font-rubik text-[#158475] dark:text-[#7beadb] hover:underline">Sign up</a>
+        <span class="text-sm">Don't have an account? </span>
+        <a routerLink="/auth/register" class="text-sm hover:underline text-primary-color">Sign up</a>
       </div>
     </form>
   </div>
 </div>
 
+<!-- Toast Messages -->
 <p-toast #toast
   position="top-center" 
   [baseZIndex]="9999"

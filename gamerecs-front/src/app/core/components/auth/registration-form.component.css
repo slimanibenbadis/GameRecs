@@ -1,25 +1,5 @@
-/* Additional styles for PrimeNG components */
-:host ::ng-deep .p-password input {
+/* Component-specific styles only */
+:host {
+  display: block;
   width: 100%;
-}
-
-:host ::ng-deep .p-button {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-:host ::ng-deep .p-button:enabled:hover {
-  background-color: var(--primary-color-darker);
-  border-color: var(--primary-color-darker);
-}
-
-/* Form field spacing */
-.form-field {
-  margin-bottom: 1.5rem;
-}
-
-/* Error message styling */
-.text-red-500 {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
 } 

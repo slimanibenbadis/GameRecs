@@ -6,6 +6,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -40,7 +42,8 @@ describe('RegistrationFormComponent', () => {
         ToastModule,
         TextareaModule,
         RegistrationFormComponent,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        RouterTestingModule
       ],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },

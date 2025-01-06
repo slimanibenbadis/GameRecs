@@ -5,6 +5,12 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
+
+// PrimeNG Imports
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
 
 describe('EmailVerificationComponent', () => {
   let component: EmailVerificationComponent;
@@ -16,7 +22,7 @@ describe('EmailVerificationComponent', () => {
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['verifyEmail']);
-    const messageServiceSpy = jasmine.createSpyObj('MessageService', ['add']);
+    const messageServiceSpy = jasmine.createSpyObj('MessageService', ['add', 'clear']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     activatedRoute = {
@@ -26,7 +32,11 @@ describe('EmailVerificationComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         EmailVerificationComponent,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        RouterTestingModule,
+        ProgressSpinnerModule,
+        ButtonModule,
+        ToastModule
       ],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },

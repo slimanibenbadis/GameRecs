@@ -6,6 +6,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -19,9 +21,10 @@ describe('LoginFormComponent', () => {
   let fixture: ComponentFixture<LoginFormComponent>;
   let authService: jasmine.SpyObj<AuthService>;
   let messageService: jasmine.SpyObj<MessageService>;
+  let router: Router;
 
   const mockLoginResponse: ILoginResponse = {
-    token: 'mock-jwt-token',
+    token: 'mock-token',
     username: 'testuser',
     email: 'test@example.com',
     emailVerified: true
@@ -40,7 +43,8 @@ describe('LoginFormComponent', () => {
         ToastModule,
         CheckboxModule,
         LoginFormComponent,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        RouterTestingModule
       ],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },
@@ -50,6 +54,7 @@ describe('LoginFormComponent', () => {
 
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     messageService = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
+    router = TestBed.inject(Router);
   });
 
   beforeEach(() => {
