@@ -3,9 +3,14 @@ import { HealthComponent } from './core/components/health/health.component';
 import { RegistrationFormComponent } from './core/components/auth/registration-form.component';
 import { EmailVerificationComponent } from './core/components/auth/email-verification.component';
 import { LoginFormComponent } from './core/components/auth/login-form.component';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: 'health', component: HealthComponent },
+  { 
+    path: 'health', 
+    component: HealthComponent,
+    canActivate: [AuthGuard]
+  },
   { 
     path: 'auth', 
     children: [
