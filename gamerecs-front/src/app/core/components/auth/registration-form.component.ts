@@ -74,7 +74,12 @@ export class RegistrationFormComponent implements OnInit {
   private passwordMatchValidator(g: FormGroup) {
     const password = g.get('password')?.value;
     const confirmPassword = g.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { mismatch: true };
+    
+    if (confirmPassword) {
+      const mismatch = password !== confirmPassword;
+      g.get('confirmPassword')?.setErrors(mismatch ? { mismatch: true } : null);
+    }
+    return null;
   }
 
   onSubmit(): void {
@@ -149,6 +154,10 @@ export class RegistrationFormComponent implements OnInit {
       if (errors['required']) return 'Password is required';
       if (errors['minlength']) return 'Password must be at least 8 characters';
       if (errors['pattern']) return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      break;
+    case 'confirmPassword':
+      if (errors['required']) return 'Password confirmation is required';
+      if (errors['mismatch']) return 'Passwords do not match';
       break;
     case 'bio':
       if (errors['maxlength']) return 'Bio cannot exceed 500 characters';

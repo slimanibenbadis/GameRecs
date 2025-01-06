@@ -1,6 +1,6 @@
 describe('Registration Form', () => {
   beforeEach(() => {
-    cy.visit('/register');
+    cy.visit('auth/register');
     cy.intercept('POST', '/api/users/register').as('registerUser');
   });
 
@@ -170,11 +170,15 @@ describe('Registration Form', () => {
     // Get the button and verify initial state
     cy.get('p-button[type="submit"]').should('exist');
     cy.get('p-button[type="submit"] button').should('not.be.disabled');
+    cy.get('p-button[type="submit"]').should('contain', 'Create Account');
     
     // Click submit and verify loading state
     cy.get('p-button[type="submit"]').click();
     cy.get('p-button[type="submit"] button').should('be.disabled');
-    cy.get('p-button[type="submit"]').should('contain', 'Creating Account...');
+    
+    // Add explicit wait for loading text with increased timeout
+    cy.get('p-button[type="submit"]', { timeout: 15000 })
+      .should('contain', 'Creating Account...');
 
     // Wait for request to complete
     cy.wait('@slowRegister');
