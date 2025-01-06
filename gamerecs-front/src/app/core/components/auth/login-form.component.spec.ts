@@ -145,24 +145,21 @@ describe('LoginFormComponent', () => {
       });
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'success',
-        summary: 'Success',
-        detail: 'Login successful!',
+        summary: 'Welcome Back!',
+        detail: `Successfully logged in as ${mockLoginResponse.username}`,
         life: 3000
       });
       expect(component.loading).toBeFalse();
     }));
 
-    it('should handle login error', fakeAsync(() => {
+    it('should handle network error', fakeAsync(() => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
-      const mockError = new Error('Invalid username or password');
-      authService.login.and.returnValue(throwError(() => mockError));
-
-      component.loginForm.setValue({
-        username: 'testuser',
-        password: 'TestPass123!',
-        rememberMe: false
+      const networkError = new HttpErrorResponse({
+        error: new ErrorEvent('Network error'),
+        status: 0
       });
+      authService.login.and.returnValue(throwError(() => networkError));
 
       component.onSubmit();
       fixture.detectChanges();
@@ -172,23 +169,22 @@ describe('LoginFormComponent', () => {
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Login Failed',
-        detail: 'Invalid username or password',
-        life: 5000
+        detail: 'Unable to connect to the server. Please check your internet connection.',
+        life: 0,
+        closable: true,
+        sticky: true
       });
       expect(component.loading).toBeFalse();
     }));
 
-    it('should handle Error instance in login error', fakeAsync(() => {
+    it('should handle unverified account error', fakeAsync(() => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
-      const mockError = new Error('Network error occurred');
-      authService.login.and.returnValue(throwError(() => mockError));
-
-      component.loginForm.setValue({
-        username: 'testuser',
-        password: 'TestPass123!',
-        rememberMe: false
+      const unverifiedError = new HttpErrorResponse({
+        error: { message: 'Account is disabled' },
+        status: 401
       });
+      authService.login.and.returnValue(throwError(() => unverifiedError));
 
       component.onSubmit();
       fixture.detectChanges();
@@ -198,22 +194,49 @@ describe('LoginFormComponent', () => {
       expect(messageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Login Failed',
-        detail: 'Network error occurred',
-        life: 5000
+        detail: 'Your account is not verified. Please check your email for the verification link.',
+        life: 5000,
+        closable: true,
+        sticky: false
       });
       expect(component.loading).toBeFalse();
     }));
 
-    it('should not submit if form is invalid', () => {
+    it('should handle invalid credentials error', fakeAsync(() => {
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      spyOn(messageService, 'add');
+      const credentialsError = new HttpErrorResponse({
+        error: { message: 'Invalid credentials' },
+        status: 401
+      });
+      authService.login.and.returnValue(throwError(() => credentialsError));
+
+      component.onSubmit();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Login Failed',
+        detail: 'Invalid username or password. Please try again.',
+        life: 5000,
+        closable: true,
+        sticky: false
+      });
+      expect(component.loading).toBeFalse();
+    }));
+
+    it('should handle invalid form submission', () => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
       component.loginForm.get('username')?.setValue('');
       component.onSubmit();
       expect(authService.login).not.toHaveBeenCalled();
       expect(messageService.add).toHaveBeenCalledWith({
-        severity: 'error',
-        summary: 'Validation Error',
-        detail: 'Please check all fields and try again.',
+        severity: 'warn',
+        summary: 'Invalid Form',
+        detail: 'Please fill in all required fields correctly.',
         life: 5000
       });
     });

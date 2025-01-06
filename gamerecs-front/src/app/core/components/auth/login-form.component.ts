@@ -81,8 +81,8 @@ export class LoginFormComponent implements OnInit {
           console.log('[LoginFormComponent] Login successful');
           this.messageService.add({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Login successful!',
+            summary: 'Welcome Back!',
+            detail: `Successfully logged in as ${response.username}`,
             life: 3000
           });
           // Navigate to home page after successful login
@@ -91,11 +91,19 @@ export class LoginFormComponent implements OnInit {
         error: (error: any) => {
           console.error('[LoginFormComponent] Login error:', error);
           let errorMessage = 'An error occurred during login. Please try again.';
+          let errorLife = 5000;
           
           if (error instanceof Error) {
             errorMessage = error.message;
           } else if (error?.error instanceof ErrorEvent || error?.status === 0) {
-            errorMessage = 'Network error. Please check your internet connection.';
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+            errorLife = 0; // Keep message until user dismisses it
+          } else if (error?.status === 401) {
+            if (error?.error?.message === 'Account is disabled') {
+              errorMessage = 'Your account is not verified. Please check your email for the verification link.';
+            } else {
+              errorMessage = 'Invalid username or password. Please try again.';
+            }
           } else if (error?.error?.message) {
             errorMessage = error.error.message;
           } else if (typeof error === 'string') {
@@ -106,7 +114,9 @@ export class LoginFormComponent implements OnInit {
             severity: 'error',
             summary: 'Login Failed',
             detail: errorMessage,
-            life: error?.status === 0 ? 0 : 5000
+            life: errorLife,
+            closable: true,
+            sticky: errorLife === 0
           });
           this.loading = false;
         },
@@ -118,9 +128,9 @@ export class LoginFormComponent implements OnInit {
     } else {
       console.log('[LoginFormComponent] Form validation failed');
       this.messageService.add({
-        severity: 'error',
-        summary: 'Validation Error',
-        detail: 'Please check all fields and try again.',
+        severity: 'warn',
+        summary: 'Invalid Form',
+        detail: 'Please fill in all required fields correctly.',
         life: 5000
       });
     }

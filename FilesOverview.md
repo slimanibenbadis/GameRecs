@@ -67,10 +67,10 @@
     - `should validate password format`: Verifies password pattern validation.
     - `should validate password length`: Tests password length constraints.
     - `should call login when form is valid`: Ensures login is called on valid form submission.
-    - `should handle login error`: Tests error handling during login.
-    - `should handle Error instance in login error`: Verifies error handling for different error types.
-    - `should not submit if form is invalid`: Ensures form is not submitted when invalid.
-    - `should return appropriate error messages`: Tests validation message accuracy.
+    - `should handle network error`: Tests handling of network connectivity issues.
+    - `should handle unverified account error`: Verifies handling of unverified account status.
+    - `should handle invalid credentials error`: Tests handling of invalid login credentials.
+    - `should handle invalid form submission`: Ensures form validation prevents invalid submissions.
 
 - **`login-form.component.ts`**
   - **Purpose:** Manages the login form logic, including form validation and authentication requests.
