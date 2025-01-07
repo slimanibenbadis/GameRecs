@@ -27,7 +27,8 @@
     "*.spec.ts",
     "karma.conf.js",
     "tailwind.config.js",
-    "*.html"
+    "*.html",
+    "cypress.config.ts"
   ],
   "rules": {
     // Console logging for development
