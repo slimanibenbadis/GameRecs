@@ -3,6 +3,7 @@ import { HealthComponent } from './core/components/health/health.component';
 import { RegistrationFormComponent } from './core/components/auth/registration-form.component';
 import { EmailVerificationComponent } from './core/components/auth/email-verification.component';
 import { LoginFormComponent } from './core/components/auth/login-form.component';
+import { LandingPageComponent } from './core/components/landing/landing-page.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -20,6 +21,6 @@ export const routes: Routes = [
     ]
   },
   { path: 'verify', component: EmailVerificationComponent },
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
-  { path: '**', redirectTo: '/auth/login' }
+  { path: '', component: LandingPageComponent, pathMatch: 'full' },
+  { path: '**', redirectTo: '/' }
 ];
