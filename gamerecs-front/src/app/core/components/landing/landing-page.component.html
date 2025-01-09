@@ -1,7 +1,7 @@
 <!-- Main Container -->
 <div class="min-h-screen flex flex-col bg-surface-0 dark:bg-surface-900">
   <!-- Navigation Bar -->
-  <nav class="w-full p-4 flex justify-between items-center">
+  <nav class="w-full p-4 flex justify-between items-center relative z-20">
     <div class="text-2xl font-fira font-bold text-surface-900 dark:text-surface-0">
       GameRecs
     </div>
@@ -19,25 +19,53 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
-  <div class="flex-1 flex flex-col items-center justify-center p-4 text-center">
-    <h1 class="text-5xl font-fira font-bold mb-6 text-surface-900 dark:text-surface-0">
-      Discover Your Next <span class="text-gradient">Favorite Game</span>
-    </h1>
-    <p class="text-xl mb-8 max-w-2xl text-surface-700 dark:text-surface-200">
-      Get personalized video game recommendations based on your gaming preferences and discover games you'll love.
-    </p>
-    <div class="flex gap-4">
-      <button pButton 
-              label="Get Started" 
-              routerLink="/auth/register" 
-              class="p-button-lg">
-      </button>
-      <button pButton 
-              label="Learn More" 
-              routerLink="/about" 
-              class="p-button-outlined p-button-lg">
-      </button>
+  <!-- Enhanced Hero Section with Gaming Background -->
+  <div class="relative flex-1 flex flex-col items-center justify-center p-4 text-center overflow-hidden min-h-[80vh]">
+    <!-- Gaming Background Image -->
+    <div class="absolute inset-0 z-0">
+      <img src="assets/images/hero-bg.jpg" 
+           alt="Gaming Background" 
+           class="w-full h-full object-cover object-center transform scale-105 animate-slow-zoom light-mode-invert"
+           loading="eager">
+    </div>
+    
+    <!-- Content Container with Animation -->
+    <div class="relative z-10 max-w-4xl mx-auto px-4 animate-fadeIn">
+      <h1 class="text-6xl md:text-7xl font-fira font-bold mb-8 leading-tight text-surface-900 dark:text-surface-0">
+        Find Games You'll<br/>
+        <span class="text-gradient">Actually Love</span>
+      </h1>
+      <p class="text-xl md:text-2xl mb-12 max-w-2xl mx-auto text-surface-200 dark:text-surface-200 leading-relaxed">
+        Get highly personalized game suggestions powered by your ratings and preferences of gamers with similar taste. No more generic recommendations.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <button pButton 
+                label="Get Started" 
+                routerLink="/auth/register" 
+                class="p-button-lg w-full sm:w-auto px-8 py-3 text-lg">
+        </button>
+        <button pButton 
+                label="Learn More" 
+                routerLink="/about" 
+                class="p-button-outlined p-button-lg w-full sm:w-auto px-8 py-3 text-lg">
+        </button>
+      </div>
+      
+      <!-- Stats Section -->
+      <div class="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div class="flex flex-col items-center">
+          <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">10K+</span>
+          <span class="text-surface-200 dark:text-surface-200">Active Users</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">50K+</span>
+          <span class="text-surface-200 dark:text-surface-200">Games Rated</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">95%</span>
+          <span class="text-surface-200 dark:text-surface-200">Happy Gamers</span>
+        </div>
+      </div>
     </div>
   </div>
 
