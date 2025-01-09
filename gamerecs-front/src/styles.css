@@ -196,3 +196,29 @@ h6 { font-size: 0.75rem; }
 .animate-slow-zoom {
   animation: slowZoom 20s ease-in-out infinite alternate;
 }
+
+/* Custom Shadow Utilities */
+.shadow-glow {
+  box-shadow: 0 0 15px rgba(123, 234, 219, 0.1),
+              0 0 30px rgba(123, 234, 219, 0.05),
+              0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dark .shadow-glow-dark {
+  box-shadow: 0 0 15px rgba(21, 132, 117, 0.15),
+              0 0 30px rgba(21, 132, 117, 0.1),
+              0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Auth Form Shadows */
+.auth-form {
+  box-shadow: 0 0 20px rgba(123, 234, 219, 0.15),
+              0 0 40px rgba(123, 234, 219, 0.1),
+              0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .auth-form {
+  box-shadow: 0 0 20px rgba(21, 132, 117, 0.2),
+              0 0 40px rgba(21, 132, 117, 0.15),
+              0 4px 8px rgba(0, 0, 0, 0.3);
+}
