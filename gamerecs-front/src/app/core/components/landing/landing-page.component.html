@@ -42,7 +42,7 @@
         <button pButton 
                 label="Get Started" 
                 routerLink="/auth/register" 
-                class="p-button-lg w-full sm:w-auto px-8 py-3 text-lg">
+                class="p-button-lg w-full sm:w-auto px-8 py-3 text-lg cta-button">
         </button>
         <button pButton 
                 label="Learn More" 
@@ -53,15 +53,15 @@
       
       <!-- Stats Section -->
       <div class="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center stats-item" style="--animation-order: 1">
           <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">10K+</span>
           <span class="text-surface-200 dark:text-surface-200">Active Users</span>
         </div>
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center stats-item" style="--animation-order: 2">
           <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">50K+</span>
           <span class="text-surface-200 dark:text-surface-200">Games Rated</span>
         </div>
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center stats-item" style="--animation-order: 3">
           <span class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-2">95%</span>
           <span class="text-surface-200 dark:text-surface-200">Happy Gamers</span>
         </div>
@@ -85,7 +85,7 @@
       <!-- Main Features Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Smart Recommendations -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 1">
           <div class="flex items-center mb-4">
             <i class="pi pi-chart-line text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Smart Recommendations</h3>
@@ -101,7 +101,7 @@
         </div>
 
         <!-- Game Library Integration -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 2">
           <div class="flex items-center mb-4">
             <i class="pi pi-database text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Library Integration</h3>
@@ -117,7 +117,7 @@
         </div>
 
         <!-- Backlog Management -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 3">
           <div class="flex items-center mb-4">
             <i class="pi pi-list text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Backlog Management</h3>
@@ -133,7 +133,7 @@
         </div>
 
         <!-- Profile System -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 4">
           <div class="flex items-center mb-4">
             <i class="pi pi-user text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Profile System</h3>
@@ -149,7 +149,7 @@
         </div>
 
         <!-- Game Discovery -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 5">
           <div class="flex items-center mb-4">
             <i class="pi pi-search text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Game Discovery</h3>
@@ -165,7 +165,7 @@
         </div>
 
         <!-- Easy Authentication -->
-        <div class="bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark transform hover:scale-105 transition-all duration-300">
+        <div class="feature-card bg-surface-0 dark:bg-surface-700 rounded-lg p-6 shadow-glow dark:shadow-glow-dark" style="--animation-order: 6">
           <div class="flex items-center mb-4">
             <i class="pi pi-lock text-3xl text-primary-light dark:text-primary-dark mr-4"></i>
             <h3 class="text-xl font-fira font-bold text-surface-900 dark:text-surface-0">Easy Authentication</h3>
@@ -186,7 +186,7 @@
         <button pButton 
                 label="Start Your Gaming Journey" 
                 routerLink="/auth/register" 
-                class="p-button-lg px-8 py-3 text-lg">
+                class="p-button-lg px-8 py-3 text-lg cta-button">
         </button>
       </div>
     </div>
