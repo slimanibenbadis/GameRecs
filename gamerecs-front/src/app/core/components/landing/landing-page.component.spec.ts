@@ -64,7 +64,7 @@ describe('LandingPageComponent', () => {
   describe('Content', () => {
     it('should display app name in navigation', () => {
       const appName = fixture.nativeElement.querySelector('.font-fira.font-bold');
-      expect(appName.textContent.trim()).toBe('GameRecs');
+      expect(appName.textContent.trim()).toBe('Game-Reco');
     });
 
     it('should display main heading with correct text', () => {
