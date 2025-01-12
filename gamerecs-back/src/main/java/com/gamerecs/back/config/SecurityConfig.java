@@ -78,7 +78,14 @@ public class SecurityConfig {
         
         http
             .cors(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(SWAGGER_WHITELIST)
+                .ignoringRequestMatchers(PUBLIC_ENDPOINTS)
+                .ignoringRequestMatchers(TEST_ENDPOINTS)
+                .ignoringRequestMatchers(ACTUATOR_ENDPOINTS)
+                // Ignore CSRF for API endpoints that are protected by JWT
+                .ignoringRequestMatchers("/api/**")
+            )
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, authException) -> {
                     logger.debug("Unauthorized access attempt: {}", authException.getMessage());
