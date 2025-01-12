@@ -71,3 +71,25 @@ jobs:
           ${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:latest
         cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:buildcache
         cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:buildcache,mode=max 
+
+    - name: Heroku Login
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: heroku container:login
+  
+    - name: Deploy to Heroku
+      if: github.ref == 'refs/heads/main'
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        heroku container:push web -a gamer-reco
+        heroku container:release web -a gamer-reco
+  
+    - name: Deploy to Heroku Staging
+      if: github.ref == 'refs/heads/develop'
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        heroku container:push web -a gamer-reco-staging
+        heroku container:release web -a gamer-reco-staging
