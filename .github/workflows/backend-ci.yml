@@ -42,6 +42,7 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: Run SonarCloud Analysis
+      if: github.ref == 'refs/heads/main'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
