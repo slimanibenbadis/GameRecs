@@ -19,7 +19,8 @@ COPY src src
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -T 1C \
     -Dmaven.repo.local=/root/.m2/repository \
-    -Dmaven.test.skip=true
+    -Dmaven.test.skip=true \
+    -Dproject.build.finalName=app
 
 # Runtime stage with minimal image
 FROM eclipse-temurin:21-jre
@@ -31,7 +32,7 @@ RUN useradd -r -u 1001 -g root gamerecs \
     && chown -R gamerecs:root /app
 
 # Copy only the built jar
-COPY --from=build --chown=gamerecs:root /workspace/app/target/*.jar app.jar
+COPY --from=build --chown=gamerecs:root /workspace/app/target/app.jar app.jar
 
 # Switch to non-root user
 USER 1001
