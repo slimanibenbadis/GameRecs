@@ -93,6 +93,11 @@ jobs:
           echo "APP_NAME=gamer-reco-api-prod" >> $GITHUB_ENV
         fi
 
+    - name: Set Heroku stack to container
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: heroku stack:set container --app ${{ env.APP_NAME }}
+
     - name: Build and push to Heroku
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
