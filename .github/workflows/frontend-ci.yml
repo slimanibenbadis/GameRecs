@@ -73,7 +73,7 @@ jobs:
         cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gamerecs-frontend:buildcache,mode=max 
 
   deploy:
-    needs: build-and-test
+    needs: docker
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     defaults:
@@ -83,32 +83,27 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-
-    - name: Install Heroku CLI
-      run: |
-        curl https://cli-assets.heroku.com/install.sh | sh
-
-    - name: Heroku Login
-      run: heroku container:login
+    - name: Log in to Heroku Container Registry
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
 
-    - name: Set Heroku app and stack
-      id: heroku-info
+    - name: Set Heroku app name
       run: |
         if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
           echo "APP_NAME=gamer-reco-front-staging" >> $GITHUB_ENV
-          echo "STACK=container" >> $GITHUB_ENV
         elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
           echo "APP_NAME=gamer-reco-front-prod" >> $GITHUB_ENV
-          echo "STACK=container" >> $GITHUB_ENV
         fi
 
-    - name: Build and Push Docker Image to Heroku
+    - name: Build and push to Heroku
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        heroku container:push web -a ${{ env.APP_NAME }}
-        heroku container:release web -a ${{ env.APP_NAME }}
+        docker build -t registry.heroku.com/${{ env.APP_NAME }}/web .
+        docker push registry.heroku.com/${{ env.APP_NAME }}/web
+        
+    - name: Release to Heroku
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: heroku container:release web --app ${{ env.APP_NAME }}
