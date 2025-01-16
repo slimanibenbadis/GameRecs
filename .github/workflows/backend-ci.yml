@@ -119,7 +119,7 @@ jobs:
         docker build -t registry.heroku.com/${{ env.APP_NAME }}/web .
         # Verify the image content
         echo "Verifying Docker image content..."
-        docker run --rm registry.heroku.com/${{ env.APP_NAME }}/web ls -la /app
+        docker run --rm registry.heroku.com/${{ env.APP_NAME }}/web ls -la /app/app.jar
         docker push registry.heroku.com/${{ env.APP_NAME }}/web
         
     - name: Release to Heroku
