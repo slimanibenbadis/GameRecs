@@ -65,7 +65,7 @@ public class EmailService {
             
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject("Verify Your Game-Reco Account");
+            helper.setSubject("Verify Your Gamer-Reco Account");
             helper.setText(htmlContent, true);
             
             logger.debug("Sending verification email to: {}", to);

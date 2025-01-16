@@ -2,15 +2,15 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Verify Your Game-Reco Account</title>
+    <title>Verify Your Gamer-Reco Account</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h1 style="color: #158475; margin-bottom: 20px;">Welcome to Game-Reco!</h1>
+        <h1 style="color: #158475; margin-bottom: 20px;">Welcome to Gamer-Reco!</h1>
         
         <p>Hi <span th:text="${username}">User</span>,</p>
         
-        <p>Thank you for registering with Game-Reco! To complete your registration and start getting personalized game recommendations, please verify your email address by clicking the button below:</p>
+        <p>Thank you for registering with Gamer-Reco! To complete your registration and start getting personalized game recommendations, please verify your email address by clicking the button below:</p>
         
         <div style="text-align: center; margin: 30px 0;">
             <a th:href="${verificationLink}" 
@@ -24,11 +24,11 @@
         
         <p>This verification link will expire in 24 hours.</p>
         
-        <p>If you didn't create an account with Game-Reco, you can safely ignore this email.</p>
+        <p>If you didn't create an account with Gamer-Reco, you can safely ignore this email.</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="margin: 0;">Best regards,</p>
-            <p style="margin: 5px 0; color: #158475;">The Game-Reco Team</p>
+            <p style="margin: 5px 0; color: #158475;">The Gamer-Reco Team</p>
         </div>
     </div>
 </body>

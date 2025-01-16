@@ -20,7 +20,7 @@ describe('Email Verification Flow', () => {
     cy.get('.text-green-600, .text-green-400').within(() => {
       cy.get('.pi-check-circle').should('be.visible');
       cy.contains('Email Verified Successfully!').should('be.visible');
-      cy.contains('You can now proceed to login and start using Game-Reco.').should('be.visible');
+      cy.contains('You can now proceed to login and start using Gamer-Reco.').should('be.visible');
     });
 
     // Check success button

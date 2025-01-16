@@ -81,9 +81,9 @@ services:
     container_name: gamerecs-backend
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-dev:5432/gamerecs_dev
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - IGDB_CLIENT_ID=${IGDB_CLIENT_ID}
@@ -91,7 +91,7 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
       - PROMETHEUS_PASSWORD=${PROMETHEUS_PASSWORD}
-      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      - JAVA_OPTS=${JAVA_OPTS}
     volumes:
       - ./gamerecs-back/logs:/app/logs
       - ./gamerecs-back/src/main/resources/config:/app/config

@@ -12,7 +12,7 @@
 	<artifactId>gamerecs-back</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>gamerecs-back</name>
-	<description>Game-Reco - Personalized Game Recommendation System</description>
+	<description>Gamer-Reco - Personalized Game Recommendation System</description>
 	<url/>
 	<licenses>
 		<license/>

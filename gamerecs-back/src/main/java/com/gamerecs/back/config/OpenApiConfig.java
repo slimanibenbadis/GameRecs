@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "Game-Reco API",
+        title = "Gamer-Reco API",
         version = "1.0",
-        description = "REST API for Game-Reco application",
-        contact = @Contact(name = "Game-Reco Team")
+        description = "REST API for Gamer-Reco application",
+        contact = @Contact(name = "Gamer-Reco Team")
     ),
     security = @SecurityRequirement(name = "bearerAuth")
 )

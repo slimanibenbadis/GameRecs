@@ -7,7 +7,7 @@ describe('Landing Page', () => {
 
   it('should display navigation bar with correct elements', () => {
     // Check logo
-    cy.get('nav').find('.font-fira').should('contain', 'Game-Reco');
+    cy.get('nav').find('.font-fira').should('contain', 'Gamer-Reco');
     
     // Check navigation buttons
     cy.get('nav').within(() => {
@@ -84,7 +84,7 @@ describe('Landing Page', () => {
   it('should display footer with copyright information', () => {
     cy.get('footer')
       .should('be.visible')
-      .and('contain', '© 2025 Game-Reco. All rights reserved.');
+      .and('contain', '© 2025 Gamer-Reco. All rights reserved.');
   });
 
   it('should load hero background image', () => {
