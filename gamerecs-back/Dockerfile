@@ -19,8 +19,8 @@ COPY src src
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -T 1C \
     -Dmaven.repo.local=/root/.m2/repository \
-    -Dmaven.test.skip=true \
-    -Dproject.build.finalName=app
+    -Dmaven.test.skip=true && \
+    mv target/*-0.0.1-SNAPSHOT.jar target/app.jar
 
 # Runtime stage with minimal image
 FROM eclipse-temurin:21-jre
