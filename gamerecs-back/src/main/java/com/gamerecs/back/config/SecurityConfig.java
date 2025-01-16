@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -74,11 +75,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        logger.debug("Configuring security with JWT, CORS, Swagger UI whitelist, and public endpoints");
+        logger.debug("Configuring security with JWT, CORS, CSRF, Swagger UI whitelist, and public endpoints");
         
         http
             .cors(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers(PUBLIC_ENDPOINTS)
+                .ignoringRequestMatchers(SWAGGER_WHITELIST)
+                .ignoringRequestMatchers(TEST_ENDPOINTS)
+                .ignoringRequestMatchers(ACTUATOR_ENDPOINTS)
+            )
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, authException) -> {
                     logger.debug("Unauthorized access attempt: {}", authException.getMessage());
