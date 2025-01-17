@@ -127,9 +127,17 @@ jobs:
       run: |
         heroku container:release web --app ${{ env.APP_NAME }}
         
-    - name: Monitor Deployment Logs
+    - name: Verify Deployment
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        echo "Deployment completed. Check application logs:"
-        heroku logs --tail --app ${{ env.APP_NAME }} --num 50
+        echo "Waiting for deployment to complete..."
+        sleep 15  # Give Heroku time to start the release
+        # Check deployment status
+        STATUS=$(heroku releases --app ${{ env.APP_NAME }} --num 1 --json | jq -r '.[0].status')
+        if [ "$STATUS" != "succeeded" ]; then
+          echo "Deployment failed. Latest release status: $STATUS"
+          heroku logs --app ${{ env.APP_NAME }} --num 50
+          exit 1
+        fi
+        echo "Deployment successful!"
