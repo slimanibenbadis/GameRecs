@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies and build
-FROM node:20-alpine AS builder
+FROM node:22 AS builder
 WORKDIR /app
 
 # Copy package files
