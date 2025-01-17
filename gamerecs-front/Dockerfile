@@ -36,6 +36,10 @@ RUN adduser -D -u 1001 gamerecs && \
 COPY --from=builder --chown=gamerecs:gamerecs /app/dist/gamerecs-front/browser .
 COPY --chown=gamerecs:gamerecs nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy the entrypoint script and set permissions
+COPY --chown=gamerecs:gamerecs docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
 # Switch to non-root user
 USER 1001
 
@@ -45,4 +49,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 80
 
+# Use custom entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"] 
