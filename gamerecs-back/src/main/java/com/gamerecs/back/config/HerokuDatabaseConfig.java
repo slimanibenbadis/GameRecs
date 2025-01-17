@@ -31,19 +31,25 @@ public class HerokuDatabaseConfig {
         config.setUsername(username);
         config.setPassword(password);
         
-        // Optimized settings for Heroku
-        config.setMaximumPoolSize(5);
-        config.setMinimumIdle(2);
-        config.setIdleTimeout(30000); // 30 seconds
-        config.setConnectionTimeout(10000); // 10 seconds
-        config.setMaxLifetime(300000); // 5 minutes
-        config.setLeakDetectionThreshold(60000); // 1 minute
+        // Minimalist settings for Heroku basic dyno
+        config.setMaximumPoolSize(3);
+        config.setMinimumIdle(1);
+        config.setIdleTimeout(20000); // 20 seconds
+        config.setConnectionTimeout(5000); // 5 seconds
+        config.setMaxLifetime(120000); // 2 minutes
+        config.setLeakDetectionThreshold(30000); // 30 seconds
+        config.setPoolName("HikariPool-GameRecs");
         
         // Performance optimizations
         config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("prepStmtCacheSize", "100");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "1024");
         config.addDataSourceProperty("useServerPrepStmts", "true");
+        
+        // Additional optimizations
+        config.addDataSourceProperty("useLocalSessionState", "true");
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+        config.addDataSourceProperty("maintainTimeStats", "false");
         
         return new HikariDataSource(config);
     }

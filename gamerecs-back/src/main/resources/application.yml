@@ -8,18 +8,25 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: false
         # Memory optimizations
-        jdbc.batch_size: 30
+        jdbc.batch_size: 25
         order_inserts: true
         order_updates: true
         generate_statistics: false
+        # Disable aggressive lazy loading
+        enable_lazy_load_no_trans: false
         # Cache settings
         cache:
           use_second_level_cache: false
           use_query_cache: false
+        # Connection release mode
+        connection.release_mode: after_transaction
+        # Batch fetching
+        default_batch_fetch_size: 25
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -43,13 +50,17 @@ spring:
 server:
   port: ${PORT:8080}
   tomcat:
-    max-threads: 20
-    min-spare-threads: 5
-    max-connections: 100
-    accept-count: 50
-    connection-timeout: 5000
-    max-swallow-size: 2MB
-    max-http-form-post-size: 2MB
+    max-threads: 10
+    min-spare-threads: 2
+    max-connections: 50
+    accept-count: 25
+    connection-timeout: 2000
+    max-swallow-size: 1MB
+    max-http-form-post-size: 1MB
+    # Additional memory optimizations
+    max-http-header-size: 8KB
+    processor-cache: 100
+    background-processor-delay: 30
 
 # CORS Configuration
 allowed:
@@ -58,28 +69,20 @@ allowed:
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
-    path: /api-docs
+    enabled: false
   swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-    tagsSorter: alpha
-    tryItOutEnabled: true
-    filter: true
-    syntaxHighlight:
-      activated: true
+    enabled: false
 
 # Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health
       base-path: /actuator
   endpoint:
     health:
-      show-details: always
-      probes:
-        enabled: true
+      show-details: never
   health:
     livenessState:
       enabled: true
@@ -91,7 +94,7 @@ app:
   verification:
     base-url: ${VERIFICATION_BASE_URL:http://localhost:4200}
     token:
-      expiration-hours: 24  # Token expiration time in hours
+      expiration-hours: 24
   jwt:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours in milliseconds
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
