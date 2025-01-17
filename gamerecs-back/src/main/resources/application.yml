@@ -35,7 +35,7 @@ spring:
     validate-on-migrate: true
   mail:
     host: ${SMTP_HOST:smtp.gmail.com}
-    port: ${SMTP_PORT:587}
+    port: ${SMTP_PORT:465}
     username: ${SMTP_USERNAME}
     password: ${SMTP_PASSWORD}
     properties:
@@ -43,7 +43,7 @@ spring:
         smtp:
           auth: true
           socketFactory:
-            port: ${SMTP_PORT:587}
+            port: ${SMTP_PORT:465}
             class: javax.net.ssl.SSLSocketFactory
             fallback: false
           ssl:
@@ -52,6 +52,7 @@ spring:
           starttls:
             enable: false
             required: false
+          from: ${SMTP_USERNAME:noreply@gamer-reco.com}
 
 # Server Configuration
 server:

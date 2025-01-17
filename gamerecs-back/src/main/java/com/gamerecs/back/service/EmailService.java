@@ -27,7 +27,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     
-    @Value("${spring.mail.properties.mail.smtp.from:noreply@localhost}")
+    @Value("${spring.mail.username:noreply@gamer-reco.com}")
     private String fromEmail;
     
     @Value("${app.verification.base-url}")
