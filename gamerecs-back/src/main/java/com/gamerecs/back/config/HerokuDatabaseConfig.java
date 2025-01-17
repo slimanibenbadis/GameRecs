@@ -31,12 +31,19 @@ public class HerokuDatabaseConfig {
         config.setUsername(username);
         config.setPassword(password);
         
-        // Additional Hikari settings for production
-        config.setMaximumPoolSize(10);
+        // Optimized settings for Heroku
+        config.setMaximumPoolSize(5);
         config.setMinimumIdle(2);
-        config.setIdleTimeout(300000);
-        config.setConnectionTimeout(20000);
-        config.setMaxLifetime(600000);
+        config.setIdleTimeout(30000); // 30 seconds
+        config.setConnectionTimeout(10000); // 10 seconds
+        config.setMaxLifetime(300000); // 5 minutes
+        config.setLeakDetectionThreshold(60000); // 1 minute
+        
+        // Performance optimizations
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("useServerPrepStmts", "true");
         
         return new HikariDataSource(config);
     }

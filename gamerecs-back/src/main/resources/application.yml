@@ -11,6 +11,15 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        # Memory optimizations
+        jdbc.batch_size: 30
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+        # Cache settings
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -29,6 +38,18 @@ spring:
           starttls:
             enable: true
             required: true
+
+# Server Configuration
+server:
+  port: ${PORT:8080}
+  tomcat:
+    max-threads: 20
+    min-spare-threads: 5
+    max-connections: 100
+    accept-count: 50
+    connection-timeout: 5000
+    max-swallow-size: 2MB
+    max-http-form-post-size: 2MB
 
 # CORS Configuration
 allowed:
