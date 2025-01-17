@@ -32,11 +32,11 @@ public class HerokuDatabaseConfig {
         config.setPassword(password);
         
         // Minimalist settings for Heroku basic dyno
-        config.setMaximumPoolSize(3);
+        config.setMaximumPoolSize(2);
         config.setMinimumIdle(1);
-        config.setIdleTimeout(20000); // 20 seconds
-        config.setConnectionTimeout(5000); // 5 seconds
-        config.setMaxLifetime(120000); // 2 minutes
+        config.setIdleTimeout(10000); // 10 seconds
+        config.setConnectionTimeout(3000); // 3 seconds
+        config.setMaxLifetime(60000); // 1 minute
         config.setLeakDetectionThreshold(30000); // 30 seconds
         config.setPoolName("HikariPool-GameRecs");
         

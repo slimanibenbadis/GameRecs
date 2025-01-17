@@ -50,16 +50,16 @@ spring:
 server:
   port: ${PORT:8080}
   tomcat:
-    max-threads: 10
-    min-spare-threads: 2
-    max-connections: 50
-    accept-count: 25
+    max-threads: 8
+    min-spare-threads: 1
+    max-connections: 20
+    accept-count: 10
     connection-timeout: 2000
-    max-swallow-size: 1MB
-    max-http-form-post-size: 1MB
+    max-swallow-size: 512KB
+    max-http-form-post-size: 512KB
     # Additional memory optimizations
     max-http-header-size: 8KB
-    processor-cache: 100
+    processor-cache: 50
     background-processor-delay: 30
 
 # CORS Configuration
@@ -78,11 +78,25 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,metrics,prometheus
       base-path: /actuator
   endpoint:
     health:
       show-details: never
+    metrics:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+      hikaricp: true
+      tomcat: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 100ms, 500ms
   health:
     livenessState:
       enabled: true
