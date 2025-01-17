@@ -42,9 +42,16 @@ spring:
       mail:
         smtp:
           auth: true
-          starttls:
+          socketFactory:
+            port: ${SMTP_PORT:587}
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          ssl:
             enable: true
-            required: true
+            trust: ${SMTP_HOST:smtp.gmail.com}
+          starttls:
+            enable: false
+            required: false
 
 # Server Configuration
 server:
@@ -83,6 +90,11 @@ management:
   endpoint:
     health:
       show-details: never
+      group:
+        readiness:
+          include: db,diskSpace,ping
+        liveness:
+          include: ping
     metrics:
       enabled: true
   metrics:
@@ -98,6 +110,8 @@ management:
       sla:
         http.server.requests: 100ms, 500ms
   health:
+    mail:
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:true}
     livenessState:
       enabled: true
     readinessState:
