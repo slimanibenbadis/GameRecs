@@ -16,9 +16,21 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Production image
+# Final stage
 FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
+
+# Copy nginx config template
+COPY nginx.conf /etc/nginx/conf.d/default.conf.template
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
+# Copy built app
+COPY --from=builder /app/dist/gamerecs-front /usr/share/nginx/html
+
+# Set entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Install required tools
 RUN apk add --no-cache wget gettext
@@ -31,15 +43,6 @@ RUN adduser -D -u 1001 gamerecs && \
     chown -R gamerecs:gamerecs /etc/nginx/conf.d && \
     touch /var/run/nginx.pid && \
     chown -R gamerecs:gamerecs /var/run/nginx.pid
-
-# Copy application files
-COPY --from=builder --chown=gamerecs:gamerecs /app/dist/gamerecs-front/browser .
-COPY --chown=gamerecs:gamerecs nginx.conf /etc/nginx/conf.d/default.conf
-COPY --chown=gamerecs:gamerecs docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-
-# Switch to non-root user
-USER 1001
 
 # Health check using assigned port
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

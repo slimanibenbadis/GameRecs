@@ -1,7 +1,7 @@
-#!/bin/sh
-# Replace environment variables in nginx config
-envsubst '${BACKEND_URL} ${PORT}' < /etc/nginx/conf.d/default.conf > /etc/nginx/conf.d/default.conf.tmp
-mv /etc/nginx/conf.d/default.conf.tmp /etc/nginx/conf.d/default.conf
+#!/bin/bash
 
-# Execute CMD
-exec "$@" 
+# Replace environment variables in nginx.conf
+envsubst '${BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+
+# Start nginx
+nginx -g 'daemon off;' 
