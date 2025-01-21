@@ -39,6 +39,27 @@ public class JwtService {
     }
 
     /**
+     * Generates a JWT token for an email address.
+     *
+     * @param email the email address
+     * @return the generated JWT token
+     */
+    public String generateToken(String email) {
+        logger.debug("Generating JWT token for email: {}", email);
+        
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", email);
+        
+        return Jwts.builder()
+                .claims(claims)
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    /**
      * Generates a JWT token with extra claims.
      *
      * @param extraClaims additional claims to include in the token

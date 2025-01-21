@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -206,5 +207,17 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
 
         verify(authenticationManager).authenticate(any(Authentication.class));
         verify(jwtService, never()).generateToken(any(UserDetails.class));
+    }
+
+    @Test
+    @DisplayName("Should handle OAuth2 failure correctly")
+    void shouldHandleOAuth2Failure() throws Exception {
+        logger.debug("Testing OAuth2 failure endpoint");
+        
+        mockMvc.perform(get("/api/auth/oauth2/failure"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("OAuth2 authentication failed"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 } 

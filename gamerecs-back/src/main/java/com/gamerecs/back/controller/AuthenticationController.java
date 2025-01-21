@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,17 +29,17 @@ public class AuthenticationController {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Autowired
     public AuthenticationController(
             AuthenticationManager authenticationManager,
-            JwtService jwtService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            JwtService jwtService) {
         this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
@@ -67,6 +71,16 @@ public class AuthenticationController {
             .emailVerified(user.isEmailVerified())
             .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/oauth2/failure")
+    public ResponseEntity<Map<String, Object>> handleOAuth2Failure() {
+        logger.debug("Handling OAuth2 authentication failure");
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 200);
+        response.put("message", "OAuth2 authentication failed");
+        response.put("timestamp", LocalDateTime.now());
         return ResponseEntity.ok(response);
     }
 } 

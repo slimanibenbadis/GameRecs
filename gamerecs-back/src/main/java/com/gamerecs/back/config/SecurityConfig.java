@@ -1,5 +1,6 @@
 package com.gamerecs.back.config;
 
+import com.gamerecs.back.service.OAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final OAuth2UserService oAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     private static final String[] SWAGGER_WHITELIST = {
         "/swagger-ui.html",
@@ -52,7 +55,10 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
         "/api/users/register",
         "/api/users/verify",
-        "/api/auth/login"
+        "/api/auth/login",
+        "/login/oauth2/code/google",
+        "/oauth2/authorization/google",
+        "/api/auth/oauth2/failure"
     };
 
     private static final String[] TEST_ENDPOINTS = {
@@ -68,14 +74,20 @@ public class SecurityConfig {
     };
 
     @Autowired
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthFilter, 
+            UserDetailsService userDetailsService,
+            OAuth2UserService oAuth2UserService,
+            OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.oAuth2UserService = oAuth2UserService;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        logger.debug("Configuring security with JWT, CORS, CSRF, Swagger UI whitelist, and public endpoints");
+        logger.debug("Configuring security with JWT, OAuth2, CORS, CSRF, Swagger UI whitelist, and public endpoints");
         
         http
             .cors(Customizer.withDefaults())
@@ -85,6 +97,14 @@ public class SecurityConfig {
                 .ignoringRequestMatchers(SWAGGER_WHITELIST)
                 .ignoringRequestMatchers(TEST_ENDPOINTS)
                 .ignoringRequestMatchers(ACTUATOR_ENDPOINTS)
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(oAuth2UserService)
+                )
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .defaultSuccessUrl("/api/auth/oauth2/success", true)
+                .failureUrl("/api/auth/oauth2/failure")
             )
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, authException) -> {
@@ -125,6 +145,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         logger.debug("Creating CORS configuration source with allowed origins: {}", allowedOrigins);
         CorsConfiguration configuration = new CorsConfiguration();
@@ -139,11 +164,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        logger.debug("Creating BCryptPasswordEncoder bean for password hashing");
-        return new BCryptPasswordEncoder();
     }
 } 

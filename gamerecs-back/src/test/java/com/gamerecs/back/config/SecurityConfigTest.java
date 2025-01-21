@@ -14,7 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
+@AutoConfigureMockMvc
 class SecurityConfigTest extends BaseIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfigTest.class);
 
@@ -109,5 +113,41 @@ class SecurityConfigTest extends BaseIntegrationTest {
                             endpoint, status));
                 });
         }
+    }
+
+    @Test
+    @DisplayName("Should configure OAuth2 login endpoints correctly")
+    void shouldConfigureOAuth2LoginEndpoints() throws Exception {
+        logger.debug("Testing OAuth2 login endpoint configuration");
+        
+        String[] oauth2Endpoints = {
+            "/login/oauth2/code/google",
+            "/oauth2/authorization/google"
+        };
+
+        for (String endpoint : oauth2Endpoints) {
+            logger.debug("Testing access to OAuth2 endpoint: {}", endpoint);
+            MvcResult result = mockMvc.perform(get(endpoint))
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+            
+            int status = result.getResponse().getStatus();
+            logger.debug("Response status for {}: {}", endpoint, status);
+            assertTrue(status != 401 && status != 403, 
+                String.format("OAuth2 endpoint %s should not require auth, but got status %d", 
+                    endpoint, status));
+        }
+    }
+
+    @Test
+    void testOAuth2SuccessEndpoint_ShouldRequireAuthentication() throws Exception {
+        mockMvc.perform(get("/api/auth/oauth2/success"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testOAuth2FailureEndpoint_ShouldBePubliclyAccessible() throws Exception {
+        mockMvc.perform(get("/api/auth/oauth2/failure"))
+                .andExpect(status().isOk());
     }
 } 

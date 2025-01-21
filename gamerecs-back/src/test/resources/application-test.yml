@@ -15,6 +15,17 @@ spring:
     port: 3025
     username: test
     password: test
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope:
+              - email
+              - profile
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
 
 # SpringDoc OpenAPI Configuration
 springdoc:
