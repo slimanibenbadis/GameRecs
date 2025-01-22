@@ -30,6 +30,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     
     /**
+     * Find a user by their Google ID.
+     *
+     * @param googleId the Google ID to search for
+     * @return an Optional containing the user if found
+     */
+    Optional<User> findByGoogleId(String googleId);
+    
+    /**
      * Check if a user exists with the given email.
      *
      * @param email the email to check

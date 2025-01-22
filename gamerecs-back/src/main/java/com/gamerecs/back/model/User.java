@@ -40,9 +40,11 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @NotBlank
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "google_id", unique = true)
+    private String googleId;
 
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;

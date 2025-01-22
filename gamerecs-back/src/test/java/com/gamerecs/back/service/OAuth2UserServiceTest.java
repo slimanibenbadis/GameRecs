@@ -47,6 +47,7 @@ class OAuth2UserServiceTest extends BaseUnitTest {
         attributes.put("email", "test@example.com");
         attributes.put("name", "Test User");
         attributes.put("picture", "http://example.com/pic.jpg");
+        attributes.put("sub", "google123"); // Google ID
 
         // Create default OAuth2User with standard attributes
         defaultOAuth2User = new DefaultOAuth2User(
@@ -74,12 +75,14 @@ class OAuth2UserServiceTest extends BaseUnitTest {
     void shouldProcessNewOAuth2User() {
         logger.debug("Testing processing of new OAuth2 user");
         
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
         OAuth2User result = oAuth2UserService.loadUser(mock(OAuth2UserRequest.class));
 
         assertNotNull(result);
+        verify(userRepository).findByGoogleId("google123");
         verify(userRepository).findByEmail("test@example.com");
         verify(userRepository).save(any(User.class));
         
@@ -88,34 +91,68 @@ class OAuth2UserServiceTest extends BaseUnitTest {
             user.getEmail().equals("test@example.com") &&
             user.getUsername().equals("test") &&
             user.getProfilePictureUrl().equals("http://example.com/pic.jpg") &&
+            user.getGoogleId().equals("google123") &&
             user.isEmailVerified() // OAuth2 users should be pre-verified
         ));
     }
 
     @Test
-    @DisplayName("Should update existing OAuth2 user")
-    void shouldUpdateExistingOAuth2User() {
-        logger.debug("Testing update of existing OAuth2 user");
+    @DisplayName("Should update existing OAuth2 user found by Google ID")
+    void shouldUpdateExistingOAuth2UserByGoogleId() {
+        logger.debug("Testing update of existing OAuth2 user by Google ID");
         
         User existingUser = User.builder()
                 .email("test@example.com")
                 .username("test")
+                .googleId("google123")
                 .build();
 
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
         OAuth2User result = oAuth2UserService.loadUser(mock(OAuth2UserRequest.class));
 
         assertNotNull(result);
-        verify(userRepository).findByEmail("test@example.com");
+        verify(userRepository).findByGoogleId("google123");
+        verify(userRepository, never()).findByEmail(anyString());
         verify(userRepository).save(any(User.class));
         
         // Verify the user was updated correctly
         verify(userRepository).save(argThat(user -> 
             user.getEmail().equals("test@example.com") &&
             user.getUsername().equals("test") &&
-            user.getProfilePictureUrl().equals("http://example.com/pic.jpg")
+            user.getProfilePictureUrl().equals("http://example.com/pic.jpg") &&
+            user.getGoogleId().equals("google123")
+        ));
+    }
+
+    @Test
+    @DisplayName("Should update existing OAuth2 user found by email and set Google ID")
+    void shouldUpdateExistingOAuth2UserByEmailAndSetGoogleId() {
+        logger.debug("Testing update of existing OAuth2 user by email and setting Google ID");
+        
+        User existingUser = User.builder()
+                .email("test@example.com")
+                .username("test")
+                .build();
+
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        OAuth2User result = oAuth2UserService.loadUser(mock(OAuth2UserRequest.class));
+
+        assertNotNull(result);
+        verify(userRepository).findByGoogleId("google123");
+        verify(userRepository).findByEmail("test@example.com");
+        verify(userRepository).save(any(User.class));
+        
+        // Verify the user was updated correctly with Google ID
+        verify(userRepository).save(argThat(user -> 
+            user.getEmail().equals("test@example.com") &&
+            user.getUsername().equals("test") &&
+            user.getProfilePictureUrl().equals("http://example.com/pic.jpg") &&
+            user.getGoogleId().equals("google123")
         ));
     }
 

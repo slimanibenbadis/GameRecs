@@ -56,37 +56,50 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String pictureUrl = (String) attributes.get("picture");
+        String googleId = (String) attributes.get("sub"); // Google's unique identifier
 
-        logger.debug("Processing OAuth2 user with email: {}", email);
+        logger.debug("Processing OAuth2 user with email: {} and Google ID: {}", email, googleId);
 
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        // First try to find user by Google ID
+        Optional<User> userOptional = userRepository.findByGoogleId(googleId);
+        
+        // If not found by Google ID, try by email
+        if (userOptional.isEmpty()) {
+            userOptional = userRepository.findByEmail(email);
+        }
+
         User user;
-
         if (userOptional.isPresent()) {
             user = userOptional.get();
-            updateExistingUser(user, name, pictureUrl);
+            updateExistingUser(user, name, pictureUrl, googleId);
         } else {
-            user = registerNewUser(email, name, pictureUrl);
+            user = registerNewUser(email, name, pictureUrl, googleId);
         }
 
         return oauth2User;
     }
 
-    private User registerNewUser(String email, String name, String pictureUrl) {
-        logger.debug("Registering new OAuth2 user with email: {}", email);
+    private User registerNewUser(String email, String name, String pictureUrl, String googleId) {
+        logger.debug("Registering new OAuth2 user with email: {} and Google ID: {}", email, googleId);
         
         User user = User.builder()
                 .email(email)
                 .username(generateUsername(email))
                 .profilePictureUrl(pictureUrl)
+                .googleId(googleId)
                 .emailVerified(true) // OAuth2 users are pre-verified
                 .build();
 
         return userRepository.save(user);
     }
 
-    private void updateExistingUser(User user, String name, String pictureUrl) {
+    private void updateExistingUser(User user, String name, String pictureUrl, String googleId) {
         logger.debug("Updating existing OAuth2 user: {}", user.getEmail());
+        
+        // Update Google ID if not set
+        if (user.getGoogleId() == null) {
+            user.setGoogleId(googleId);
+        }
         
         user.setProfilePictureUrl(pictureUrl);
         userRepository.save(user);

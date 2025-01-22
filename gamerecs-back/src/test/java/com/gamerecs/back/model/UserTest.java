@@ -111,22 +111,19 @@ class UserTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("Should fail validation with blank password hash")
-    void shouldFailValidationWithBlankPasswordHash() {
-        logger.debug("Testing user creation with blank password hash");
+    @DisplayName("Should allow blank password hash for OAuth2 users")
+    void shouldAllowBlankPasswordHash() {
+        logger.debug("Testing user creation with blank password hash (OAuth2 case)");
         
         User user = User.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .passwordHash("")
+                .googleId("123456789")  // OAuth2 user
                 .build();
 
         var violations = validator.validate(user);
-        assertFalse(violations.isEmpty(), "User should be invalid");
-        assertEquals(1, violations.size(), "Should have one violation");
-        assertTrue(violations.stream()
-                .anyMatch(v -> v.getPropertyPath().toString().equals("passwordHash")),
-                "Should have passwordHash violation");
+        assertTrue(violations.isEmpty(), "User should be valid since passwordHash is optional for OAuth2 users");
     }
 
     @Test
