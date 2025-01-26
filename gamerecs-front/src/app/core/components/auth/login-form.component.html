@@ -72,6 +72,26 @@
         ></p-button>
       </div>
 
+      <!-- OR Divider -->
+      <div class="flex items-center gap-4 my-8">
+        <div class="h-[1px] flex-1 bg-surface-300 dark:bg-surface-600"></div>
+        <span class="text-sm text-surface-600 dark:text-surface-400">Or</span>
+        <div class="h-[1px] flex-1 bg-surface-300 dark:bg-surface-600"></div>
+      </div>
+
+      <!-- Google Sign-In Button -->
+      <div>
+        <p-button 
+          type="button"
+          label="Sign in with Google"
+          icon="pi pi-google"
+          styleClass="w-full p-button-outlined"
+          [loading]="loading"
+          (onClick)="onGoogleLogin()"
+          data-cy="google-login-button"
+        ></p-button>
+      </div>
+
       <!-- Sign Up Link -->
       <div class="mt-6 text-center">
         <span class="text-sm">Don't have an account? </span>

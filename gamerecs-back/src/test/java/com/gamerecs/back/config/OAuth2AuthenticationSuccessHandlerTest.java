@@ -22,6 +22,11 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 class OAuth2AuthenticationSuccessHandlerTest extends BaseUnitTest {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandlerTest.class);
 
@@ -92,5 +97,170 @@ class OAuth2AuthenticationSuccessHandlerTest extends BaseUnitTest {
 
         verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
         verify(jwtService, never()).generateToken(anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle missing email attribute")
+    void shouldHandleMissingEmail() throws Exception {
+        logger.debug("Testing handling of missing email attribute");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(oauth2User.getAttribute("email")).thenReturn(null);
+        when(response.isCommitted()).thenReturn(false);
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_BAD_REQUEST,
+            "Email not found in OAuth2 user data"
+        );
+        verify(jwtService, never()).generateToken(anyString());
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle empty email attribute")
+    void shouldHandleEmptyEmail() throws Exception {
+        logger.debug("Testing handling of empty email attribute");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(oauth2User.getAttribute("email")).thenReturn("");
+        when(response.isCommitted()).thenReturn(false);
+        when(jwtService.generateToken(""))
+            .thenThrow(new IllegalStateException("Invalid email"));
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Failed to generate authentication token"
+        );
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle OAuth2User processing error")
+    void shouldHandleOAuth2UserProcessingError() throws Exception {
+        logger.debug("Testing handling of OAuth2User processing error");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(response.isCommitted()).thenReturn(false);
+        doThrow(new IllegalStateException("Processing failed"))
+            .when(oAuth2UserService)
+            .processOAuth2User(oauth2User);
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Failed to generate authentication token"
+        );
+        verify(jwtService, never()).generateToken(anyString());
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle JWT generation error")
+    void shouldHandleJwtGenerationError() throws Exception {
+        logger.debug("Testing handling of JWT generation error");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(oauth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
+        when(response.isCommitted()).thenReturn(false);
+        when(jwtService.generateToken(TEST_EMAIL))
+            .thenThrow(new IllegalStateException("JWT generation failed"));
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Failed to generate authentication token"
+        );
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle unexpected runtime exception")
+    void shouldHandleUnexpectedRuntimeException() throws Exception {
+        logger.debug("Testing handling of unexpected runtime exception");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(oauth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
+        when(response.isCommitted()).thenReturn(false);
+        doThrow(new RuntimeException("Unexpected error"))
+            .when(redirectStrategy)
+            .sendRedirect(any(), any(), anyString());
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Authentication failed"
+        );
+    }
+
+    @Test
+    @DisplayName("Should propagate IOException during error response")
+    void shouldHandleIOExceptionDuringErrorResponse() throws Exception {
+        logger.debug("Testing handling of IOException during error response");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(oauth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
+        when(response.isCommitted()).thenReturn(false);
+        RuntimeException originalException = new RuntimeException("Original error");
+        IOException responseException = new IOException("Response error");
+        
+        doThrow(originalException)
+            .when(redirectStrategy)
+            .sendRedirect(any(), any(), anyString());
+        doThrow(responseException)
+            .when(response)
+            .sendError(anyInt(), anyString());
+
+        // Execute and verify
+        IOException thrown = assertThrows(IOException.class, () -> 
+            successHandler.onAuthenticationSuccess(request, response, authentication)
+        );
+        
+        assertEquals("Response error", thrown.getMessage());
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Authentication failed"
+        );
+    }
+
+    @Test
+    @DisplayName("Should handle null authentication principal")
+    void shouldHandleNullAuthenticationPrincipal() throws Exception {
+        logger.debug("Testing handling of null authentication principal");
+        
+        // Setup
+        when(authentication.getPrincipal()).thenReturn(null);
+        when(response.isCommitted()).thenReturn(false);
+
+        // Execute
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        // Verify
+        verify(response).sendError(
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Authentication failed"
+        );
     }
 } 

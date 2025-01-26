@@ -171,6 +171,27 @@ export class LoginFormComponent implements OnInit {
     }
   }
 
+  onGoogleLogin(): void {
+    console.log('[LoginFormComponent] Initiating Google login');
+    this.loading = true;
+    this.cd.detectChanges();
+    
+    try {
+      this.authService.initiateGoogleLogin();
+    } catch (error) {
+      console.error('[LoginFormComponent] Error initiating Google login:', error);
+      this.loading = false;
+      this.cd.detectChanges();
+      
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Login Failed',
+        detail: 'Failed to initiate Google login. Please try again.',
+        life: 5000
+      });
+    }
+  }
+
   // Helper methods for validation messages
   getErrorMessage(controlName: string): string {
     const control = this.loginForm.get(controlName);

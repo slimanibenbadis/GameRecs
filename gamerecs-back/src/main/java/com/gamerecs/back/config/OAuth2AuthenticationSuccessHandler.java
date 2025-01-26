@@ -43,22 +43,33 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             return;
         }
 
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        
-        if (email == null) {
-            logger.error("No email found in OAuth2 user attributes");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email not found in OAuth2 user data");
-            return;
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            logger.debug("Processing OAuth2 user with attributes: {}", oAuth2User.getAttributes());
+            
+            // Process the OAuth2 user first
+            oAuth2UserService.processOAuth2User(oAuth2User);
+            
+            String email = oAuth2User.getAttribute("email");
+            if (email == null) {
+                logger.error("No email found in OAuth2 user attributes");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email not found in OAuth2 user data");
+                return;
+            }
+
+            String token = jwtService.generateToken(email);
+            String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+                    .queryParam("token", token)
+                    .build().toUriString();
+
+            logger.debug("Redirecting to: {}", targetUrl);
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        } catch (IllegalStateException e) {
+            logger.error("Failed to generate JWT token: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to generate authentication token");
+        } catch (Exception e) {
+            logger.error("Unexpected error during OAuth2 success handling: {}", e.getMessage(), e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication failed");
         }
-
-        String token = jwtService.generateToken(email);
-
-        String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("token", token)
-                .build().toUriString();
-
-        logger.debug("Redirecting to: {}", targetUrl);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 } 

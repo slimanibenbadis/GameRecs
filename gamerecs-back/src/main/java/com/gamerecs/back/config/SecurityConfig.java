@@ -58,6 +58,8 @@ public class SecurityConfig {
         "/api/auth/login",
         "/login/oauth2/code/google",
         "/oauth2/authorization/google",
+        "/oauth2/authorization/**",
+        "/login/oauth2/code/**",
         "/api/auth/oauth2/failure",
         "/api/auth/google/callback"
     };
@@ -99,14 +101,20 @@ public class SecurityConfig {
                 .ignoringRequestMatchers(TEST_ENDPOINTS)
                 .ignoringRequestMatchers(ACTUATOR_ENDPOINTS)
             )
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(oAuth2UserService)
-                )
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-                .defaultSuccessUrl("/api/auth/oauth2/success", true)
-                .failureUrl("/api/auth/oauth2/failure")
-            )
+            .oauth2Login(oauth2 -> {
+                logger.debug("Configuring OAuth2 login");
+                oauth2
+                    .userInfoEndpoint(userInfo -> {
+                        logger.debug("Configuring OAuth2 user info endpoint");
+                        userInfo.userService(oAuth2UserService);
+                    })
+                    .successHandler(oAuth2AuthenticationSuccessHandler)
+                    .failureUrl("/api/auth/oauth2/failure")
+                    .authorizationEndpoint(authorization -> {
+                        logger.debug("Configuring OAuth2 authorization endpoint");
+                        authorization.baseUri("/oauth2/authorization");
+                    });
+            })
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, authException) -> {
                     logger.debug("Unauthorized access attempt: {}", authException.getMessage());

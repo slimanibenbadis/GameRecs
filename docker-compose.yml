@@ -80,8 +80,8 @@ services:
       dockerfile: Dockerfile
     container_name: gamerecs-backend
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-dev:5432/gamerecs_dev
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -92,6 +92,14 @@ services:
       - PROMETHEUS_USERNAME=${PROMETHEUS_USERNAME}
       - PROMETHEUS_PASSWORD=${PROMETHEUS_PASSWORD}
       - JAVA_OPTS=${JAVA_OPTS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_USERNAME=test
+      - SMTP_PASSWORD=test
+      - MANAGEMENT_HEALTH_MAIL_ENABLED=true
     volumes:
       - ./gamerecs-back/logs:/app/logs
       - ./gamerecs-back/src/main/resources/config:/app/config

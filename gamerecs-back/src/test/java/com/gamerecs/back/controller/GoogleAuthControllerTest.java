@@ -48,7 +48,7 @@ class GoogleAuthControllerTest {
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
 
-    private static final String REDIRECT_URI = "http://localhost:4200/oauth2/redirect";
+    private static final String REDIRECT_URI = "http://localhost:4200/auth/google/callback";
 
     @BeforeEach
     void setUp() {

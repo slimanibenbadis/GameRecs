@@ -1,6 +1,7 @@
 package com.gamerecs.back.service;
 
 import com.gamerecs.back.util.BaseUnitTest;
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +28,7 @@ class JwtServiceTest extends BaseUnitTest {
 
     private UserDetails userDetails;
     private static final String TEST_USERNAME = "testuser";
+    private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_JWT_SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     private static final long TEST_JWT_EXPIRATION = 3600000; // 1 hour
 
@@ -125,5 +128,95 @@ class JwtServiceTest extends BaseUnitTest {
         String subject = jwtService.extractClaim(token, claims -> claims.getSubject());
         
         assertEquals(TEST_USERNAME, subject, "Extracted subject should match username");
+    }
+
+    @Test
+    @DisplayName("Should generate token with email successfully")
+    void shouldGenerateTokenWithEmail() {
+        logger.debug("Testing token generation with email");
+        
+        // Execute
+        String token = jwtService.generateToken(TEST_EMAIL);
+        
+        // Verify token is not null or empty
+        assertNotNull(token, "Generated token should not be null");
+        assertTrue(token.length() > 0, "Generated token should not be empty");
+        
+        // Verify token structure (should have 3 parts separated by dots)
+        String[] tokenParts = token.split("\\.");
+        assertEquals(3, tokenParts.length, "Token should have header, payload, and signature");
+        
+        // Verify claims using public methods
+        String subject = jwtService.extractUsername(token);
+        String email = jwtService.extractClaim(token, claims -> claims.get("email", String.class));
+        Date expiration = jwtService.extractExpiration(token);
+        
+        assertEquals(TEST_EMAIL, subject, "Token subject should match email");
+        assertEquals(TEST_EMAIL, email, "Token email claim should match email");
+        
+        // Verify expiration
+        assertNotNull(expiration, "Token should have expiration date");
+        assertTrue(expiration.after(new Date()), "Token should not be expired immediately");
+        assertTrue(expiration.before(new Date(System.currentTimeMillis() + TEST_JWT_EXPIRATION + 1000)), 
+            "Token expiration should be within expected range");
+    }
+
+    @Test
+    @DisplayName("Should generate unique tokens for different emails")
+    void shouldGenerateUniqueTokens() {
+        logger.debug("Testing unique token generation for different emails");
+        
+        String token1 = jwtService.generateToken(TEST_EMAIL);
+        String token2 = jwtService.generateToken("different@example.com");
+        
+        assertNotEquals(token1, token2, "Tokens for different emails should be unique");
+    }
+
+    @Test
+    @DisplayName("Should handle null email gracefully")
+    void shouldHandleNullEmail() {
+        logger.debug("Testing token generation with null email");
+        
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            jwtService.generateToken((String)null);
+        });
+        
+        assertEquals("Email cannot be null", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should handle empty email gracefully")
+    void shouldHandleEmptyEmail() {
+        logger.debug("Testing token generation with empty email");
+        
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            jwtService.generateToken("");
+        });
+        
+        assertEquals("Email cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should generate token with consistent claims")
+    void shouldGenerateTokenWithConsistentClaims() {
+        logger.debug("Testing token generation with consistent claims");
+        
+        // Generate multiple tokens for the same email
+        String token1 = jwtService.generateToken(TEST_EMAIL);
+        String token2 = jwtService.generateToken(TEST_EMAIL);
+        
+        // Extract claims using public methods
+        String subject1 = jwtService.extractUsername(token1);
+        String subject2 = jwtService.extractUsername(token2);
+        String email1 = jwtService.extractClaim(token1, claims -> claims.get("email", String.class));
+        String email2 = jwtService.extractClaim(token2, claims -> claims.get("email", String.class));
+        
+        // Verify consistent claims
+        assertEquals(subject1, subject2, "Subject should be consistent");
+        assertEquals(email1, email2, "Email claim should be consistent");
+        assertEquals(TEST_EMAIL, email1, "Email claim should match input email");
+        
+        // Tokens should be different due to different nonce values
+        assertNotEquals(token1, token2, "Tokens should be unique even for same email due to timing");
     }
 } 

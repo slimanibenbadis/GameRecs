@@ -1,5 +1,11 @@
 export const environment = {
   production: true,
   testing: false,
-  apiUrl: '/api'  // In production, we use relative path since both frontend and backend are served from the same domain
+  apiUrl: 'https://gamer-reco.com/api',
+  oauth: {
+    google: {
+      clientId: '${GOOGLE_OAUTH_CLIENT_ID}',
+      redirectUri: 'https://gamer-reco.com/auth/google/callback'
+    }
+  }
 }; 

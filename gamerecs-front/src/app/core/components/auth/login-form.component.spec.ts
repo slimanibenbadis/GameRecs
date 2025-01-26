@@ -8,6 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -241,6 +242,93 @@ describe('LoginFormComponent', () => {
         detail: 'Please fill in all required fields correctly.',
         life: 5000
       });
+    });
+  });
+
+  describe('Google Login', () => {
+    beforeEach(() => {
+      authService.initiateGoogleLogin = jasmine.createSpy('initiateGoogleLogin');
+    });
+
+    it('should call initiateGoogleLogin when Google login button is clicked', fakeAsync(() => {
+      component.onGoogleLogin();
+      fixture.detectChanges();
+      tick();
+
+      expect(authService.initiateGoogleLogin).toHaveBeenCalled();
+      expect(component.loading).toBeTrue();
+    }));
+
+    it('should handle errors during Google login initiation', fakeAsync(() => {
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      spyOn(messageService, 'add');
+      authService.initiateGoogleLogin.and.throwError('Test error');
+
+      component.onGoogleLogin();
+      fixture.detectChanges();
+      tick();
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Login Failed',
+        detail: 'Failed to initiate Google login. Please try again.',
+        life: 5000
+      });
+      expect(component.loading).toBeFalse();
+    }));
+  });
+
+  describe('Error Messages', () => {
+    beforeEach(() => {
+      // Reset form before each test
+      component.loginForm.reset();
+    });
+
+    it('should return empty string for untouched controls', () => {
+      expect(component.getErrorMessage('username')).toBe('');
+      expect(component.getErrorMessage('password')).toBe('');
+    });
+
+    it('should return appropriate username error messages', () => {
+      const control = component.loginForm.get('username');
+      control?.markAsTouched();
+
+      control?.setErrors({ required: true });
+      expect(component.getErrorMessage('username')).toBe('Username is required');
+
+      control?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username must be at least 3 characters');
+
+      control?.setErrors({ maxlength: true });
+      expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
+    });
+
+    it('should return appropriate password error messages', () => {
+      const control = component.loginForm.get('password');
+      control?.markAsTouched();
+
+      control?.setErrors({ required: true });
+      expect(component.getErrorMessage('password')).toBe('Password is required');
+
+      control?.setErrors({ minlength: true });
+      expect(component.getErrorMessage('password')).toBe('Password must be at least 8 characters');
+
+      control?.setErrors({ pattern: true });
+      expect(component.getErrorMessage('password')).toBe('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+    });
+
+    it('should return empty string for unknown control name', () => {
+      expect(component.getErrorMessage('nonexistentControl')).toBe('');
+    });
+
+    it('should return empty string for control with no errors', () => {
+      const control = component.loginForm.get('username');
+      control?.markAsTouched();
+      control?.setErrors(null);
+      expect(component.getErrorMessage('username')).toBe('');
     });
   });
 }); 

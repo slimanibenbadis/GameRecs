@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 export interface IUserRegistration {
   username: string;
@@ -44,6 +46,10 @@ export interface ILoginResponse {
   emailVerified: boolean;
 }
 
+export interface IGoogleAuthResponse extends ILoginResponse {
+  googleId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -55,7 +61,7 @@ export class AuthService {
   private _isAuthenticated: BehaviorSubject<boolean>;
   private _currentUser: BehaviorSubject<ILoginResponse | null>;
 
-  constructor(private _http: HttpClient) {
+  constructor(private _http: HttpClient, private _router: Router) {
     console.log('[AuthService] Initializing auth service');
     // Initialize BehaviorSubjects after checking token and loading user
     const hasToken = this.hasValidToken();
@@ -218,5 +224,55 @@ export class AuthService {
     if (url.includes('/verify')) return 'email verification';
     
     return 'the operation';
+  }
+
+  initiateGoogleLogin(): void {
+    console.log('[AuthService] Initiating Google OAuth flow');
+    const baseUrl = window.location.origin;
+    const authUrl = `${baseUrl}/oauth2/authorization/google`;
+    console.log('[AuthService] Redirecting to:', authUrl);
+    window.location.href = authUrl;
+  }
+
+  handleGoogleCallback(code: string): Observable<IGoogleAuthResponse> {
+    console.log('[AuthService] Handling Google OAuth callback');
+    return this._http.get<IGoogleAuthResponse>(`${this._apiUrl}/google/callback?code=${code}`)
+      .pipe(
+        tap(response => {
+          console.log('[AuthService] Google OAuth login successful for user:', response.username);
+          this.storeAuthData(response, true); // Always remember Google OAuth users
+          this._isAuthenticated.next(true);
+          this._currentUser.next(response);
+        }),
+        catchError((error) => this.handleError(error))
+      );
+  }
+
+  handleGoogleToken(token: string): void {
+    console.log('[AuthService] Handling Google OAuth JWT token');
+    const tokenData: ILoginResponse = {
+      token,
+      username: '', // These will be populated when we decode the token
+      email: '',
+      emailVerified: true // Google OAuth emails are verified
+    };
+    
+    try {
+      // Decode the token to get user info (it's in the payload)
+      const tokenParts = token.split('.');
+      if (tokenParts.length === 3) {
+        const payload = JSON.parse(atob(tokenParts[1]));
+        tokenData.email = payload.email;
+        tokenData.username = payload.email; // Use email as username for Google OAuth users
+      }
+      
+      this.storeAuthData(tokenData, true); // Always remember Google OAuth users
+      this._isAuthenticated.next(true);
+      this._currentUser.next(tokenData);
+      console.log('[AuthService] Successfully processed Google OAuth token');
+    } catch (e) {
+      console.error('[AuthService] Error processing Google OAuth token:', e);
+      throw new Error('Failed to process authentication token');
+    }
   }
 } 

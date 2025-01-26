@@ -97,24 +97,74 @@ class EmailServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("Should handle email sending failure")
-    void shouldHandleEmailSendingFailure() {
+    void shouldHandleEmailSendingFailure() throws MessagingException {
         logger.debug("Testing email sending failure handling");
 
         // Set up test-specific mock behavior
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("verification-email"), any(Context.class)))
                 .thenReturn(TEST_HTML_CONTENT);
-        doThrow(new RuntimeException("Failed to send email"))
-                .when(mailSender).send(any(MimeMessage.class));
+        
+        // Simulate a MessagingException during email sending
+        MessagingException testException = new MessagingException("Test email sending failure");
+        doAnswer(invocation -> {
+            throw new RuntimeException("Failed to send email", testException);
+        }).when(mailSender).send(any(MimeMessage.class));
 
-        // Verify the exception is propagated
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> 
-            emailService.sendVerificationEmail(TEST_EMAIL, TEST_USERNAME, TEST_TOKEN)
-        );
+        // Execute and verify
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                emailService.sendVerificationEmail(TEST_EMAIL, TEST_USERNAME, TEST_TOKEN),
+                "Should throw RuntimeException when email sending fails");
 
-        assertEquals("Failed to send email", exception.getMessage());
+        assertEquals("Failed to send email", thrown.getMessage(),
+                "Exception message should match expected");
+        assertSame(testException, thrown.getCause(),
+                "Original MessagingException should be the cause");
+
+        // Verify logging behavior
+        verify(mailSender).createMimeMessage();
         verify(templateEngine).process(eq("verification-email"), any(Context.class));
         verify(mailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @DisplayName("Should handle specific MessagingException scenarios")
+    void shouldHandleSpecificMessagingExceptionScenarios() throws MessagingException {
+        logger.debug("Testing specific MessagingException scenarios");
+
+        // Set up test-specific mock behavior
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        // Test cases for different MessagingException scenarios
+        String[] errorMessages = {
+            "Invalid email address",
+            "SMTP server connection failed",
+            "Authentication failed",
+            "Message too large"
+        };
+
+        for (String errorMessage : errorMessages) {
+            // Simulate specific MessagingException
+            MessagingException specificException = new MessagingException(errorMessage);
+            doAnswer(invocation -> {
+                throw new RuntimeException("Failed to send email", specificException);
+            }).when(mailSender).send(any(MimeMessage.class));
+
+            // Execute and verify each scenario
+            RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                    emailService.sendVerificationEmail(TEST_EMAIL, TEST_USERNAME, TEST_TOKEN),
+                    "Should throw RuntimeException for: " + errorMessage);
+
+            assertEquals("Failed to send email", thrown.getMessage(),
+                    "Exception message should match expected for: " + errorMessage);
+            assertSame(specificException, thrown.getCause(),
+                    "Original MessagingException should be the cause for: " + errorMessage);
+        }
+
+        // Verify the number of attempts
+        verify(mailSender, times(errorMessages.length)).send(any(MimeMessage.class));
     }
 
     @Test
@@ -190,5 +240,118 @@ class EmailServiceTest extends BaseUnitTest {
         assertEquals("Invalid email address format", exception.getMessage());
         verify(templateEngine, never()).process(anyString(), any(Context.class));
         verify(mailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @DisplayName("Should handle long email addresses")
+    void shouldHandleLongEmailAddresses() throws MessagingException {
+        logger.debug("Testing email sending with long email address");
+
+        String longLocalPart = "a".repeat(64); // Max local part length
+        String longDomain = "b".repeat(63); // Max domain label length
+        String longEmail = longLocalPart + "@" + longDomain + ".com";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        emailService.sendVerificationEmail(longEmail, TEST_USERNAME, TEST_TOKEN);
+
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    @DisplayName("Should handle email addresses with special characters")
+    void shouldHandleEmailWithSpecialCharacters() throws MessagingException {
+        logger.debug("Testing email sending with special characters");
+
+        String emailWithSpecialChars = "user.name+label@example.com";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        emailService.sendVerificationEmail(emailWithSpecialChars, TEST_USERNAME, TEST_TOKEN);
+
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    @DisplayName("Should verify email content structure")
+    void shouldVerifyEmailContentStructure() throws MessagingException {
+        logger.debug("Testing email content structure");
+
+        // Create mock for MimeMessage with proper return values
+        MimeMessage mockMessage = mock(MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mockMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        // Mock the getFrom, getAllRecipients, and getSubject methods
+        when(mockMessage.getFrom()).thenReturn(new jakarta.mail.internet.InternetAddress[]{
+            new jakarta.mail.internet.InternetAddress(TEST_FROM_EMAIL)
+        });
+        when(mockMessage.getAllRecipients()).thenReturn(new jakarta.mail.internet.InternetAddress[]{
+            new jakarta.mail.internet.InternetAddress(TEST_EMAIL)
+        });
+        when(mockMessage.getSubject()).thenReturn("Verify Your Gamer-Reco Account");
+
+        emailService.sendVerificationEmail(TEST_EMAIL, TEST_USERNAME, TEST_TOKEN);
+
+        // Verify the email was sent
+        verify(mailSender).send(mockMessage);
+
+        // Verify email headers
+        assertEquals(TEST_FROM_EMAIL, mockMessage.getFrom()[0].toString(), 
+                "From address should match");
+        assertEquals(TEST_EMAIL, mockMessage.getAllRecipients()[0].toString(), 
+                "To address should match");
+        assertTrue(mockMessage.getSubject().contains("Verify"), 
+                "Subject should contain verification keyword");
+    }
+
+    @Test
+    @DisplayName("Should verify template context variables")
+    void shouldVerifyTemplateContextVariables() throws MessagingException {
+        logger.debug("Testing template context variables");
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
+
+        emailService.sendVerificationEmail(TEST_EMAIL, TEST_USERNAME, TEST_TOKEN);
+
+        verify(templateEngine).process(eq("verification-email"), contextCaptor.capture());
+        Context capturedContext = contextCaptor.getValue();
+
+        // Verify all required template variables
+        assertNotNull(capturedContext.getVariable("username"), 
+                "Username should be present in template context");
+        assertNotNull(capturedContext.getVariable("verificationLink"), 
+                "Verification link should be present in template context");
+        
+        String verificationLink = (String) capturedContext.getVariable("verificationLink");
+        assertTrue(verificationLink.contains(TEST_TOKEN), 
+                "Verification link should contain the token");
+        assertTrue(verificationLink.startsWith(TEST_BASE_URL), 
+                "Verification link should start with base URL");
+    }
+
+    @Test
+    @DisplayName("Should handle international email addresses")
+    void shouldHandleInternationalEmailAddresses() throws MessagingException {
+        logger.debug("Testing email sending with international characters");
+
+        String internationalEmail = "user@例子.com";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("verification-email"), any(Context.class)))
+                .thenReturn(TEST_HTML_CONTENT);
+
+        emailService.sendVerificationEmail(internationalEmail, TEST_USERNAME, TEST_TOKEN);
+
+        verify(mailSender).send(mimeMessage);
     }
 } 

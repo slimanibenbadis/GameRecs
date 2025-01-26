@@ -83,7 +83,7 @@ server:
 
 # CORS Configuration
 allowed:
-  origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+  origins: ${ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8080,https://gamer-reco.com}
 
 # SpringDoc OpenAPI Configuration
 springdoc:
@@ -136,7 +136,7 @@ app:
     token:
       expiration-hours: ${VERIFICATION_TOKEN_EXPIRATION_HOURS:24}
   jwt:
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    secret: ${JWT_SECRET:600d76ab08678e8bee041f3f34e3f325b217f9872e148ef09ab4cd816a597d9e8ec8f534a8af24060e19dcbae5303219ef931b6fcdfe4db07e0de4f9764a1ad0cc2821e3d4f983e9ad09868941c596ce8c0f4af5b498fcec024509fc10c5322e1e8b3d0e72be001e35765407b824184ad9a57debc9e100d2fd960556d4c239ea5c232b8b6ef4cdcdc717a54f732cf29db30562e1bb71282d96addc503c221d86ec2cc9dbea613648a6df46d9a0a23d85561565b4e01f37f0b531e7b6680fcaf77c341bbeb6d1b19dd3156d057f0923e9e702941549e295da892a91dfa6343df7fac3c812dc8557bc1cb1b3f66698c9d8231e664ed66dc7636a0dc8eff3b5f429}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   oauth2:
-    redirectUri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/oauth2/redirect}
+    redirectUri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/auth/google/callback}

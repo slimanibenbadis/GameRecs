@@ -4,6 +4,7 @@ import { RegistrationFormComponent } from './core/components/auth/registration-f
 import { EmailVerificationComponent } from './core/components/auth/email-verification.component';
 import { LoginFormComponent } from './core/components/auth/login-form.component';
 import { LandingPageComponent } from './core/components/landing/landing-page.component';
+import { GoogleCallbackComponent } from './core/components/auth/google-callback.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -17,7 +18,8 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: LoginFormComponent },
       { path: 'register', component: RegistrationFormComponent },
-      { path: 'verify-email', component: EmailVerificationComponent }
+      { path: 'verify-email', component: EmailVerificationComponent },
+      { path: 'google/callback', component: GoogleCallbackComponent }
     ]
   },
   { path: 'verify', component: EmailVerificationComponent },

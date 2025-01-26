@@ -9,8 +9,10 @@ import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest extends BaseUnitTest {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceTest.class);
 
@@ -240,5 +243,132 @@ class UserServiceTest extends BaseUnitTest {
         assertEquals("Verification token has expired", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
         verify(verificationTokenRepository).delete(verificationToken);
+    }
+
+    @Test
+    void registerUser_WhenEmailServiceFails_ShouldStillRegisterUser() {
+        // Arrange
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(emailService.generateVerificationToken()).thenReturn("test-token");
+        // Mock the verification token repository delete method
+        doNothing().when(verificationTokenRepository).deleteByUser_UserId(anyLong());
+        // Mock the verification token save
+        when(verificationTokenRepository.save(any(VerificationToken.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        // Mock email service to throw exception exactly as the real service does
+        doAnswer(invocation -> {
+            throw new MessagingException("Failed to send email");
+        }).when(emailService).sendVerificationEmail(
+            eq("test@example.com"),
+            eq("testuser"),
+            eq("test-token")
+        );
+
+        // Act
+        User result = userService.registerUser(testUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testUser.getUserId(), result.getUserId());
+        assertEquals(testUser.getUsername(), result.getUsername());
+        assertEquals(testUser.getEmail(), result.getEmail());
+        assertFalse(result.isEmailVerified());
+
+        // Verify interactions
+        verify(userRepository).save(any(User.class));
+        verify(verificationTokenRepository).deleteByUser_UserId(testUser.getUserId());
+        verify(verificationTokenRepository).save(any(VerificationToken.class));
+        verify(emailService).sendVerificationEmail(
+            eq("test@example.com"),
+            eq("testuser"),
+            eq("test-token")
+        );
+    }
+
+    @Test
+    void registerUser_WhenEmailServiceSucceeds_ShouldRegisterUserAndSendEmail() throws MessagingException {
+        // Arrange
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(emailService.generateVerificationToken()).thenReturn("test-token");
+
+        // Act
+        User result = userService.registerUser(testUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testUser.getUserId(), result.getUserId());
+        assertEquals(testUser.getUsername(), result.getUsername());
+        assertEquals(testUser.getEmail(), result.getEmail());
+        assertFalse(result.isEmailVerified());
+
+        // Verify interactions
+        verify(userRepository).save(any(User.class));
+        verify(emailService).sendVerificationEmail(
+                eq(testUser.getEmail()),
+                eq(testUser.getUsername()),
+                anyString()
+        );
+        verify(verificationTokenRepository).save(any(VerificationToken.class));
+    }
+
+    @Test
+    void verifyEmail_WithValidToken_ShouldVerifyUserEmail() {
+        // Arrange
+        VerificationToken token = new VerificationToken();
+        token.setToken("valid-token");
+        token.setUser(testUser);
+        token.setExpiryDate(java.time.LocalDateTime.now().plusHours(24));
+
+        when(verificationTokenRepository.findByToken("valid-token"))
+                .thenReturn(java.util.Optional.of(token));
+
+        // Act
+        boolean result = userService.verifyEmail("valid-token");
+
+        // Assert
+        assertTrue(result);
+        assertTrue(testUser.isEmailVerified());
+        verify(userRepository).save(testUser);
+        verify(verificationTokenRepository).delete(token);
+    }
+
+    @Test
+    void verifyEmail_WithExpiredToken_ShouldThrowException() {
+        // Arrange
+        VerificationToken token = new VerificationToken();
+        token.setToken("expired-token");
+        token.setUser(testUser);
+        token.setExpiryDate(java.time.LocalDateTime.now().minusHours(1));
+
+        when(verificationTokenRepository.findByToken("expired-token"))
+                .thenReturn(java.util.Optional.of(token));
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.verifyEmail("expired-token")
+        );
+        assertEquals("Verification token has expired", exception.getMessage());
+        verify(verificationTokenRepository).delete(token);
+    }
+
+    @Test
+    void verifyEmail_WithInvalidToken_ShouldThrowException() {
+        // Arrange
+        when(verificationTokenRepository.findByToken("invalid-token"))
+                .thenReturn(java.util.Optional.empty());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.verifyEmail("invalid-token")
+        );
+        assertEquals("Invalid verification token", exception.getMessage());
     }
 } 

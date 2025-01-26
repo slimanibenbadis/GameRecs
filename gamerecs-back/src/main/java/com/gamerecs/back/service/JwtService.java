@@ -47,8 +47,16 @@ public class JwtService {
     public String generateToken(String email) {
         logger.debug("Generating JWT token for email: {}", email);
         
+        if (email == null) {
+            throw new IllegalArgumentException("Email cannot be null");
+        }
+        if (email.trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
+        claims.put("nonce", System.nanoTime());
         
         return Jwts.builder()
                 .claims(claims)
@@ -135,7 +143,20 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = java.util.Base64.getDecoder().decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            logger.debug("Generating signing key from JWT secret");
+            // First encode the secret to Base64 to ensure consistent key length
+            String encodedSecret = java.util.Base64.getEncoder()
+                .encodeToString(jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            // Then decode it to get the key bytes
+            byte[] keyBytes = java.util.Base64.getDecoder().decode(encodedSecret);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to process JWT secret: {}", e.getMessage());
+            throw new IllegalStateException("Invalid JWT secret configuration", e);
+        } catch (Exception e) {
+            logger.error("Failed to generate signing key: {}", e.getMessage());
+            throw new IllegalStateException("Failed to generate JWT signing key", e);
+        }
     }
 } 
