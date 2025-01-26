@@ -23,7 +23,6 @@ public class GoogleAuthController {
     private static final Logger logger = LoggerFactory.getLogger(GoogleAuthController.class);
     private final GoogleOAuth2Service googleOAuth2Service;
     private final JwtService jwtService;
-    private final OAuth2UserService oAuth2UserService;
 
     @Value("${app.oauth2.redirectUri}")
     private String redirectUri;
@@ -34,7 +33,6 @@ public class GoogleAuthController {
             OAuth2UserService oAuth2UserService) {
         this.googleOAuth2Service = googleOAuth2Service;
         this.jwtService = jwtService;
-        this.oAuth2UserService = oAuth2UserService;
     }
 
     /**

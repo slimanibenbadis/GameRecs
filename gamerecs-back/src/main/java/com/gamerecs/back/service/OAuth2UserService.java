@@ -104,7 +104,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return user;
     }
 
-    @Transactional
     private User registerNewUser(String email, String name, String pictureUrl, String googleId) {
         logger.debug("Registering new OAuth2 user with email: {} and Google ID: {}", email, googleId);
         
@@ -131,7 +130,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return savedUser;
     }
 
-    @Transactional
     private void updateExistingUser(User user, String name, String pictureUrl, String googleId) {
         logger.debug("Updating existing OAuth2 user: {}", user.getEmail());
         
