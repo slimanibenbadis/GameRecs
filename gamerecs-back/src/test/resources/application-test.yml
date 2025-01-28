@@ -25,7 +25,13 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: http://localhost:4200/auth/google/callback
+
+# App specific configuration
+app:
+  oauth2:
+    redirectUri: http://localhost:4200/auth/google/callback
+    expectedState: test_state
 
 # SpringDoc OpenAPI Configuration
 springdoc:

@@ -42,7 +42,7 @@ export class GoogleCallbackComponent implements OnInit {
         // Store the token and update auth state
         this._authService.handleGoogleToken(token);
         this.isLoading = false;
-        this._router.navigate(['/']);
+        this._router.navigate(['/health']);
         return;
       }
       
@@ -57,7 +57,7 @@ export class GoogleCallbackComponent implements OnInit {
         next: () => {
           console.log('[GoogleCallbackComponent] Google OAuth login successful');
           this.isLoading = false;
-          this._router.navigate(['/']);
+          this._router.navigate(['/health']);
         },
         error: (error) => {
           console.error('[GoogleCallbackComponent] Error during Google OAuth callback:', error);

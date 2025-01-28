@@ -27,6 +27,9 @@ public class GoogleAuthController {
     @Value("${app.oauth2.redirectUri}")
     private String redirectUri;
 
+    @Value("${app.oauth2.expectedState:#{null}}")
+    private String expectedState;
+
     public GoogleAuthController(
             GoogleOAuth2Service googleOAuth2Service,
             JwtService jwtService,
@@ -61,36 +64,77 @@ public class GoogleAuthController {
             return new RedirectView(redirectUri + "?error=no_code");
         }
 
+        // Validate state parameter only if expectedState is configured
+        if (expectedState != null && (state == null || !state.equals(expectedState))) {
+            logger.error("Invalid state parameter received: {}", state);
+            return new RedirectView(redirectUri + "?error=invalid_state");
+        }
+
         logger.debug("Received Google OAuth callback with code: {}, state: {}", code, state);
         
-        // Exchange authorization code for access token
-        String accessToken = googleOAuth2Service.exchangeAuthorizationCode(code);
-        if (accessToken == null) {
-            logger.error("Failed to exchange authorization code for access token");
-            return new RedirectView(redirectUri + "?error=token_exchange_failed");
+        try {
+            // Exchange authorization code for access token
+            String accessToken;
+            try {
+                accessToken = googleOAuth2Service.exchangeAuthorizationCode(code);
+            } catch (RuntimeException e) {
+                logger.error("Error exchanging authorization code: {}", e.getMessage());
+                if (e.getMessage().contains("Rate limit exceeded")) {
+                    return new RedirectView(redirectUri + "?error=rate_limit_exceeded");
+                }
+                throw e;
+            }
+            
+            if (accessToken == null) {
+                logger.error("Failed to exchange authorization code for access token");
+                return new RedirectView(redirectUri + "?error=token_exchange_failed");
+            }
+
+            // Get user info from Google
+            OAuth2User oauth2User;
+            try {
+                oauth2User = googleOAuth2Service.getUserInfo(accessToken);
+            } catch (RuntimeException e) {
+                logger.error("Error fetching user info from Google: {}", e.getMessage());
+                if (e.getMessage().contains("Rate limit exceeded")) {
+                    return new RedirectView(redirectUri + "?error=rate_limit_exceeded");
+                }
+                return new RedirectView(redirectUri + "?error=google_api_error");
+            }
+
+            if (oauth2User == null) {
+                logger.error("Failed to get user info from Google");
+                return new RedirectView(redirectUri + "?error=user_info_failed");
+            }
+
+            // Process OAuth2 user and get email
+            String email = oauth2User.getAttribute("email");
+            if (email == null) {
+                logger.error("No email found in OAuth2 user attributes");
+                return new RedirectView(redirectUri + "?error=no_email");
+            }
+
+            // Generate JWT token
+            String token;
+            try {
+                token = jwtService.generateToken(email);
+            } catch (Exception e) {
+                logger.error("Failed to generate JWT token: {}", e.getMessage());
+                return new RedirectView(redirectUri + "?error=token_generation_failed");
+            }
+            logger.debug("Generated JWT token for user: {}", email);
+
+            // Redirect to frontend with token
+            String targetUrl = redirectUri + "?token=" + token;
+            logger.debug("Redirecting to: {}", targetUrl);
+            return new RedirectView(targetUrl);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid redirect URI: {}", e.getMessage());
+            return new RedirectView(redirectUri + "?error=invalid_redirect_uri");
+        } catch (Exception e) {
+            logger.error("Unexpected error during OAuth callback: {}", e.getMessage());
+            return new RedirectView(redirectUri + "?error=unexpected_error");
         }
-
-        // Get user info from Google
-        OAuth2User oauth2User = googleOAuth2Service.getUserInfo(accessToken);
-        if (oauth2User == null) {
-            logger.error("Failed to get user info from Google");
-            return new RedirectView(redirectUri + "?error=user_info_failed");
-        }
-
-        // Process OAuth2 user and get email
-        String email = oauth2User.getAttribute("email");
-        if (email == null) {
-            logger.error("No email found in OAuth2 user attributes");
-            return new RedirectView(redirectUri + "?error=no_email");
-        }
-
-        // Generate JWT token
-        String token = jwtService.generateToken(email);
-        logger.debug("Generated JWT token for user: {}", email);
-
-        // Redirect to frontend with token
-        String targetUrl = redirectUri + "?token=" + token;
-        logger.debug("Redirecting to: {}", targetUrl);
-        return new RedirectView(targetUrl);
     }
 } 

@@ -82,11 +82,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             logger.debug("User lookup by email result: {}", userOptional.isPresent());
         }
 
-        User user;
+        final User user;
         if (userOptional.isPresent()) {
             logger.debug("Existing user found, updating details");
-            user = userOptional.get();
-            updateExistingUser(user, name, pictureUrl, googleId);
+            User existingUser = userOptional.get();
+            user = updateExistingUser(existingUser, name, pictureUrl, googleId);
+            // Email verification is handled in updateExistingUser
         } else {
             logger.debug("No existing user found, creating new user");
             user = registerNewUser(email, name, pictureUrl, googleId);
@@ -130,7 +131,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return savedUser;
     }
 
-    private void updateExistingUser(User user, String name, String pictureUrl, String googleId) {
+    private User updateExistingUser(User user, String name, String pictureUrl, String googleId) {
         logger.debug("Updating existing OAuth2 user: {}", user.getEmail());
         
         // Update Google ID if not set
@@ -138,17 +139,23 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             user.setGoogleId(googleId);
         }
         
-        // Update profile picture if provided
+        // Always update profile picture and name from Google
         if (pictureUrl != null) {
             user.setProfilePictureUrl(pictureUrl);
         }
         
         // Update last login time
         user.setLastLogin(LocalDateTime.now());
+
+        // Ensure email is verified for OAuth2 users
+        if (!user.isEmailVerified()) {
+            user.setEmailVerified(true);
+        }
         
         logger.debug("Saving updated OAuth2 user: {}", user.getEmail());
         User savedUser = userRepository.save(user);
         logger.debug("User updated successfully. UserId: {}", savedUser.getUserId());
+        return savedUser;
     }
 
     private String generateUsername(String email) {

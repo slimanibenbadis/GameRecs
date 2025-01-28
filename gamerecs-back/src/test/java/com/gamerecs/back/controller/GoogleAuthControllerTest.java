@@ -17,6 +17,7 @@ import com.gamerecs.back.service.GoogleOAuth2Service;
 import com.gamerecs.back.service.JwtService;
 import com.gamerecs.back.config.OAuth2AuthenticationSuccessHandler;
 import com.gamerecs.back.config.TestSecurityConfig;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +33,9 @@ class GoogleAuthControllerTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private GoogleAuthController googleAuthController;
 
     @MockBean
     private OAuth2UserService oAuth2UserService;
@@ -49,12 +53,16 @@ class GoogleAuthControllerTest {
     private ClientRegistrationRepository clientRegistrationRepository;
 
     private static final String REDIRECT_URI = "http://localhost:4200/auth/google/callback";
+    private static final String EXPECTED_STATE = "test_state";
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .build();
+        
+        // Set the expected state value in the controller
+        ReflectionTestUtils.setField(googleAuthController, "expectedState", EXPECTED_STATE);
     }
 
     @Test
@@ -62,7 +70,6 @@ class GoogleAuthControllerTest {
     void whenGoogleCallback_thenRedirectToFrontend() throws Exception {
         // Given
         String testCode = "test_authorization_code";
-        String testState = "test_state";
         String testAccessToken = "test_access_token";
         String testEmail = "test@example.com";
         String testJwtToken = "test.jwt.token";
@@ -80,7 +87,7 @@ class GoogleAuthControllerTest {
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
                 .param("code", testCode)
-                .param("state", testState))
+                .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?token=" + testJwtToken));
     }
@@ -101,12 +108,9 @@ class GoogleAuthControllerTest {
     @Test
     @DisplayName("Should handle Google callback with missing authorization code")
     void whenGoogleCallbackWithoutCode_thenRedirectToFrontendWithError() throws Exception {
-        // Given
-        String testState = "test_state";
-
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
-                .param("state", testState))
+                .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?error=no_code"));
     }
@@ -116,7 +120,6 @@ class GoogleAuthControllerTest {
     void whenTokenExchangeFails_thenRedirectToFrontendWithError() throws Exception {
         // Given
         String testCode = "invalid_code";
-        String testState = "test_state";
 
         when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
             .thenReturn(null);
@@ -124,7 +127,7 @@ class GoogleAuthControllerTest {
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
                 .param("code", testCode)
-                .param("state", testState))
+                .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?error=token_exchange_failed"));
     }
@@ -134,7 +137,6 @@ class GoogleAuthControllerTest {
     void whenUserInfoFetchFails_thenRedirectToFrontendWithError() throws Exception {
         // Given
         String testCode = "test_code";
-        String testState = "test_state";
         String testAccessToken = "test_access_token";
 
         when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
@@ -145,7 +147,7 @@ class GoogleAuthControllerTest {
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
                 .param("code", testCode)
-                .param("state", testState))
+                .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?error=user_info_failed"));
     }
@@ -155,7 +157,6 @@ class GoogleAuthControllerTest {
     void whenEmailMissing_thenRedirectToFrontendWithError() throws Exception {
         // Given
         String testCode = "test_code";
-        String testState = "test_state";
         String testAccessToken = "test_access_token";
 
         OAuth2User mockOAuth2User = mock(OAuth2User.class);
@@ -169,8 +170,103 @@ class GoogleAuthControllerTest {
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
                 .param("code", testCode)
-                .param("state", testState))
+                .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?error=no_email"));
+    }
+
+    @Test
+    @DisplayName("Should handle JWT generation failure")
+    void whenJwtGenerationFails_thenRedirectToFrontendWithError() throws Exception {
+        // Given
+        String testCode = "test_code";
+        String testAccessToken = "test_access_token";
+        String testEmail = "test@example.com";
+
+        OAuth2User mockOAuth2User = mock(OAuth2User.class);
+        when(mockOAuth2User.getAttribute("email")).thenReturn(testEmail);
+
+        when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
+            .thenReturn(testAccessToken);
+        when(googleOAuth2Service.getUserInfo(testAccessToken))
+            .thenReturn(mockOAuth2User);
+        when(jwtService.generateToken(testEmail))
+            .thenThrow(new IllegalStateException("JWT generation failed"));
+
+        // When & Then
+        mockMvc.perform(get("/api/auth/google/callback")
+                .param("code", testCode)
+                .param("state", EXPECTED_STATE))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=token_generation_failed"));
+    }
+
+    @Test
+    @DisplayName("Should handle malformed Google API response")
+    void whenGoogleApiResponseIsMalformed_thenRedirectToFrontendWithError() throws Exception {
+        // Given
+        String testCode = "test_code";
+        String testAccessToken = "test_access_token";
+
+        when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
+            .thenReturn(testAccessToken);
+        when(googleOAuth2Service.getUserInfo(testAccessToken))
+            .thenThrow(new RuntimeException("Malformed response from Google API"));
+
+        // When & Then
+        mockMvc.perform(get("/api/auth/google/callback")
+                .param("code", testCode)
+                .param("state", EXPECTED_STATE))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=google_api_error"));
+    }
+
+    @Test
+    @DisplayName("Should handle rate limiting from Google API")
+    void whenGoogleApiRateLimited_thenRedirectToFrontendWithError() throws Exception {
+        // Given
+        String testCode = "test_code";
+
+        when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
+            .thenThrow(new RuntimeException("Rate limit exceeded"));
+
+        // When & Then
+        mockMvc.perform(get("/api/auth/google/callback")
+                .param("code", testCode)
+                .param("state", EXPECTED_STATE))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=rate_limit_exceeded"));
+    }
+
+    @Test
+    @DisplayName("Should handle invalid state parameter")
+    void whenStateParameterInvalid_thenRedirectToFrontendWithError() throws Exception {
+        // Given
+        String testCode = "test_code";
+        String invalidState = "invalid_state";
+
+        // When & Then
+        mockMvc.perform(get("/api/auth/google/callback")
+                .param("code", testCode)
+                .param("state", invalidState))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=invalid_state"));
+    }
+
+    @Test
+    @DisplayName("Should handle invalid redirect URI")
+    void whenRedirectUriInvalid_thenRedirectToFrontendWithError() throws Exception {
+        // Given
+        String testCode = "test_code";
+
+        when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
+            .thenThrow(new IllegalArgumentException("Invalid redirect URI"));
+
+        // When & Then
+        mockMvc.perform(get("/api/auth/google/callback")
+                .param("code", testCode)
+                .param("state", EXPECTED_STATE))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=invalid_redirect_uri"));
     }
 } 
