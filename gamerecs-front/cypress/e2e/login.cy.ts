@@ -226,4 +226,68 @@ describe('Login Flow', () => {
     // Wait for request to complete
     cy.wait('@loginRequest', { timeout: 10000 });
   });
+});
+
+describe('Google OAuth Login Flow', () => {
+  const mockGoogleUser = {
+    email: 'testuser@example.com',
+    name: 'Test User',
+    picture: 'https://example.com/avatar.jpg'
+  };
+
+  beforeEach(() => {
+    cy.intercept('GET', '**/oauth2/authorization/google', (req) => {
+      req.redirect(`/auth/google/callback?code=mock_auth_code`);
+    }).as('googleAuthInit');
+    
+    cy.intercept('GET', '**/api/auth/google/callback*', {
+      delay: 1000,  // Simulate 1s network latency
+      statusCode: 200,
+      body: {
+        token: 'mock_jwt_token',
+        username: mockGoogleUser.email,
+        email: mockGoogleUser.email,
+        emailVerified: true,
+        googleId: 'mock_google_id'
+      }
+    }).as('googleCallback');
+  });
+
+  it('should complete Google OAuth flow successfully', () => {
+    cy.visit('/auth/login');
+    
+    cy.get('[data-cy="google-login-button"]').click();
+    
+    // First verify callback component mounted
+    cy.location('pathname', { timeout: 10000 })
+      .should('include', '/auth/google/callback');
+    
+    // Then check for loading indicator
+    cy.get('[data-cy="google-callback-loading"]', { timeout: 15000 })
+      .should('be.visible');
+
+    cy.wait('@googleCallback', { timeout: 15000 }).then((interception) => {
+      expect(interception.request.url).to.include('code=mock_auth_code');
+    });
+
+    cy.url().should('include', '/health');
+  });
+
+  it('should handle Google OAuth failure', () => {
+    cy.intercept('GET', '**/api/auth/google/callback*', {
+      delay: 1000,  // Add delay here too
+      statusCode: 401,
+      body: { message: 'Google authentication failed' }
+    }).as('failedGoogleCallback');
+
+    cy.visit('/auth/login');
+    cy.get('[data-cy="google-login-button"]').click();
+    
+    // Wait for callback component
+    cy.get('[data-cy="google-callback-loading"]', { timeout: 10000 })
+      .should('be.visible');
+
+    cy.wait('@failedGoogleCallback', { timeout: 15000 });
+    cy.url().should('include', '/auth/login');
+  });
 }); 

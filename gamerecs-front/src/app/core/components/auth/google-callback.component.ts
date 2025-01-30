@@ -9,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule],
   template: `
     <div class="flex items-center justify-center min-h-screen bg-background">
-      <div *ngIf="isLoading" class="text-center">
+      <div *ngIf="isLoading" class="text-center" data-cy="google-callback-loading">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
         <p class="text-text">Processing your login...</p>
       </div>
@@ -32,8 +32,9 @@ export class GoogleCallbackComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('[GoogleCallbackComponent] Processing OAuth callback');
+    console.log('[GoogleCallbackComponent] Initializing component');
     this._route.queryParams.subscribe(params => {
+      console.log('[GoogleCallbackComponent] Received params:', params);
       const token = params['token'];
       const code = params['code'];
       

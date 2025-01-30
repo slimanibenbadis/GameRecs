@@ -5,7 +5,7 @@ export const environment = {
   oauth: {
     google: {
       clientId: 'test-client-id',  // Mock client ID for testing
-      redirectUri: 'http://localhost:4200/auth/oauth2/callback/google'
+      redirectUri: 'http://localhost:4200/auth/google/callback'
     }
   }
 }; 

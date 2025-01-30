@@ -45,6 +45,29 @@ Cypress.Commands.add('checkPrimeNGCheckbox', (selector: string) => {
     .check({ force: true });
 });
 
+Cypress.Commands.add('mockGoogleOAuthFlow', (success = true) => {
+  cy.intercept('GET', '**/oauth2/authorization/google', (req) => {
+    const redirectUrl = success 
+      ? '/auth/google/callback?code=mock_auth_code'
+      : '/auth/google/callback?error=access_denied';
+    req.redirect(redirectUrl);
+  }).as('googleAuthInit');
+
+  if (success) {
+    cy.intercept('GET', '**/api/auth/google/callback*', {
+      delay: 500,  // Simulate network latency
+      statusCode: 200,
+      body: {
+        token: 'mock_jwt_token',
+        username: 'googleuser@example.com',
+        email: 'googleuser@example.com',
+        emailVerified: true,
+        googleId: 'mock_google_id'
+      }
+    }).as('googleCallback');
+  }
+});
+
 export {};
 
 // Add the type definition to the Chainable interface
@@ -54,6 +77,7 @@ declare global {
     interface Chainable {
       checkToast(severity: 'success' | 'error', summary: string, detail: string): Chainable<void>;
       checkPrimeNGCheckbox(selector: string): Chainable<void>;
+      mockGoogleOAuthFlow(success?: boolean): Chainable<void>;
     }
   }
 } 
