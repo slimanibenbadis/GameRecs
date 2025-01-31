@@ -112,7 +112,10 @@ public class SecurityConfig {
                     .authorizationEndpoint(authorization -> {
                         logger.debug("Configuring OAuth2 authorization endpoint");
                         authorization.baseUri("/oauth2/authorization");
-                    });
+                    })
+                    .redirectionEndpoint(redirection -> 
+                        redirection.baseUri("/login/oauth2/code/google")
+                    );
             })
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, authException) -> {

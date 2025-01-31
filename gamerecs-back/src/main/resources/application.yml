@@ -14,7 +14,7 @@ spring:
               - email
               - profile
               - openid
-            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/login/oauth2/code/google}
+            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/auth/google/callback}
             client-name: Google
             authorization-grant-type: authorization_code
         provider:
