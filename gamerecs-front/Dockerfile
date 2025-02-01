@@ -20,8 +20,8 @@ RUN npm run build
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
-# Install required tools
-RUN apk add --no-cache wget gettext
+# Install required tools for substitution
+RUN apk add --no-cache wget gettext sed
 
 # Add non-root user
 RUN adduser -D -u 1001 gamerecs && \
@@ -35,8 +35,9 @@ RUN adduser -D -u 1001 gamerecs && \
 # Copy application files
 COPY --from=builder --chown=gamerecs:gamerecs /app/dist/gamerecs-front/browser .
 COPY --chown=gamerecs:gamerecs nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=gamerecs:gamerecs replace-env-vars.sh /
 COPY --chown=gamerecs:gamerecs docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh /replace-env-vars.sh
 
 # Switch to non-root user
 USER 1001
