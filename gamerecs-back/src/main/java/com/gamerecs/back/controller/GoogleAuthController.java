@@ -54,7 +54,7 @@ public class GoogleAuthController {
         
         // Handle OAuth2 error
         if (error != null) {
-            logger.error("Google OAuth error: {}", error);
+            logger.error("Google OAuth authentication failed - potential invalid credentials or configuration error");
             return new RedirectView(redirectUri + "?error=" + error);
         }
 
@@ -66,11 +66,11 @@ public class GoogleAuthController {
 
         // Validate state parameter only if expectedState is configured
         if (expectedState != null && (state == null || !state.equals(expectedState))) {
-            logger.error("Invalid state parameter received: {}", state);
+            logger.error("Invalid state parameter received");
             return new RedirectView(redirectUri + "?error=invalid_state");
         }
 
-        logger.debug("Received Google OAuth callback with code: {}, state: {}", code, state);
+        logger.debug("Received Google OAuth callback");
         
         try {
             // Exchange authorization code for access token
