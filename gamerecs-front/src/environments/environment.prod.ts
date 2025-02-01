@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   testing: false,
   apiUrl: 'https://gamer-reco.com/api',
+  backendUrl: '${BACKEND_URL}',
   oauth: {
     google: {
       clientId: '${GOOGLE_OAUTH_CLIENT_ID}',

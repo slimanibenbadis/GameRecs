@@ -228,8 +228,7 @@ export class AuthService {
 
   initiateGoogleLogin(): void {
     console.log('[AuthService] Initiating Google OAuth flow');
-    const baseUrl = window.location.origin;
-    const authUrl = `${baseUrl}/oauth2/authorization/google`;
+    const authUrl = `${environment.backendUrl}/oauth2/authorization/google`;
     console.log('[AuthService] Redirecting to:', authUrl);
     window.location.href = authUrl;
   }
