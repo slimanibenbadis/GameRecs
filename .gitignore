@@ -84,6 +84,7 @@ testem.log
 
 PRD.md
 .cursorrules
+.cursor/*
 CurrentProjectCodeFiles.md
 
 # SonarQube
