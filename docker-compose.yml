@@ -147,7 +147,7 @@ services:
         max-file: "3"
 
   sonarqube:
-    image: sonarqube:lts-community
+    image: sonarqube:latest
     container_name: gamerecs-sonarqube
     environment:
       - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
