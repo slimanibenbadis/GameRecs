@@ -1,7 +1,9 @@
 package com.gamerecs.back.controller;
 
+import com.gamerecs.back.dto.ProfileResponseDto;
 import com.gamerecs.back.dto.UserRegistrationDto;
 import com.gamerecs.back.model.User;
+import com.gamerecs.back.security.CustomUserDetails;
 import com.gamerecs.back.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -9,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -72,5 +76,23 @@ public class UserController {
             logger.warn("Email verification failed");
             return ResponseEntity.badRequest().body(Map.of("message", "Email verification failed"));
         }
+    }
+
+    /**
+     * Retrieves the profile of the currently authenticated user.
+     *
+     * @return ResponseEntity containing the user's profile data
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<ProfileResponseDto> getCurrentUserProfile() {
+        logger.debug("Retrieving profile for current user");
+        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        
+        ProfileResponseDto profile = userService.getUserProfile(userDetails.getUserId());
+        logger.info("Successfully retrieved profile for user: {}", userDetails.getUsername());
+        
+        return ResponseEntity.ok(profile);
     }
 } 

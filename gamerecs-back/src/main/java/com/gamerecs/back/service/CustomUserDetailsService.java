@@ -2,6 +2,7 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
+import com.gamerecs.back.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,11 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         
-        return org.springframework.security.core.userdetails.User.builder()
-            .username(user.getUsername())
-            .password(user.getPasswordHash())
-            .disabled(!user.isEmailVerified())
-            .authorities("ROLE_USER")
-            .build();
+        return new CustomUserDetails(
+            user.getUsername(),
+            user.getPasswordHash(),
+            user.isEmailVerified(),
+            user.getUserId()
+        );
     }
 } 

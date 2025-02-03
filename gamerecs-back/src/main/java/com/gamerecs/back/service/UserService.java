@@ -1,5 +1,6 @@
 package com.gamerecs.back.service;
 
+import com.gamerecs.back.dto.ProfileResponseDto;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.model.VerificationToken;
 import com.gamerecs.back.repository.UserRepository;
@@ -149,5 +150,40 @@ public class UserService {
         
         logger.info("Successfully verified email for user: {}", user.getEmail());
         return true;
+    }
+
+    /**
+     * Retrieves a user's profile by their ID.
+     *
+     * @param userId the ID of the user
+     * @return the user's profile data
+     * @throws IllegalArgumentException if the user is not found
+     */
+    public ProfileResponseDto getUserProfile(Long userId) {
+        logger.debug("Retrieving profile for user ID: {}", userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.warn("Profile retrieval failed: User not found with ID: {}", userId);
+                    return new IllegalArgumentException("User not found");
+                });
+        
+        return mapToProfileResponse(user);
+    }
+
+    /**
+     * Maps a User entity to a ProfileResponseDto.
+     *
+     * @param user the user entity
+     * @return the profile response DTO
+     */
+    private ProfileResponseDto mapToProfileResponse(User user) {
+        return ProfileResponseDto.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .bio(user.getBio())
+                .emailVerified(user.isEmailVerified())
+                .build();
     }
 } 
