@@ -1,6 +1,7 @@
 package com.gamerecs.back.service;
 
 import com.gamerecs.back.dto.ProfileResponseDto;
+import com.gamerecs.back.dto.UpdateProfileRequestDto;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.model.VerificationToken;
 import com.gamerecs.back.repository.UserRepository;
@@ -169,6 +170,42 @@ public class UserService {
                 });
         
         return mapToProfileResponse(user);
+    }
+
+    /**
+     * Updates a user's profile information.
+     *
+     * @param userId the ID of the user to update
+     * @param updateRequest the new profile information
+     * @return the updated profile data
+     * @throws IllegalArgumentException if the user is not found or if the username is already taken
+     */
+    @Transactional
+    public ProfileResponseDto updateUserProfile(Long userId, UpdateProfileRequestDto updateRequest) {
+        logger.debug("Updating profile for user ID: {}", userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.warn("Profile update failed: User not found with ID: {}", userId);
+                    return new IllegalArgumentException("User not found");
+                });
+
+        // Check if new username is already taken by another user
+        if (!user.getUsername().equals(updateRequest.getUsername()) && 
+            userRepository.existsByUsername(updateRequest.getUsername())) {
+            logger.warn("Profile update failed: Username already exists: {}", updateRequest.getUsername());
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        // Update user information
+        user.setUsername(updateRequest.getUsername());
+        user.setProfilePictureUrl(updateRequest.getProfilePictureUrl());
+        user.setBio(updateRequest.getBio());
+
+        User updatedUser = userRepository.save(user);
+        logger.info("Successfully updated profile for user: {}", updatedUser.getUsername());
+
+        return mapToProfileResponse(updatedUser);
     }
 
     /**

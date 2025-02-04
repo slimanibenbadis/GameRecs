@@ -1,6 +1,7 @@
 package com.gamerecs.back.controller;
 
 import com.gamerecs.back.dto.ProfileResponseDto;
+import com.gamerecs.back.dto.UpdateProfileRequestDto;
 import com.gamerecs.back.dto.UserRegistrationDto;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.security.CustomUserDetails;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,5 +96,24 @@ public class UserController {
         logger.info("Successfully retrieved profile for user: {}", userDetails.getUsername());
         
         return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     *
+     * @param updateRequest the profile update data
+     * @param userDetails the authenticated user's details
+     * @return ResponseEntity containing the updated profile data
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<ProfileResponseDto> updateUserProfile(
+            @Valid @RequestBody UpdateProfileRequestDto updateRequest,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        logger.debug("Received profile update request for user: {}", userDetails.getUsername());
+        
+        ProfileResponseDto updatedProfile = userService.updateUserProfile(userDetails.getUserId(), updateRequest);
+        logger.info("Successfully updated profile for user: {}", userDetails.getUsername());
+        
+        return ResponseEntity.ok(updatedProfile);
     }
 } 
