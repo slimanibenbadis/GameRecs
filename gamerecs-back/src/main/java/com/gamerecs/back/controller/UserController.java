@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,6 +89,10 @@ public class UserController {
         logger.debug("Retrieving profile for current user");
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+             logger.warn("No authenticated user found.");
+             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
         ProfileResponseDto profile = userService.getUserProfile(userDetails.getUserId());
@@ -102,18 +105,19 @@ public class UserController {
      * Updates the profile of the currently authenticated user.
      *
      * @param updateRequest the profile update data
-     * @param userDetails the authenticated user's details
      * @return ResponseEntity containing the updated profile data
      */
     @PutMapping("/profile")
-    public ResponseEntity<ProfileResponseDto> updateUserProfile(
-            @Valid @RequestBody UpdateProfileRequestDto updateRequest,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ProfileResponseDto> updateUserProfile(@Valid @RequestBody UpdateProfileRequestDto updateRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+             logger.warn("No authenticated user found for profile update.");
+             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         logger.debug("Received profile update request for user: {}", userDetails.getUsername());
-        
         ProfileResponseDto updatedProfile = userService.updateUserProfile(userDetails.getUserId(), updateRequest);
         logger.info("Successfully updated profile for user: {}", userDetails.getUsername());
-        
         return ResponseEntity.ok(updatedProfile);
     }
 } 

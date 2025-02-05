@@ -60,7 +60,8 @@ public class SecurityConfig {
         "/oauth2/authorization/**",
         "/login/oauth2/code/**",
         "/api/auth/oauth2/failure",
-        "/api/auth/google/callback"
+        "/api/auth/google/callback",
+        "/api/users/profile"
     };
 
     private static final String[] TEST_ENDPOINTS = {

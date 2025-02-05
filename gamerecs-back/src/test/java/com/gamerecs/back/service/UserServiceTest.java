@@ -5,6 +5,8 @@ import com.gamerecs.back.model.VerificationToken;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.BaseUnitTest;
+import com.gamerecs.back.dto.ProfileResponseDto;
+import com.gamerecs.back.dto.UpdateProfileRequestDto;
 import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -370,5 +372,265 @@ class UserServiceTest extends BaseUnitTest {
                 () -> userService.verifyEmail("invalid-token")
         );
         assertEquals("Invalid verification token", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should successfully retrieve user profile")
+    void getUserProfile_WhenUserExists_ShouldReturnProfile() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .username("testuser")
+                .email("test@example.com")
+                .profilePictureUrl("http://example.com/pic.jpg")
+                .bio("Test bio")
+                .emailVerified(true)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        ProfileResponseDto profile = userService.getUserProfile(userId);
+
+        // Assert
+        assertNotNull(profile, "Profile should not be null");
+        assertEquals(user.getUsername(), profile.getUsername(), "Username should match");
+        assertEquals(user.getEmail(), profile.getEmail(), "Email should match");
+        assertEquals(user.getProfilePictureUrl(), profile.getProfilePictureUrl(), "Profile picture URL should match");
+        assertEquals(user.getBio(), profile.getBio(), "Bio should match");
+        assertEquals(user.isEmailVerified(), profile.isEmailVerified(), "Email verification status should match");
+        
+        verify(userRepository).findById(userId);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user not found")
+    void getUserProfile_WhenUserNotFound_ShouldThrowException() {
+        // Arrange
+        Long nonExistentUserId = 999L;
+        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.getUserProfile(nonExistentUserId);
+        });
+
+        assertEquals("User not found", exception.getMessage(), "Exception message should match");
+        verify(userRepository).findById(nonExistentUserId);
+    }
+
+    @Test
+    @DisplayName("Should handle null fields in user profile")
+    void getUserProfile_WhenUserHasNullFields_ShouldReturnProfileWithNullFields() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .username("testuser")
+                .email("test@example.com")
+                // Deliberately leaving optional fields null
+                .profilePictureUrl(null)
+                .bio(null)
+                .emailVerified(false)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        ProfileResponseDto profile = userService.getUserProfile(userId);
+
+        // Assert
+        assertNotNull(profile, "Profile should not be null");
+        assertEquals(user.getUsername(), profile.getUsername(), "Username should match");
+        assertEquals(user.getEmail(), profile.getEmail(), "Email should match");
+        assertNull(profile.getProfilePictureUrl(), "Profile picture URL should be null");
+        assertNull(profile.getBio(), "Bio should be null");
+        assertFalse(profile.isEmailVerified(), "Email should not be verified");
+        
+        verify(userRepository).findById(userId);
+    }
+
+    @Test
+    @DisplayName("Should successfully update user profile")
+    void updateUserProfile_Success() {
+        // Arrange
+        Long userId = 1L;
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername("newUsername");
+        updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
+        updateRequest.setBio("Updated bio");
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("oldUsername")
+                .email("test@example.com")
+                .profilePictureUrl("http://example.com/old-pic.jpg")
+                .bio("Old bio")
+                .build();
+
+        User updatedUser = User.builder()
+                .userId(userId)
+                .username(updateRequest.getUsername())
+                .email("test@example.com")
+                .profilePictureUrl(updateRequest.getProfilePictureUrl())
+                .bio(updateRequest.getBio())
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+
+        // Act
+        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+
+        // Assert
+        assertNotNull(result, "Profile response should not be null");
+        assertEquals(updateRequest.getUsername(), result.getUsername(), "Username should be updated");
+        assertEquals(updateRequest.getProfilePictureUrl(), result.getProfilePictureUrl(), "Profile picture URL should be updated");
+        assertEquals(updateRequest.getBio(), result.getBio(), "Bio should be updated");
+
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByUsername(updateRequest.getUsername());
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user not found during profile update")
+    void updateUserProfile_UserNotFound_ThrowsException() {
+        // Arrange
+        Long nonExistentUserId = 999L;
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername("newUsername");
+
+        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> userService.updateUserProfile(nonExistentUserId, updateRequest)
+        );
+
+        assertEquals("User not found", exception.getMessage());
+        verify(userRepository).findById(nonExistentUserId);
+        verify(userRepository, never()).existsByUsername(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when new username already exists")
+    void updateUserProfile_UsernameExists_ThrowsException() {
+        // Arrange
+        Long userId = 1L;
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername("existingUsername");
+        updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
+        updateRequest.setBio("Updated bio");
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("oldUsername")
+                .email("test@example.com")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(true);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> userService.updateUserProfile(userId, updateRequest)
+        );
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByUsername(updateRequest.getUsername());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should not check username existence when username unchanged")
+    void updateUserProfile_UnchangedUsername_SkipsExistenceCheck() {
+        // Arrange
+        Long userId = 1L;
+        String existingUsername = "existingUsername";
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername(existingUsername);
+        updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
+        updateRequest.setBio("Updated bio");
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username(existingUsername)
+                .email("test@example.com")
+                .build();
+
+        User updatedUser = User.builder()
+                .userId(userId)
+                .username(existingUsername)
+                .email("test@example.com")
+                .profilePictureUrl(updateRequest.getProfilePictureUrl())
+                .bio(updateRequest.getBio())
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+
+        // Act
+        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+
+        // Assert
+        assertNotNull(result, "Profile response should not be null");
+        assertEquals(existingUsername, result.getUsername(), "Username should remain unchanged");
+        assertEquals(updateRequest.getProfilePictureUrl(), result.getProfilePictureUrl(), "Profile picture URL should be updated");
+        assertEquals(updateRequest.getBio(), result.getBio(), "Bio should be updated");
+
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByUsername(any());
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle null optional fields in update request")
+    void updateUserProfile_NullOptionalFields_Success() {
+        // Arrange
+        Long userId = 1L;
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername("newUsername");
+        updateRequest.setProfilePictureUrl(null);
+        updateRequest.setBio(null);
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("oldUsername")
+                .email("test@example.com")
+                .profilePictureUrl("http://example.com/old-pic.jpg")
+                .bio("Old bio")
+                .build();
+
+        User updatedUser = User.builder()
+                .userId(userId)
+                .username(updateRequest.getUsername())
+                .email("test@example.com")
+                .profilePictureUrl(null)
+                .bio(null)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+
+        // Act
+        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+
+        // Assert
+        assertNotNull(result, "Profile response should not be null");
+        assertEquals(updateRequest.getUsername(), result.getUsername(), "Username should be updated");
+        assertNull(result.getProfilePictureUrl(), "Profile picture URL should be null");
+        assertNull(result.getBio(), "Bio should be null");
+
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByUsername(updateRequest.getUsername());
+        verify(userRepository).save(any(User.class));
     }
 } 
