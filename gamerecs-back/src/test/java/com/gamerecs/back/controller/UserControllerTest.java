@@ -681,4 +681,137 @@ class UserControllerTest extends BaseIntegrationTest {
 
         verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
     }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 400 when multiple fields are invalid in profile update")
+    void updateUserProfile_MultipleInvalidFields() throws Exception {
+        // Prepare test data with multiple invalid fields
+        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
+                .username("a") // Too short username
+                .profilePictureUrl("not-a-valid-url") // Invalid URL format
+                .bio("a".repeat(501)) // Bio exceeds max length
+                .build();
+
+        // Mock authentication
+        CustomUserDetails userDetails = new CustomUserDetails(
+            mockUser.getUsername(),
+            mockUser.getPasswordHash(),
+            true,
+            mockUser.getUserId()
+        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+        // Perform request and verify
+        mockMvc.perform(put("/api/users/profile")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.username").value("Username must be between 3 and 50 characters"))
+                .andExpect(jsonPath("$.errors.profilePictureUrl").value("Profile picture URL must be a valid URL"))
+                .andExpect(jsonPath("$.errors.bio").value("Bio cannot exceed 500 characters"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(userService, never()).updateUserProfile(any(), any());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 400 when username contains invalid characters")
+    void updateUserProfile_InvalidUsernameCharacters() throws Exception {
+        // Prepare test data with invalid username characters
+        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
+                .username("invalid@username#$%") // Contains invalid special characters
+                .build();
+
+        // Mock authentication
+        CustomUserDetails userDetails = new CustomUserDetails(
+            mockUser.getUsername(),
+            mockUser.getPasswordHash(),
+            true,
+            mockUser.getUserId()
+        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+        // Perform request and verify
+        mockMvc.perform(put("/api/users/profile")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.username").value("Username can only contain letters, numbers, underscores and hyphens"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(userService, never()).updateUserProfile(any(), any());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 400 when username is blank")
+    void updateUserProfile_BlankUsername() throws Exception {
+        // Prepare test data with blank username
+        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
+                .username("   ") // Blank username
+                .build();
+
+        // Mock authentication
+        CustomUserDetails userDetails = new CustomUserDetails(
+            mockUser.getUsername(),
+            mockUser.getPasswordHash(),
+            true,
+            mockUser.getUserId()
+        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+        // Perform request and verify
+        mockMvc.perform(put("/api/users/profile")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.username").value("Username cannot be empty"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(userService, never()).updateUserProfile(any(), any());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 400 when profile picture URL is malformed")
+    void updateUserProfile_MalformedProfilePictureUrl() throws Exception {
+        // Prepare test data with malformed URL
+        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
+                .username("validUsername")
+                .profilePictureUrl("malformed:url:format") // Malformed URL
+                .build();
+
+        // Mock authentication
+        CustomUserDetails userDetails = new CustomUserDetails(
+            mockUser.getUsername(),
+            mockUser.getPasswordHash(),
+            true,
+            mockUser.getUserId()
+        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+        // Perform request and verify
+        mockMvc.perform(put("/api/users/profile")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.profilePictureUrl").value("Profile picture URL must be a valid URL"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(userService, never()).updateUserProfile(any(), any());
+    }
 } 
