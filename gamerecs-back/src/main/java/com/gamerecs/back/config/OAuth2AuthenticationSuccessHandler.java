@@ -2,6 +2,7 @@ package com.gamerecs.back.config;
 
 import com.gamerecs.back.service.JwtService;
 import com.gamerecs.back.service.OAuth2UserService;
+import com.gamerecs.back.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,16 +49,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             logger.debug("Processing OAuth2 user with attributes: {}", oAuth2User.getAttributes());
             
             // Process the OAuth2 user first
-            oAuth2UserService.processOAuth2User(oAuth2User);
+            User user = oAuth2UserService.processOAuth2User(oAuth2User);
             
-            String email = oAuth2User.getAttribute("email");
-            if (email == null) {
-                logger.error("No email found in OAuth2 user attributes");
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email not found in OAuth2 user data");
+            if (user == null) {
+                logger.error("Failed to process OAuth2 user");
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to process user data");
                 return;
             }
 
-            String token = jwtService.generateToken(email);
+            String token = jwtService.generateToken(user.getUsername());
             String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                     .queryParam("token", token)
                     .build().toUriString();

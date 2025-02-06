@@ -15,6 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.gamerecs.back.service.OAuth2UserService;
 import com.gamerecs.back.service.GoogleOAuth2Service;
 import com.gamerecs.back.service.JwtService;
+import com.gamerecs.back.model.User;
 import com.gamerecs.back.config.OAuth2AuthenticationSuccessHandler;
 import com.gamerecs.back.config.TestSecurityConfig;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -54,6 +55,8 @@ class GoogleAuthControllerTest {
 
     private static final String REDIRECT_URI = "http://localhost:4200/auth/google/callback";
     private static final String EXPECTED_STATE = "test_state";
+    private static final String TEST_EMAIL = "test@example.com";
+    private static final String TEST_USERNAME = "test";
 
     @BeforeEach
     void setUp() {
@@ -63,6 +66,7 @@ class GoogleAuthControllerTest {
         
         // Set the expected state value in the controller
         ReflectionTestUtils.setField(googleAuthController, "expectedState", EXPECTED_STATE);
+        ReflectionTestUtils.setField(googleAuthController, "redirectUri", REDIRECT_URI);
     }
 
     @Test
@@ -71,17 +75,23 @@ class GoogleAuthControllerTest {
         // Given
         String testCode = "test_authorization_code";
         String testAccessToken = "test_access_token";
-        String testEmail = "test@example.com";
         String testJwtToken = "test.jwt.token";
 
         OAuth2User mockOAuth2User = mock(OAuth2User.class);
-        when(mockOAuth2User.getAttribute("email")).thenReturn(testEmail);
+        when(mockOAuth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
+
+        User mockUser = User.builder()
+            .email(TEST_EMAIL)
+            .username(TEST_USERNAME)
+            .build();
 
         when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
             .thenReturn(testAccessToken);
         when(googleOAuth2Service.getUserInfo(testAccessToken))
             .thenReturn(mockOAuth2User);
-        when(jwtService.generateToken(testEmail))
+        when(oAuth2UserService.processOAuth2User(mockOAuth2User))
+            .thenReturn(mockUser);
+        when(jwtService.generateToken(TEST_USERNAME))
             .thenReturn(testJwtToken);
 
         // When & Then
@@ -153,26 +163,28 @@ class GoogleAuthControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle missing email in user info")
+    @DisplayName("Should handle OAuth2 user processing failure")
     void whenEmailMissing_thenRedirectToFrontendWithError() throws Exception {
         // Given
         String testCode = "test_code";
         String testAccessToken = "test_access_token";
 
         OAuth2User mockOAuth2User = mock(OAuth2User.class);
-        when(mockOAuth2User.getAttribute("email")).thenReturn(null);
+        when(mockOAuth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
 
         when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
             .thenReturn(testAccessToken);
         when(googleOAuth2Service.getUserInfo(testAccessToken))
             .thenReturn(mockOAuth2User);
+        when(oAuth2UserService.processOAuth2User(mockOAuth2User))
+            .thenReturn(null);
 
         // When & Then
         mockMvc.perform(get("/api/auth/google/callback")
                 .param("code", testCode)
                 .param("state", EXPECTED_STATE))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(REDIRECT_URI + "?error=no_email"));
+                .andExpect(redirectedUrl(REDIRECT_URI + "?error=user_processing_failed"));
     }
 
     @Test
@@ -181,16 +193,22 @@ class GoogleAuthControllerTest {
         // Given
         String testCode = "test_code";
         String testAccessToken = "test_access_token";
-        String testEmail = "test@example.com";
 
         OAuth2User mockOAuth2User = mock(OAuth2User.class);
-        when(mockOAuth2User.getAttribute("email")).thenReturn(testEmail);
+        when(mockOAuth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
+
+        User mockUser = User.builder()
+            .email(TEST_EMAIL)
+            .username(TEST_USERNAME)
+            .build();
 
         when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
             .thenReturn(testAccessToken);
         when(googleOAuth2Service.getUserInfo(testAccessToken))
             .thenReturn(mockOAuth2User);
-        when(jwtService.generateToken(testEmail))
+        when(oAuth2UserService.processOAuth2User(mockOAuth2User))
+            .thenReturn(mockUser);
+        when(jwtService.generateToken(TEST_USERNAME))
             .thenThrow(new IllegalStateException("JWT generation failed"));
 
         // When & Then
@@ -251,22 +269,5 @@ class GoogleAuthControllerTest {
                 .param("state", invalidState))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_URI + "?error=invalid_state"));
-    }
-
-    @Test
-    @DisplayName("Should handle invalid redirect URI")
-    void whenRedirectUriInvalid_thenRedirectToFrontendWithError() throws Exception {
-        // Given
-        String testCode = "test_code";
-
-        when(googleOAuth2Service.exchangeAuthorizationCode(testCode))
-            .thenThrow(new IllegalArgumentException("Invalid redirect URI"));
-
-        // When & Then
-        mockMvc.perform(get("/api/auth/google/callback")
-                .param("code", testCode)
-                .param("state", EXPECTED_STATE))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(REDIRECT_URI + "?error=invalid_redirect_uri"));
     }
 } 

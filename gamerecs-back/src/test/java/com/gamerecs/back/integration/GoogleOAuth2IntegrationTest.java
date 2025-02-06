@@ -55,6 +55,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
     private String redirectUri;
 
     private static final String TEST_EMAIL = "test@example.com";
+    private static final String TEST_USERNAME = "test";
     private static final String TEST_NAME = "Test User";
     private static final String TEST_PICTURE = "http://example.com/pic.jpg";
     private static final String TEST_GOOGLE_ID = "123456789";
@@ -95,7 +96,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         // Mock OAuth2UserService to process the user
         User newUser = User.builder()
             .email(TEST_EMAIL)
-            .username(TEST_NAME)
+            .username(TEST_USERNAME)
             .googleId(TEST_GOOGLE_ID)
             .profilePictureUrl(TEST_PICTURE)
             .emailVerified(true)
@@ -123,7 +124,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         Optional<User> createdUser = userRepository.findByEmail(TEST_EMAIL);
         assertTrue(createdUser.isPresent());
         assertEquals(TEST_GOOGLE_ID, createdUser.get().getGoogleId());
-        assertEquals(TEST_NAME, createdUser.get().getUsername());
+        assertEquals(TEST_USERNAME, createdUser.get().getUsername());
         assertEquals(TEST_PICTURE, createdUser.get().getProfilePictureUrl());
         assertTrue(createdUser.get().isEmailVerified());
     }
@@ -136,7 +137,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         // Create existing user
         User existingUser = User.builder()
             .email(TEST_EMAIL)
-            .username("existing_user")
+            .username(TEST_USERNAME)
             .googleId(TEST_GOOGLE_ID)
             .profilePictureUrl("old_picture.jpg")
             .emailVerified(true)
@@ -166,7 +167,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         User updatedUser = User.builder()
             .userId(existingUser.getUserId())
             .email(TEST_EMAIL)
-            .username("existing_user")
+            .username(TEST_USERNAME)
             .googleId(TEST_GOOGLE_ID)
             .profilePictureUrl(TEST_PICTURE)
             .emailVerified(true)
@@ -194,6 +195,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         Optional<User> updatedUserInDb = userRepository.findByEmail(TEST_EMAIL);
         assertTrue(updatedUserInDb.isPresent());
         assertEquals(TEST_GOOGLE_ID, updatedUserInDb.get().getGoogleId());
+        assertEquals(TEST_USERNAME, updatedUserInDb.get().getUsername());
         assertEquals(TEST_PICTURE, updatedUserInDb.get().getProfilePictureUrl());
         assertTrue(updatedUserInDb.get().isEmailVerified());
     }
@@ -231,15 +233,16 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should handle OAuth2 flow with missing email")
+    @DisplayName("Should handle OAuth2 flow with user processing failure")
     void shouldHandleMissingEmail() throws Exception {
-        logger.debug("Testing OAuth2 flow with missing email");
+        logger.debug("Testing OAuth2 flow with user processing failure");
 
         // Mock Google OAuth2 service responses
         when(googleOAuth2Service.exchangeAuthorizationCode(TEST_AUTH_CODE))
             .thenReturn(TEST_ACCESS_TOKEN);
 
         Map<String, Object> attributes = new HashMap<>();
+        attributes.put("email", TEST_EMAIL);
         attributes.put("name", TEST_NAME);
         attributes.put("picture", TEST_PICTURE);
         attributes.put("sub", TEST_GOOGLE_ID);
@@ -247,11 +250,14 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         OAuth2User oauth2User = new DefaultOAuth2User(
             Collections.emptyList(),
             attributes,
-            "sub"
+            "email"
         );
 
         when(googleOAuth2Service.getUserInfo(TEST_ACCESS_TOKEN))
             .thenReturn(oauth2User);
+            
+        when(oAuth2UserService.processOAuth2User(oauth2User))
+            .thenReturn(null);
 
         // Execute OAuth2 callback
         mockMvc.perform(get("/api/auth/google/callback")
@@ -259,7 +265,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
                 .param("state", TEST_STATE))
                 .andDo(print())
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(redirectUri + "?error=no_email"));
+                .andExpect(redirectedUrl(redirectUri + "?error=user_processing_failed"));
     }
 
     @Test

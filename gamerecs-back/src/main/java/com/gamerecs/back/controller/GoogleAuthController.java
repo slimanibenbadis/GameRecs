@@ -3,6 +3,7 @@ package com.gamerecs.back.controller;
 import com.gamerecs.back.service.GoogleOAuth2Service;
 import com.gamerecs.back.service.JwtService;
 import com.gamerecs.back.service.OAuth2UserService;
+import com.gamerecs.back.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ public class GoogleAuthController {
     private static final Logger logger = LoggerFactory.getLogger(GoogleAuthController.class);
     private final GoogleOAuth2Service googleOAuth2Service;
     private final JwtService jwtService;
+    private final OAuth2UserService oAuth2UserService;
 
     @Value("${app.oauth2.redirectUri}")
     private String redirectUri;
@@ -30,12 +32,12 @@ public class GoogleAuthController {
     @Value("${app.oauth2.expectedState:#{null}}")
     private String expectedState;
 
-    public GoogleAuthController(
-            GoogleOAuth2Service googleOAuth2Service,
-            JwtService jwtService,
-            OAuth2UserService oAuth2UserService) {
+    public GoogleAuthController(GoogleOAuth2Service googleOAuth2Service, 
+                              JwtService jwtService,
+                              OAuth2UserService oAuth2UserService) {
         this.googleOAuth2Service = googleOAuth2Service;
         this.jwtService = jwtService;
+        this.oAuth2UserService = oAuth2UserService;
     }
 
     /**
@@ -107,22 +109,22 @@ public class GoogleAuthController {
                 return new RedirectView(redirectUri + "?error=user_info_failed");
             }
 
-            // Process OAuth2 user and get email
-            String email = oauth2User.getAttribute("email");
-            if (email == null) {
-                logger.error("No email found in OAuth2 user attributes");
-                return new RedirectView(redirectUri + "?error=no_email");
+            // Process OAuth2 user
+            User user = oAuth2UserService.processOAuth2User(oauth2User);
+            if (user == null) {
+                logger.error("Failed to process OAuth2 user");
+                return new RedirectView(redirectUri + "?error=user_processing_failed");
             }
 
             // Generate JWT token
             String token;
             try {
-                token = jwtService.generateToken(email);
+                token = jwtService.generateToken(user.getUsername());
             } catch (Exception e) {
                 logger.error("Failed to generate JWT token: {}", e.getMessage());
                 return new RedirectView(redirectUri + "?error=token_generation_failed");
             }
-            logger.debug("Generated JWT token for user: {}", email);
+            logger.debug("Generated JWT token for user: {}", user.getUsername());
 
             // Redirect to frontend with token
             String targetUrl = redirectUri + "?token=" + token;

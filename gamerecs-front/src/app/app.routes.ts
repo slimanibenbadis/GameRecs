@@ -6,6 +6,7 @@ import { LoginFormComponent } from './core/components/auth/login-form.component'
 import { LandingPageComponent } from './core/components/landing/landing-page.component';
 import { GoogleCallbackComponent } from './core/components/auth/google-callback.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { ProfileViewComponent } from './features/profile-view/profile-view.component';
 
 export const routes: Routes = [
   { 
@@ -23,6 +24,11 @@ export const routes: Routes = [
     ]
   },
   { path: 'verify', component: EmailVerificationComponent },
+  { 
+    path: 'profile', 
+    component: ProfileViewComponent,
+    canActivate: [AuthGuard]
+  },
   { path: '', component: LandingPageComponent, pathMatch: 'full' },
   { path: '**', redirectTo: '/' }
 ];
