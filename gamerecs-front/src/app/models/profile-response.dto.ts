@@ -7,4 +7,10 @@ export interface ProfileResponseDto {
   gamesRated: number;
   gamesInLibrary: number;
   joinDate: string;
+}
+
+export interface UpdateProfileRequest {
+  username: string;
+  profilePictureUrl?: string;
+  bio?: string;
 } 
