@@ -69,7 +69,7 @@ describe('Login Flow', () => {
     cy.wait('@loginRequest', { timeout: 10000 });
     
     // Verify navigation
-    cy.url().should('include', '/health');
+    cy.url().should('include', '/profile');
   });
 
   it('should handle invalid credentials', () => {
@@ -129,11 +129,11 @@ describe('Login Flow', () => {
 
     cy.wait('@loginRequest');
     cy.reload();
-    cy.url().should('include', '/health');
+    cy.url().should('include', '/profile');
   });
 
   it('should redirect to login when accessing protected route without auth', () => {
-    cy.visit('/health');
+    cy.visit('/profile');
     cy.url().should('include', '/auth/login');
   });
 
@@ -270,7 +270,7 @@ describe('Google OAuth Login Flow', () => {
       expect(interception.request.url).to.include('code=mock_auth_code');
     });
 
-    cy.url().should('include', '/health');
+    cy.url().should('include', '/profile');
   });
 
   it('should handle Google OAuth failure', () => {

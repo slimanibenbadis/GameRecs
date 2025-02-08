@@ -110,7 +110,7 @@ export class LoginFormComponent implements OnInit {
             detail: `Successfully logged in as ${response.username}`,
             life: 3000
           });
-          this.router.navigate(['/health']);
+          this.router.navigate(['/profile']);
         },
         error: (error: any) => {
           console.error('[LoginFormComponent] Login error full object:', error);

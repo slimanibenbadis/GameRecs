@@ -1,24 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ProfileService } from '../../core/services/profile.service';
-import { ProfileResponseDto } from '../../models/profile-response.dto';
+import { ProfileResponseDto, UpdateProfileRequest } from '../../models/profile-response.dto';
 
 @Component({
-  selector: 'app-profile-edit',
-  templateUrl: './profile-edit.component.html',
-  styleUrl: './profile-edit.component.css',
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrl: './profile.component.css',
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
     InputTextModule,
     TextareaModule,
     ButtonModule,
@@ -26,16 +24,18 @@ import { ProfileResponseDto } from '../../models/profile-response.dto';
     ProgressSpinnerModule
   ]
 })
-export class ProfileEditComponent implements OnInit {
+export class ProfileComponent implements OnInit {
+  profile: ProfileResponseDto | undefined;
   profileForm: FormGroup;
   isLoading = false;
   error: string | undefined;
   successMessage: string | undefined;
+  isEditMode = false;
+  isOwnProfile = true; // This will be set based on route params in a future update
 
   constructor(
     private fb: FormBuilder,
-    private profileService: ProfileService,
-    private router: Router
+    private profileService: ProfileService
   ) {
     this.profileForm = this.fb.group({
       username: ['', [
@@ -57,9 +57,44 @@ export class ProfileEditComponent implements OnInit {
     this.loadProfile();
   }
 
+  private loadProfile(): void {
+    this.isLoading = true;
+    this.error = undefined;
+    
+    this.profileService.getProfile().subscribe({
+      next: (profile: ProfileResponseDto) => {
+        this.profile = profile;
+        this.profileForm.patchValue({
+          username: profile.username,
+          profilePictureUrl: profile.profilePictureUrl,
+          bio: profile.bio
+        });
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('[ProfileComponent] Error loading profile:', error);
+        this.error = 'Failed to load profile data';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  toggleEditMode(): void {
+    if (this.isEditMode) {
+      // Reset form to current profile values when canceling edit
+      this.profileForm.patchValue({
+        username: this.profile?.username,
+        profilePictureUrl: this.profile?.profilePictureUrl,
+        bio: this.profile?.bio
+      });
+    }
+    this.isEditMode = !this.isEditMode;
+    this.error = undefined;
+    this.successMessage = undefined;
+  }
+
   onSave(): void {
     if (this.profileForm.invalid) {
-      // Mark all fields as touched to trigger validation messages
       Object.keys(this.profileForm.controls).forEach(key => {
         const control = this.profileForm.get(key);
         control?.markAsTouched();
@@ -72,7 +107,7 @@ export class ProfileEditComponent implements OnInit {
     this.successMessage = undefined;
 
     const formValue = this.profileForm.value;
-    const updateData = {
+    const updateData: UpdateProfileRequest = {
       username: formValue.username,
       profilePictureUrl: formValue.profilePictureUrl || undefined,
       bio: formValue.bio || undefined
@@ -80,41 +115,24 @@ export class ProfileEditComponent implements OnInit {
 
     this.profileService.updateProfile(updateData).subscribe({
       next: (response) => {
+        this.profile = response;
         this.isLoading = false;
         this.successMessage = 'Profile updated successfully';
-        // Navigate to profile view after a short delay
-        setTimeout(() => {
-          this.router.navigate(['/profile']);
-        }, 1500);
+        this.isEditMode = false;
       },
       error: (error) => {
+        console.error('[ProfileComponent] Error updating profile:', error);
         this.isLoading = false;
         this.error = error.error?.message || 'Failed to update profile';
-        console.error('Error updating profile:', error);
       }
     });
   }
 
-  private loadProfile(): void {
-    this.isLoading = true;
-    this.profileService.getProfile().subscribe({
-      next: (profile: ProfileResponseDto) => {
-        this.profileForm.patchValue({
-          username: profile.username,
-          profilePictureUrl: profile.profilePictureUrl,
-          bio: profile.bio
-        });
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading profile:', error);
-        this.error = 'Failed to load profile data';
-        this.isLoading = false;
-      }
-    });
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/images/default-avatar.png';
   }
 
-  // Helper method to get form control error messages
   getErrorMessage(controlName: string): string {
     const control = this.profileForm.get(controlName);
     if (!control?.errors || !control.touched) return '';
@@ -137,4 +155,4 @@ export class ProfileEditComponent implements OnInit {
     }
     return '';
   }
-}
+} 
