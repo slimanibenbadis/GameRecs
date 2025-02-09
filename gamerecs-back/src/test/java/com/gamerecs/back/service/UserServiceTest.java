@@ -133,6 +133,92 @@ class UserServiceTest extends BaseUnitTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when username exists with different case")
+    void shouldThrowExceptionWhenUsernameExistsWithDifferentCase() throws MessagingException {
+        logger.debug("Testing registration with case-variant of existing username");
+        
+        // Create a test user with uppercase username
+        User uppercaseUser = User.builder()
+                .userId(2L)
+                .username("TESTUSER")
+                .email("different@example.com")
+                .passwordHash("password123")
+                .build();
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.registerUser(uppercaseUser);
+        });
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository).existsByEmail(uppercaseUser.getEmail());
+        verify(userRepository).existsByUsername(uppercaseUser.getUsername());
+        verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when username exists with mixed case")
+    void shouldThrowExceptionWhenUsernameExistsWithMixedCase() throws MessagingException {
+        logger.debug("Testing registration with mixed-case variant of existing username");
+        
+        // Create a test user with mixed case username
+        User mixedCaseUser = User.builder()
+                .userId(2L)
+                .username("TestUser")
+                .email("different@example.com")
+                .passwordHash("password123")
+                .build();
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.registerUser(mixedCaseUser);
+        });
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository).existsByEmail(mixedCaseUser.getEmail());
+        verify(userRepository).existsByUsername(mixedCaseUser.getUsername());
+        verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should normalize username to lowercase during registration")
+    void shouldNormalizeUsernameDuringRegistration() throws MessagingException {
+        logger.debug("Testing username normalization during registration");
+        
+        // Create a test user with mixed case username
+        User mixedCaseUser = User.builder()
+                .userId(1L)
+                .username("TestUser")
+                .email("test@example.com")
+                .passwordHash("password123")
+                .build();
+
+        String verificationToken = "test-token";
+        
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        when(emailService.generateVerificationToken()).thenReturn(verificationToken);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            assertEquals("testuser", savedUser.getUsername(), "Username should be normalized to lowercase");
+            return savedUser;
+        });
+
+        userService.registerUser(mixedCaseUser);
+
+        verify(userRepository).save(any(User.class));
+        verify(verificationTokenRepository).deleteByUser_UserId(mixedCaseUser.getUserId());
+        verify(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
     @DisplayName("Should hash password during registration")
     void shouldHashPasswordDuringRegistration() throws MessagingException {
         logger.debug("Testing password hashing during registration");
@@ -456,14 +542,15 @@ class UserServiceTest extends BaseUnitTest {
     void updateUserProfile_Success() {
         // Arrange
         Long userId = 1L;
+        String newNormalizedUsername = "newusername"; // Already normalized
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
-        updateRequest.setUsername("newUsername");
+        updateRequest.setUsername(newNormalizedUsername);
         updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
         updateRequest.setBio("Updated bio");
 
         User existingUser = User.builder()
                 .userId(userId)
-                .username("oldUsername")
+                .username("oldusername") // Already normalized
                 .email("test@example.com")
                 .profilePictureUrl("http://example.com/old-pic.jpg")
                 .bio("Old bio")
@@ -471,14 +558,14 @@ class UserServiceTest extends BaseUnitTest {
 
         User updatedUser = User.builder()
                 .userId(userId)
-                .username(updateRequest.getUsername())
+                .username(newNormalizedUsername)
                 .email("test@example.com")
                 .profilePictureUrl(updateRequest.getProfilePictureUrl())
                 .bio(updateRequest.getBio())
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(false);
+        when(userRepository.existsByUsername(newNormalizedUsername)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         // Act
@@ -486,12 +573,12 @@ class UserServiceTest extends BaseUnitTest {
 
         // Assert
         assertNotNull(result, "Profile response should not be null");
-        assertEquals(updateRequest.getUsername(), result.getUsername(), "Username should be updated");
+        assertEquals(newNormalizedUsername, result.getUsername(), "Username should be updated");
         assertEquals(updateRequest.getProfilePictureUrl(), result.getProfilePictureUrl(), "Profile picture URL should be updated");
         assertEquals(updateRequest.getBio(), result.getBio(), "Bio should be updated");
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByUsername(updateRequest.getUsername());
+        verify(userRepository).existsByUsername(newNormalizedUsername);
         verify(userRepository).save(any(User.class));
     }
 
@@ -518,46 +605,15 @@ class UserServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when new username already exists")
-    void updateUserProfile_UsernameExists_ThrowsException() {
-        // Arrange
-        Long userId = 1L;
-        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
-        updateRequest.setUsername("existingUsername");
-        updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
-        updateRequest.setBio("Updated bio");
-
-        User existingUser = User.builder()
-                .userId(userId)
-                .username("oldUsername")
-                .email("test@example.com")
-                .build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(true);
-
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> userService.updateUserProfile(userId, updateRequest)
-        );
-
-        assertEquals("Username already exists", exception.getMessage());
-        verify(userRepository).findById(userId);
-        verify(userRepository).existsByUsername(updateRequest.getUsername());
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
     @DisplayName("Should not check username existence when username unchanged")
     void updateUserProfile_UnchangedUsername_SkipsExistenceCheck() {
         // Arrange
         Long userId = 1L;
-        String existingUsername = "existingUsername";
+        String existingUsername = "existingusername"; // Already normalized
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername(existingUsername);
         updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
-        updateRequest.setBio("Updated bio");
+        updateRequest.setBio("New bio");
 
         User existingUser = User.builder()
                 .userId(userId)
@@ -586,7 +642,7 @@ class UserServiceTest extends BaseUnitTest {
         assertEquals(updateRequest.getBio(), result.getBio(), "Bio should be updated");
 
         verify(userRepository).findById(userId);
-        verify(userRepository, never()).existsByUsername(any());
+        verify(userRepository, never()).existsByUsername(anyString());
         verify(userRepository).save(any(User.class));
     }
 
@@ -595,14 +651,15 @@ class UserServiceTest extends BaseUnitTest {
     void updateUserProfile_NullOptionalFields_Success() {
         // Arrange
         Long userId = 1L;
+        String newNormalizedUsername = "newusername"; // Already normalized
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
-        updateRequest.setUsername("newUsername");
+        updateRequest.setUsername(newNormalizedUsername);
         updateRequest.setProfilePictureUrl(null);
         updateRequest.setBio(null);
 
         User existingUser = User.builder()
                 .userId(userId)
-                .username("oldUsername")
+                .username("oldusername") // Already normalized
                 .email("test@example.com")
                 .profilePictureUrl("http://example.com/old-pic.jpg")
                 .bio("Old bio")
@@ -610,14 +667,14 @@ class UserServiceTest extends BaseUnitTest {
 
         User updatedUser = User.builder()
                 .userId(userId)
-                .username(updateRequest.getUsername())
+                .username(newNormalizedUsername)
                 .email("test@example.com")
                 .profilePictureUrl(null)
                 .bio(null)
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.existsByUsername(updateRequest.getUsername())).thenReturn(false);
+        when(userRepository.existsByUsername(newNormalizedUsername)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         // Act
@@ -625,12 +682,41 @@ class UserServiceTest extends BaseUnitTest {
 
         // Assert
         assertNotNull(result, "Profile response should not be null");
-        assertEquals(updateRequest.getUsername(), result.getUsername(), "Username should be updated");
+        assertEquals(newNormalizedUsername, result.getUsername(), "Username should be updated");
         assertNull(result.getProfilePictureUrl(), "Profile picture URL should be null");
         assertNull(result.getBio(), "Bio should be null");
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByUsername(updateRequest.getUsername());
+        verify(userRepository).existsByUsername(newNormalizedUsername);
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when new username already exists")
+    void updateUserProfile_UsernameExists_ThrowsException() {
+        // Arrange
+        Long userId = 1L;
+        String newNormalizedUsername = "existingusername"; // Already normalized
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername(newNormalizedUsername);
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("oldusername")
+                .email("test@example.com")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByUsername(newNormalizedUsername)).thenReturn(true);
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> 
+            userService.updateUserProfile(userId, updateRequest),
+            "Should throw IllegalArgumentException when username exists"
+        );
+
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByUsername(newNormalizedUsername);
+        verify(userRepository, never()).save(any(User.class));
     }
 } 

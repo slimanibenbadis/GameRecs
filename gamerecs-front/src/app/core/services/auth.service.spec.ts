@@ -174,6 +174,40 @@ describe('AuthService', () => {
         joinDate: new Date().toISOString()
       };
 
+      it('should normalize username to lowercase before sending request', () => {
+        const mixedCaseUser = { ...mockUser, username: 'TestUser' };
+        
+        service.registerUser(mixedCaseUser).subscribe(response => {
+          expect(response).toEqual(mockResponse);
+        });
+
+        const req = httpMock.expectOne('/api/users/register');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body.username).toBe('testuser'); // Should be lowercase
+        req.flush(mockResponse);
+      });
+
+      it('should handle case-insensitive username conflict', () => {
+        const mixedCaseUser = { ...mockUser, username: 'TestUser' };
+        const apiError: IApiError = {
+          timestamp: new Date().toISOString(),
+          status: 400,
+          message: 'Username already exists',
+          errors: {
+            username: 'Username already exists (case-insensitive)'
+          }
+        };
+
+        service.registerUser(mixedCaseUser).subscribe({
+          error: error => {
+            expect(error.message).toBe('Username already exists (case-insensitive)');
+          }
+        });
+
+        const req = httpMock.expectOne('/api/users/register');
+        req.flush(apiError, { status: 400, statusText: 'Bad Request' });
+      });
+
       it('should successfully register a user', () => {
         service.registerUser(mockUser).subscribe(response => {
           expect(response).toEqual(mockResponse);

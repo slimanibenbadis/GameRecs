@@ -96,7 +96,7 @@ export class LoginFormComponent implements OnInit {
       this.cd.detectChanges();
 
       const loginData: ILoginRequest = {
-        username: this.loginForm.get('username')?.value,
+        username: this.loginForm.get('username')?.value.toLowerCase(),
         password: this.loginForm.get('password')?.value,
         rememberMe: this.loginForm.get('rememberMe')?.value
       };

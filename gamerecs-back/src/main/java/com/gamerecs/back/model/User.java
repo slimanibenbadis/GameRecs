@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.gamerecs.back.util.UsernameNormalizer;
 
 import java.time.LocalDateTime;
 
@@ -34,6 +35,10 @@ public class User {
     @Size(min = 3, max = 50)
     @Column(name = "username", nullable = false, unique = true)
     private String username;
+
+    public void setUsername(String username) {
+        this.username = UsernameNormalizer.normalize(username);
+    }
 
     @NotBlank
     @Email

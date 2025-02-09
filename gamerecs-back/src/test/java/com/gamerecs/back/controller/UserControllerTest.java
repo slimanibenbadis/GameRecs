@@ -141,7 +141,7 @@ class UserControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when email already exists")
+    @DisplayName("Should return 409 when email already exists")
     void shouldReturn400WhenEmailExists() throws Exception {
         logger.debug("Testing user registration with existing email");
         
@@ -151,17 +151,17 @@ class UserControllerTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRegistrationDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Email already exists"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Registration failed"))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.errors").isEmpty());
+                .andExpect(jsonPath("$.errors.email").value("This email is already registered"));
 
         verify(userService).registerUser(any(User.class));
     }
 
     @Test
-    @DisplayName("Should return 400 when username already exists")
+    @DisplayName("Should return 409 when username already exists")
     void shouldReturn400WhenUsernameExists() throws Exception {
         logger.debug("Testing user registration with existing username");
         
@@ -171,11 +171,63 @@ class UserControllerTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRegistrationDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Username already exists"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Registration failed"))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.errors").isEmpty());
+                .andExpect(jsonPath("$.errors.username").value("This username is already taken"));
+
+        verify(userService).registerUser(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should return 409 when username exists with different case")
+    void shouldReturn400WhenUsernameExistsWithDifferentCase() throws Exception {
+        logger.debug("Testing user registration with case-variant of existing username");
+        
+        // Create a registration DTO with uppercase variant of username
+        UserRegistrationDto uppercaseVariantDto = new UserRegistrationDto();
+        uppercaseVariantDto.setUsername("TESTUSER"); // Uppercase variant of "testuser"
+        uppercaseVariantDto.setEmail("different@example.com");
+        uppercaseVariantDto.setPassword("password123");
+        
+        when(userService.registerUser(any(User.class)))
+                .thenThrow(new IllegalArgumentException("Username already exists"));
+
+        mockMvc.perform(post("/api/users/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(uppercaseVariantDto)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Registration failed"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.errors.username").value("This username is already taken"));
+
+        verify(userService).registerUser(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should return 409 when username exists with mixed case")
+    void shouldReturn400WhenUsernameExistsWithMixedCase() throws Exception {
+        logger.debug("Testing user registration with mixed-case variant of existing username");
+        
+        // Create a registration DTO with mixed case variant of username
+        UserRegistrationDto mixedCaseVariantDto = new UserRegistrationDto();
+        mixedCaseVariantDto.setUsername("TestUser"); // Mixed case variant of "testuser"
+        mixedCaseVariantDto.setEmail("different@example.com");
+        mixedCaseVariantDto.setPassword("password123");
+        
+        when(userService.registerUser(any(User.class)))
+                .thenThrow(new IllegalArgumentException("Username already exists"));
+
+        mockMvc.perform(post("/api/users/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mixedCaseVariantDto)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Registration failed"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.errors.username").value("This username is already taken"));
 
         verify(userService).registerUser(any(User.class));
     }

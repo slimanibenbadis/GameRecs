@@ -90,6 +90,9 @@ export class RegistrationFormComponent implements OnInit {
 
       const { confirmPassword, ...registrationData } = this.registrationForm.value;
       
+      // Normalize username to lowercase before registration
+      registrationData.username = registrationData.username.toLowerCase();
+      
       this.authService.registerUser(registrationData).subscribe({
         next: (response) => {
           console.log('[RegistrationFormComponent] Registration successful:', response);
@@ -145,7 +148,7 @@ export class RegistrationFormComponent implements OnInit {
       if (errors['required']) return 'Username is required';
       if (errors['minlength']) return 'Username must be at least 3 characters';
       if (errors['maxlength']) return 'Username cannot exceed 20 characters';
-      if (errors['pattern']) return 'Username can only contain letters, numbers, underscores, and hyphens';
+      if (errors['pattern']) return 'Username can only contain letters, numbers, underscores, and hyphens (case-insensitive)';
       break;
     case 'email':
       if (errors['required']) return 'Email is required';

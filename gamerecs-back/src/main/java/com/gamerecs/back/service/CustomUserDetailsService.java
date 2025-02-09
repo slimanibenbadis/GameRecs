@@ -3,6 +3,7 @@ package com.gamerecs.back.service;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.security.CustomUserDetails;
+import com.gamerecs.back.util.UsernameNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,8 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        String normalizedUsername = UsernameNormalizer.normalize(username);
+        User user = userRepository.findByUsername(normalizedUsername)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + normalizedUsername));
         
         return new CustomUserDetails(
             user.getUsername(),

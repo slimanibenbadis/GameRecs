@@ -105,6 +105,11 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return user;
     }
 
+    private String generateUsername(String email) {
+        // Extract username from email and convert to lowercase immediately
+        return email.substring(0, email.indexOf('@')).toLowerCase();
+    }
+
     private User registerNewUser(String email, String name, String pictureUrl, String googleId) {
         logger.debug("Registering new OAuth2 user with email: {} and Google ID: {}", email, googleId);
         
@@ -114,6 +119,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String baseUsername = username;
         while (userRepository.findByUsername(username).isPresent()) {
             username = baseUsername + suffix++;
+            logger.debug("Username collision detected. Trying alternative: {}", username);
         }
         
         User user = User.builder()
@@ -156,9 +162,5 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         User savedUser = userRepository.save(user);
         logger.debug("User updated successfully. UserId: {}", savedUser.getUserId());
         return savedUser;
-    }
-
-    private String generateUsername(String email) {
-        return email.substring(0, email.indexOf('@'));
     }
 } 

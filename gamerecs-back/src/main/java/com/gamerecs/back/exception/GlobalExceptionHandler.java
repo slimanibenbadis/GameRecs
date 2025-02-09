@@ -70,13 +70,43 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Handles illegal argument exceptions.
+     * Handles user registration conflicts (duplicate username/email).
+     *
+     * @param ex the illegal argument exception
+     * @return ResponseEntity containing error details
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleUserRegistrationConflict(IllegalArgumentException ex) {
+        String message = ex.getMessage();
+        HttpStatus status = HttpStatus.CONFLICT;
+        Map<String, String> errors = new HashMap<>();
+
+        if ("Username already exists".equals(message)) {
+            logger.warn("Registration failed: Username already exists");
+            errors.put("username", "This username is already taken");
+        } else if ("Email already exists".equals(message)) {
+            logger.warn("Registration failed: Email already exists");
+            errors.put("email", "This email is already registered");
+        } else {
+            // For other IllegalArgumentException cases, delegate to the generic handler
+            return handleGenericIllegalArgumentException(ex);
+        }
+
+        ApiError apiError = new ApiError(
+            status.value(),
+            "Registration failed",
+            errors
+        );
+        return new ResponseEntity<>(apiError, status);
+    }
+
+    /**
+     * Handles other illegal argument exceptions.
      *
      * @param ex the illegal argument exception
      * @return ResponseEntity containing error message
      */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
+    private ResponseEntity<ApiError> handleGenericIllegalArgumentException(IllegalArgumentException ex) {
         logger.warn("Invalid argument: {}", ex.getMessage());
         ApiError apiError = new ApiError(
             HttpStatus.BAD_REQUEST.value(),

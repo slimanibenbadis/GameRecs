@@ -108,7 +108,7 @@ export class ProfileComponent implements OnInit {
 
     const formValue = this.profileForm.value;
     const updateData: UpdateProfileRequest = {
-      username: formValue.username,
+      username: formValue.username.toLowerCase(),
       profilePictureUrl: formValue.profilePictureUrl || undefined,
       bio: formValue.bio || undefined
     };

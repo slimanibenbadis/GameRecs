@@ -6,6 +6,7 @@ import com.gamerecs.back.model.User;
 import com.gamerecs.back.model.VerificationToken;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
+import com.gamerecs.back.util.UsernameNormalizer;
 import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,9 +62,14 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists");
         }
         
-        // Check if username is already taken
-        if (userRepository.existsByUsername(user.getUsername())) {
-            logger.warn("Registration failed: Username already exists: {}", user.getUsername());
+        // Normalize username to lowercase
+        String normalizedUsername = user.getUsername().toLowerCase();
+        user.setUsername(normalizedUsername);
+        logger.debug("Normalized username to lowercase: {}", normalizedUsername);
+        
+        // Check if username is already taken (now case-insensitive)
+        if (userRepository.existsByUsername(normalizedUsername)) {
+            logger.warn("Registration failed: Username already exists: {}", normalizedUsername);
             throw new IllegalArgumentException("Username already exists");
         }
         
@@ -190,15 +196,25 @@ public class UserService {
                     return new IllegalArgumentException("User not found");
                 });
 
-        // Check if new username is already taken by another user
-        if (!user.getUsername().equals(updateRequest.getUsername()) && 
-            userRepository.existsByUsername(updateRequest.getUsername())) {
-            logger.warn("Profile update failed: Username already exists: {}", updateRequest.getUsername());
-            throw new IllegalArgumentException("Username already exists");
+        // Get and normalize the new username
+        String newNormalizedUsername = UsernameNormalizer.normalize(updateRequest.getUsername());
+        String currentNormalizedUsername = user.getUsername(); // Already normalized by User entity
+
+        // Check if username is actually changing
+        if (!currentNormalizedUsername.equals(newNormalizedUsername)) {
+            logger.debug("Username change requested from '{}' to '{}'", currentNormalizedUsername, newNormalizedUsername);
+            
+            // Check if new normalized username is already taken by another user
+            if (userRepository.existsByUsername(newNormalizedUsername)) {
+                logger.warn("Profile update failed: Username already exists: {}", newNormalizedUsername);
+                throw new IllegalArgumentException("Username already exists");
+            }
+            
+            // Set the new normalized username
+            user.setUsername(newNormalizedUsername);
         }
 
-        // Update user information
-        user.setUsername(updateRequest.getUsername());
+        // Update other profile information
         user.setProfilePictureUrl(updateRequest.getProfilePictureUrl());
         user.setBio(updateRequest.getBio());
 

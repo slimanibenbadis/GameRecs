@@ -90,7 +90,13 @@ export class AuthService {
   registerUser(user: IUserRegistration): Observable<IRegistrationResponse> {
     console.log('[AuthService] Registering new user:', { username: user.username, email: user.email });
     
-    return this._http.post<IRegistrationResponse>(`${this._usersUrl}/register`, user)
+    // Normalize username to lowercase before sending to backend
+    const normalizedUser = {
+      ...user,
+      username: user.username.toLowerCase()
+    };
+    
+    return this._http.post<IRegistrationResponse>(`${this._usersUrl}/register`, normalizedUser)
       .pipe(
         tap(response => console.log('[AuthService] User registration successful:', { userId: response.userId, username: response.username })),
         catchError((error) => this.handleError(error))

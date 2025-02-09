@@ -176,6 +176,56 @@ describe('RegistrationFormComponent', () => {
       expect(component.loading).toBeFalse();
     }));
 
+    it('should handle case-insensitive username conflict error', fakeAsync(() => {
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      spyOn(messageService, 'add');
+      const errorResponse = new HttpErrorResponse({
+        error: {
+          message: 'Username already exists',
+          errors: { username: 'Username already exists (case-insensitive)' }
+        },
+        status: 400
+      });
+      authService.registerUser.and.returnValue(throwError(() => errorResponse));
+      
+      // Set username with different case
+      component.registrationForm.patchValue({ username: 'TestUser' });
+      
+      component.onSubmit();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Registration Failed',
+        detail: 'An error occurred during registration. Please try again.',
+        life: 5000
+      });
+      expect(component.loading).toBeFalse();
+    }));
+
+    it('should normalize username to lowercase before submission', fakeAsync(() => {
+      authService.registerUser.and.returnValue(of(mockRegistrationResponse));
+      
+      // Set username with mixed case
+      component.registrationForm.patchValue({ username: 'TestUser' });
+      
+      component.onSubmit();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      // Verify the username was normalized to lowercase in the service call
+      expect(authService.registerUser).toHaveBeenCalledWith({
+        username: 'testuser', // Should be lowercase
+        email: 'test@example.com',
+        password: 'StrongPass123',
+        bio: 'Test bio',
+        profilePictureUrl: 'https://example.com/image.jpg'
+      });
+    }));
+
     it('should handle registration error', fakeAsync(() => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       spyOn(messageService, 'add');
@@ -259,7 +309,7 @@ describe('RegistrationFormComponent', () => {
       expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
 
       control?.setErrors({ pattern: true });
-      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
+      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens (case-insensitive)');
     });
 
     it('should return appropriate email error messages', () => {

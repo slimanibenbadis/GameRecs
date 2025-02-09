@@ -169,11 +169,17 @@ describe('ProfileComponent', () => {
         bio: 'new bio'
       };
       
+      const expectedData = {
+        username: updateData.username.toLowerCase(),
+        profilePictureUrl: updateData.profilePictureUrl,
+        bio: updateData.bio
+      };
+      
       component.profileForm.patchValue(updateData);
       component.onSave();
       tick();
 
-      expect(profileService.updateProfile).toHaveBeenCalledWith(updateData);
+      expect(profileService.updateProfile).toHaveBeenCalledWith(expectedData);
       expect(component.successMessage).toBe('Profile updated successfully');
       expect(component.isEditMode).toBeFalse();
     }));
