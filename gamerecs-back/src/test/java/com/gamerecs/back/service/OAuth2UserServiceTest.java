@@ -477,7 +477,7 @@ class OAuth2UserServiceTest extends BaseUnitTest {
 
         assertNotNull(result);
         verify(userRepository).save(argThat(user -> 
-            user.getUsername().equals("test.user+label")
+            user.getUsername().equals("test_user_label")
         ));
     }
 
@@ -508,5 +508,86 @@ class OAuth2UserServiceTest extends BaseUnitTest {
         
         verify(userRepository).findByGoogleId("google123");
         verify(userRepository).findByEmail("test@example.com");
+    }
+
+    @Test
+    @DisplayName("Should preserve existing profile picture for OAuth2 user")
+    void shouldPreserveExistingProfilePicture() {
+        logger.debug("Testing preservation of existing profile picture during OAuth2 update");
+        
+        // Set up delegate behavior
+        when(mockDelegate.loadUser(any(OAuth2UserRequest.class))).thenReturn(defaultOAuth2User);
+        doReturn(mockDelegate).when(oAuth2UserService).getDelegate();
+        
+        // Create existing user with a profile picture
+        String existingPictureUrl = "http://example.com/existing-pic.jpg";
+        User existingUser = User.builder()
+                .userId(1L)
+                .email("test@example.com")
+                .username("test")
+                .googleId("google123")
+                .profilePictureUrl(existingPictureUrl)
+                .build();
+
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+
+        OAuth2User result = oAuth2UserService.loadUser(userRequest);
+
+        assertNotNull(result);
+        assertEquals(defaultOAuth2User, result);
+        verify(userRepository).findByGoogleId("google123");
+        verify(userRepository, never()).findByEmail(anyString());
+        verify(userRepository).save(any(User.class));
+        verify(userRepository).findById(1L);
+        
+        // Verify the profile picture was not updated
+        verify(userRepository).save(argThat(user -> 
+            user.getEmail().equals("test@example.com") &&
+            user.getUsername().equals("test") &&
+            user.getProfilePictureUrl().equals(existingPictureUrl) && // Should keep existing picture
+            user.getGoogleId().equals("google123")
+        ));
+    }
+
+    @Test
+    @DisplayName("Should update empty profile picture for existing OAuth2 user")
+    void shouldUpdateEmptyProfilePicture() {
+        logger.debug("Testing update of empty profile picture during OAuth2 update");
+        
+        // Set up delegate behavior
+        when(mockDelegate.loadUser(any(OAuth2UserRequest.class))).thenReturn(defaultOAuth2User);
+        doReturn(mockDelegate).when(oAuth2UserService).getDelegate();
+        
+        // Create existing user with no profile picture
+        User existingUser = User.builder()
+                .userId(1L)
+                .email("test@example.com")
+                .username("test")
+                .googleId("google123")
+                .profilePictureUrl(null)
+                .build();
+
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+
+        OAuth2User result = oAuth2UserService.loadUser(userRequest);
+
+        assertNotNull(result);
+        assertEquals(defaultOAuth2User, result);
+        verify(userRepository).findByGoogleId("google123");
+        verify(userRepository, never()).findByEmail(anyString());
+        verify(userRepository).save(any(User.class));
+        verify(userRepository).findById(1L);
+        
+        // Verify the profile picture was updated since it was empty
+        verify(userRepository).save(argThat(user -> 
+            user.getEmail().equals("test@example.com") &&
+            user.getUsername().equals("test") &&
+            user.getProfilePictureUrl().equals("http://example.com/pic.jpg") && // Should be updated with Google picture
+            user.getGoogleId().equals("google123")
+        ));
     }
 } 

@@ -134,12 +134,13 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
     void shouldCompleteOAuth2FlowForExistingUser() throws Exception {
         logger.debug("Testing complete OAuth2 flow for existing user");
 
-        // Create existing user
+        // Create existing user with a custom profile picture
+        String existingPictureUrl = "old_picture.jpg";
         User existingUser = User.builder()
             .email(TEST_EMAIL)
             .username(TEST_USERNAME)
             .googleId(TEST_GOOGLE_ID)
-            .profilePictureUrl("old_picture.jpg")
+            .profilePictureUrl(existingPictureUrl)
             .emailVerified(true)
             .build();
         existingUser = userRepository.save(existingUser);
@@ -151,7 +152,7 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("email", TEST_EMAIL);
         attributes.put("name", TEST_NAME);
-        attributes.put("picture", TEST_PICTURE);
+        attributes.put("picture", TEST_PICTURE); // Different picture from Google
         attributes.put("sub", TEST_GOOGLE_ID);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
@@ -163,13 +164,13 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         when(googleOAuth2Service.getUserInfo(TEST_ACCESS_TOKEN))
             .thenReturn(oauth2User);
 
-        // Mock OAuth2UserService to process the user
+        // Mock OAuth2UserService to process the user - should preserve existing picture
         User updatedUser = User.builder()
             .userId(existingUser.getUserId())
             .email(TEST_EMAIL)
             .username(TEST_USERNAME)
             .googleId(TEST_GOOGLE_ID)
-            .profilePictureUrl(TEST_PICTURE)
+            .profilePictureUrl(existingPictureUrl) // Should keep existing picture
             .emailVerified(true)
             .build();
         when(oAuth2UserService.processOAuth2User(oauth2User))
@@ -191,12 +192,13 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
         // Save the updated user to the database since we mocked the OAuth2UserService
         userRepository.save(updatedUser);
 
-        // Verify user was updated in database
+        // Verify user was updated in database and profile picture was preserved
         Optional<User> updatedUserInDb = userRepository.findByEmail(TEST_EMAIL);
         assertTrue(updatedUserInDb.isPresent());
         assertEquals(TEST_GOOGLE_ID, updatedUserInDb.get().getGoogleId());
         assertEquals(TEST_USERNAME, updatedUserInDb.get().getUsername());
-        assertEquals(TEST_PICTURE, updatedUserInDb.get().getProfilePictureUrl());
+        assertEquals(existingPictureUrl, updatedUserInDb.get().getProfilePictureUrl(), 
+            "Profile picture should not be updated from Google");
         assertTrue(updatedUserInDb.get().isEmailVerified());
     }
 

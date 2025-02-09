@@ -107,7 +107,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private String generateUsername(String email) {
         // Extract username from email and convert to lowercase immediately
-        return email.substring(0, email.indexOf('@')).toLowerCase();
+        String username = email.substring(0, email.indexOf('@')).toLowerCase();
+        // Replace any character not matching [a-zA-Z0-9_-] with an underscore
+        return username.replaceAll("[^a-z0-9_-]", "_");
     }
 
     private User registerNewUser(String email, String name, String pictureUrl, String googleId) {
@@ -125,7 +127,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         User user = User.builder()
                 .email(email)
                 .username(username)
-                .profilePictureUrl(pictureUrl)
+                .profilePictureUrl(pictureUrl) // For new users, we set the Google profile picture
                 .googleId(googleId)
                 .emailVerified(true) // OAuth2 users are pre-verified
                 .lastLogin(LocalDateTime.now())
@@ -145,9 +147,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             user.setGoogleId(googleId);
         }
         
-        // Always update profile picture and name from Google
-        if (pictureUrl != null) {
+        // Only set profile picture if it's currently null or empty
+        if (user.getProfilePictureUrl() == null || user.getProfilePictureUrl().trim().isEmpty()) {
+            logger.debug("Setting profile picture for user with empty profile picture");
             user.setProfilePictureUrl(pictureUrl);
+        } else {
+            logger.debug("Preserving existing profile picture for user");
         }
         
         // Update last login time
