@@ -34,39 +34,23 @@ describe('Login Flow', () => {
   });
 
   it('should successfully login with valid credentials', () => {
-    // More specific intercept with full URL pattern
-    cy.intercept({
-      method: 'POST',
-      url: '**/api/auth/login',
-    }, {
-      statusCode: 200,
-      body: {
-        token: 'fake-jwt-token',
-        username: 'testuser',
-        email: 'test@example.com',
-        emailVerified: true
-      }
-    }).as('loginRequest');
 
     // Type in username field
     cy.get('[data-cy="username-input"]')
       .should('be.visible')
       .clear()
-      .type('testuser');
+      .type('e2e_testuser');
 
     // Type in password field
     cy.get('[data-cy="password-input"] input')
       .should('be.visible')
       .clear()
-      .type('Password123!');
+      .type('Test1234');
 
     // Ensure form is valid before clicking
     cy.get('[data-cy="login-button"] button')
       .should('not.be.disabled')
       .click();
-
-    // Wait for request with longer timeout
-    cy.wait('@loginRequest', { timeout: 10000 });
     
     // Verify navigation
     cy.url().should('include', '/profile');
@@ -108,26 +92,19 @@ describe('Login Flow', () => {
   });
 
   it('should persist session with "Remember me" checked', () => {
-    cy.intercept('POST', '**/api/auth/login', {
-      statusCode: 200,
-      body: {
-        token: 'fake-jwt-token',
-        username: 'testuser',
-        email: 'test@example.com',
-        emailVerified: true
-      }
-    }).as('loginRequest');
 
-    cy.get('[data-cy="username-input"]').should('be.visible').type('testuser');
-    cy.get('[data-cy="password-input"] input').should('be.visible').type('Password123!');
-    
+
+    cy.get('[data-cy="username-input"]').should('be.visible').type('e2e_testuser');
+    cy.get('[data-cy="password-input"] input').should('be.visible').type('Test1234');
+
     // Use the new custom command for PrimeNG checkbox
     cy.checkPrimeNGCheckbox('[data-cy="remember-me-checkbox"]');
     
     // Remove redundant check since it's now in the command
     cy.get('[data-cy="login-button"]').should('be.visible').click();
+    cy.wait(1000);
 
-    cy.wait('@loginRequest');
+
     cy.reload();
     cy.url().should('include', '/profile');
   });
@@ -237,19 +214,20 @@ describe('Google OAuth Login Flow', () => {
 
   beforeEach(() => {
     cy.intercept('GET', '**/oauth2/authorization/google', (req) => {
-      req.redirect(`/auth/google/callback?code=mock_auth_code`);
+      req.redirect(`/auth/google/callback?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciJ9.mock-signature`);
     }).as('googleAuthInit');
     
     cy.intercept('GET', '**/api/auth/google/callback*', {
       delay: 1000,  // Simulate 1s network latency
       statusCode: 200,
       body: {
-        token: 'mock_jwt_token',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciJ9.mock-signature',
         username: mockGoogleUser.email,
         email: mockGoogleUser.email,
         emailVerified: true,
         googleId: 'mock_google_id'
       }
+
     }).as('googleCallback');
   });
 
