@@ -8,10 +8,6 @@ COPY .mvn .mvn
 COPY mvnw .
 COPY mvnw.cmd .
 
-# Download dependencies with better caching
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn dependency:go-offline -Dmaven.repo.local=/root/.m2/repository
-
 # Copy source code
 COPY src src
 

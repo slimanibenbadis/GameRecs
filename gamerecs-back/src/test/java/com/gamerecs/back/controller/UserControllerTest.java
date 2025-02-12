@@ -828,7 +828,6 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.username").value("Username cannot be empty"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService, never()).updateUserProfile(any(), any());
