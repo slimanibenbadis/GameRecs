@@ -75,7 +75,7 @@ jobs:
   deploy:
     needs: docker
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     defaults:
       run:
         working-directory: ./gamerecs-front
