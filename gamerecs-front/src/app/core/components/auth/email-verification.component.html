@@ -1,20 +1,20 @@
-<div class="flex flex-col items-center justify-center min-h-screen bg-surface-0 dark:bg-surface-900 p-4">
-  <div class="w-full max-w-lg p-6 bg-surface-0 dark:bg-surface-800 rounded-lg shadow-lg text-center">
-    <h2 class="text-2xl font-fira font-bold mb-6 text-surface-900 dark:text-surface-0">Email Verification</h2>
+<div class="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+  <div class="w-full max-w-lg p-6 bg-surface-200 rounded-lg shadow-lg text-center">
+    <h2 class="text-2xl font-fira font-bold mb-6 text-text">Email Verification</h2>
     
     <div *ngIf="loading" class="flex flex-col items-center gap-4">
       <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
-      <p class="text-surface-700 dark:text-surface-200">Verifying your email...</p>
+      <p class="text-text">Verifying your email...</p>
     </div>
 
     <div *ngIf="!loading" class="space-y-4">
-      <div *ngIf="verified && !error" class="text-green-600 dark:text-green-400 flex flex-col items-center">
+      <div *ngIf="verified && !error" class="text-primary flex flex-col items-center">
         <i class="pi pi-check-circle text-5xl mb-4"></i>
         <p class="text-xl font-medium mb-2">Email Verified Successfully!</p>
-        <p class="text-base text-surface-700 dark:text-surface-200">You can now proceed to login and start using Gamer-Reco.</p>
+        <p class="text-base text-text">You can now proceed to login and start using Gamer-Reco.</p>
       </div>
 
-      <div *ngIf="error" class="text-red-600 dark:text-red-400 flex flex-col items-center">
+      <div *ngIf="error" class="text-red-400 flex flex-col items-center">
         <i class="pi pi-times-circle text-5xl mb-4"></i>
         <p class="text-xl font-medium mb-2">Verification Failed</p>
         <p class="text-base">{{ errorMessage }}</p>
@@ -24,7 +24,7 @@
               [label]="verified && !error ? 'Go to Login' : 'Back to Registration'"
               [class]="verified && !error ? 'p-button-success' : 'p-button-primary'"
               class="w-full mt-6"
-              (click)="navigateToAuth()">
+              (onClick)="navigateToAuth()">
       </button>
     </div>
   </div>

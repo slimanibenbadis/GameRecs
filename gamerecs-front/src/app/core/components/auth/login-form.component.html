@@ -1,17 +1,17 @@
 <!-- Login Form Container -->
 <div class="flex-1 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-surface-0 dark:bg-surface-800 rounded-lg p-8 auth-form">
-    <h2 class="text-3xl mb-8 text-center">Welcome Back</h2>
+  <div class="w-full max-w-md bg-surface-200 rounded-lg p-8 auth-form">
+    <h2 class="text-3xl mb-8 text-center text-text">Welcome Back</h2>
     
     <!-- Global Error Message -->
-    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded" data-cy="error-message">
+    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-400/20 text-red-400 rounded" data-cy="error-message">
       {{ errorMessage }}
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
       <!-- Username Field -->
       <div class="form-field">
-        <label for="username" class="form-label">Username</label>
+        <label for="username" class="form-label text-text">Username</label>
         <input 
           pInputText 
           id="username" 
@@ -21,14 +21,14 @@
           placeholder="Enter your username"
           data-cy="username-input"
         />
-        <small class="text-red-500" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" data-cy="username-error">
+        <small class="text-red-400" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" data-cy="username-error">
           {{ getErrorMessage('username') }}
         </small>
       </div>
 
       <!-- Password Field -->
       <div class="form-field">
-        <label for="password" class="form-label">Password</label>
+        <label for="password" class="form-label text-text">Password</label>
         <p-password 
           id="password" 
           formControlName="password"
@@ -40,7 +40,7 @@
           [ngClass]="{'ng-invalid ng-dirty': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
           data-cy="password-input"
         ></p-password>
-        <small class="text-red-500" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" data-cy="password-error">
+        <small class="text-red-400" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" data-cy="password-error">
           {{ getErrorMessage('password') }}
         </small>
       </div>
@@ -55,9 +55,9 @@
             styleClass="mr-2"
             data-cy="remember-me-checkbox"
           ></p-checkbox>
-          <label for="rememberMe" class="text-sm">Remember me</label>
+          <label for="rememberMe" class="text-sm text-text">Remember me</label>
         </div>
-        <a routerLink="/auth/forgot-password" class="text-sm hover:underline text-primary-color">Forgot password?</a>
+        <a routerLink="/auth/forgot-password" class="text-sm hover:underline text-primary">Forgot password?</a>
       </div>
 
       <!-- Login Button -->
@@ -74,9 +74,9 @@
 
       <!-- OR Divider -->
       <div class="flex items-center gap-4 my-8">
-        <div class="h-[1px] flex-1 bg-surface-300 dark:bg-surface-600"></div>
-        <span class="text-sm text-surface-600 dark:text-surface-400">Or</span>
-        <div class="h-[1px] flex-1 bg-surface-300 dark:bg-surface-600"></div>
+        <div class="h-[1px] flex-1 bg-surface-300"></div>
+        <span class="text-sm text-text">Or</span>
+        <div class="h-[1px] flex-1 bg-surface-300"></div>
       </div>
 
       <!-- Google Sign-In Button -->
@@ -94,8 +94,8 @@
 
       <!-- Sign Up Link -->
       <div class="mt-6 text-center">
-        <span class="text-sm">Don't have an account? </span>
-        <a routerLink="/auth/register" class="text-sm hover:underline text-primary-color">Sign up</a>
+        <span class="text-sm text-text">Don't have an account? </span>
+        <a routerLink="/auth/register" class="text-sm hover:underline text-primary">Sign up</a>
       </div>
     </form>
   </div>

@@ -13,26 +13,12 @@
 }
 
 :root {
-  /* Light mode */
-  --text-light: #062823;
-  --bg-light: #f2fdfb;
-  --primary-light: #158475;
-  --secondary-light: #76bbea;
-  --accent-light: #1d5bb9;
-
-  /* Dark mode */
-  --text-dark: #d7f9f4;
-  --bg-dark: #020d0b;
-  --primary-dark: #7beadb;
-  --secondary-dark: #155b89;
-  --accent-dark: #4684e2;
-
-  /* Default theme */
-  --text-color: var(--text-light);
-  --bg-color: var(--bg-light);
-  --primary-color: var(--primary-light);
-  --secondary-color: var(--secondary-light);
-  --accent-color: var(--accent-light);
+  /* Global theme colors */
+  --text-color: #d7f9f4;
+  --bg-color: #020d0b;
+  --primary-color: #7beadb;
+  --secondary-color: #155b89;
+  --accent-color: #4684e2;
 }
 
 /* Base styles */
@@ -43,30 +29,21 @@ html {
 }
 
 body {
-  @apply min-h-screen;
+  @apply min-h-screen bg-background text-text;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  @apply font-fira font-bold;
+  @apply font-fira font-bold text-text;
 }
 
 /* Type scale: 1.333 (Perfect Fourth) */
-h1 { font-size: 3.157rem; }
-h2 { font-size: 2.369rem; }
-h3 { font-size: 1.777rem; }
-h4 { font-size: 1.333rem; }
-h5 { font-size: 1rem; }
-h6 { font-size: 0.75rem; }
-
-/* Dark mode */
-.dark {
-  --text-color: var(--text-dark);
-  --bg-color: var(--bg-dark);
-  --primary-color: var(--primary-dark);
-  --secondary-color: var(--secondary-dark);
-  --accent-color: var(--accent-dark);
-}
+h1 { @apply text-4xl; }
+h2 { @apply text-3xl; }
+h3 { @apply text-2xl; }
+h4 { @apply text-xl; }
+h5 { @apply text-lg; }
+h6 { @apply text-base; }
 
 /* PrimeNG Component Overrides */
 .p-component {
@@ -85,11 +62,6 @@ h6 { font-size: 0.75rem; }
 .p-inputtext:enabled:focus,
 .p-password input:enabled:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(21, 132, 117, 0.2);
-}
-
-.dark .p-inputtext:enabled:focus,
-.dark .p-password input:enabled:focus {
   box-shadow: 0 0 0 2px rgba(123, 234, 219, 0.2);
 }
 
@@ -110,9 +82,8 @@ h6 { font-size: 0.75rem; }
 
 /* Card styling */
 .auth-card {
-  @apply w-full max-w-lg p-8 rounded-xl shadow-lg;
-  background-color: var(--bg-color);
-  border: 1px solid rgba(var(--primary-color), 0.1);
+  @apply w-full max-w-lg p-8 rounded-xl shadow-lg bg-surface-200;
+  border: 1px solid rgba(123, 234, 219, 0.1);
 }
 
 /* Form styling */
@@ -121,8 +92,7 @@ h6 { font-size: 0.75rem; }
 }
 
 .form-label {
-  @apply block text-sm font-medium mb-2;
-  color: var(--text-color);
+  @apply block text-sm font-medium mb-2 text-text;
 }
 
 /* Toast styling */
@@ -131,41 +101,13 @@ h6 { font-size: 0.75rem; }
 }
 
 .p-toast .p-toast-message {
-  border-radius: 0.5rem;
+  @apply rounded-lg;
 }
 
 /* Custom utility classes */
 .text-gradient {
   @apply bg-clip-text text-transparent;
   background-image: linear-gradient(to right, var(--primary-color), var(--accent-color));
-}
-
-/* Light mode image inversion */
-@media (prefers-color-scheme: light) {
-  .light-mode-invert {
-    filter: invert(1) hue-rotate(180deg);
-    transition: filter 0.3s ease-in-out;
-  }
-}
-
-/* Manual light mode class for when user toggles theme */
-:root[data-theme="light"] .light-mode-invert {
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.3s ease-in-out;
-}
-
-/* Dark mode image inversion */
-@media (prefers-color-scheme: dark) {
-  .dark-mode-invert {
-    filter: invert(1) hue-rotate(180deg);
-    transition: filter 0.3s ease-in-out;
-  }
-}
-
-/* Manual dark mode class for when user toggles theme */
-:root[data-theme="dark"] .dark-mode-invert {
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.3s ease-in-out;
 }
 
 /* Animations */
@@ -199,26 +141,14 @@ h6 { font-size: 0.75rem; }
 
 /* Custom Shadow Utilities */
 .shadow-glow {
-  box-shadow: 0 0 15px rgba(123, 234, 219, 0.1),
-              0 0 30px rgba(123, 234, 219, 0.05),
-              0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.dark .shadow-glow-dark {
-  box-shadow: 0 0 15px rgba(21, 132, 117, 0.15),
-              0 0 30px rgba(21, 132, 117, 0.1),
+  box-shadow: 0 0 15px rgba(123, 234, 219, 0.15),
+              0 0 30px rgba(123, 234, 219, 0.1),
               0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Auth Form Shadows */
 .auth-form {
-  box-shadow: 0 0 20px rgba(123, 234, 219, 0.15),
-              0 0 40px rgba(123, 234, 219, 0.1),
-              0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.dark .auth-form {
-  box-shadow: 0 0 20px rgba(21, 132, 117, 0.2),
-              0 0 40px rgba(21, 132, 117, 0.15),
+  box-shadow: 0 0 20px rgba(123, 234, 219, 0.2),
+              0 0 40px rgba(123, 234, 219, 0.15),
               0 4px 8px rgba(0, 0, 0, 0.3);
 }

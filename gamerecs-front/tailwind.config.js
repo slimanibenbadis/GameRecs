@@ -10,32 +10,28 @@ module.exports = {
         'fira': ['Fira Sans', 'sans-serif'],
       },
       colors: {
-        'primary-light': 'var(--primary-light)',
-        'secondary-light': 'var(--secondary-light)',
-        'accent-light': 'var(--accent-light)',
-        'text-light': 'var(--text-light)',
-        'bg-light': 'var(--bg-light)',
-        'primary-dark': 'var(--primary-dark)',
-        'secondary-dark': 'var(--secondary-dark)',
-        'accent-dark': 'var(--accent-dark)',
-        'text-dark': 'var(--text-dark)',
-        'bg-dark': 'var(--bg-dark)',
+        // Dark theme colors (now default)
+        'text': '#d7f9f4',
+        'background': '#020d0b',
+        'primary': '#7beadb',
+        'secondary': '#155b89',
+        'accent': '#4684e2',
         surface: {
-          0: 'var(--surface-0)',
-          100: 'var(--surface-100)',
-          200: 'var(--surface-200)',
-          300: 'var(--surface-300)',
-          400: 'var(--surface-400)',
-          500: 'var(--surface-500)',
-          600: 'var(--surface-600)',
-          700: 'var(--surface-700)',
-          800: 'var(--surface-800)',
-          900: 'var(--surface-900)'
+          0: '#020d0b',    // Darkest
+          100: '#051714',
+          200: '#082420',
+          300: '#0b312c',
+          400: '#0e3e38',
+          500: '#114b44',
+          600: '#145850',
+          700: '#17655c',
+          800: '#1a7268',
+          900: '#1d7f74'   // Lightest
         }
       },
     },
   },
   plugins: [require('tailwindcss-primeui')],
-  darkMode: 'class'
+  // Remove darkMode config since we're enforcing dark theme
 };
 
