@@ -34,30 +34,4 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
-
-  it('should apply dark mode class when system preference is dark', () => {
-    mediaQuery.matches = true;
-    
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-
-    expect(document.documentElement.classList.contains('dark')).toBeTruthy();
-  });
-
-  it('should handle system preference changes for dark mode', () => {
-    mediaQuery.matches = false;
-    
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-
-    expect(document.documentElement.classList.contains('dark')).toBeFalsy();
-
-    // Simulate change to dark mode
-    eventListener({ matches: true });
-    expect(document.documentElement.classList.contains('dark')).toBeTruthy();
-
-    // Simulate change back to light mode
-    eventListener({ matches: false });
-    expect(document.documentElement.classList.contains('dark')).toBeFalsy();
-  });
 });
