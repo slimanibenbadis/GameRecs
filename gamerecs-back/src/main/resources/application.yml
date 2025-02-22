@@ -150,3 +150,8 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   oauth2:
     redirectUri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/auth/google/callback}
+
+# IGDB Configuration
+igdb:
+  client-id: ${IGDB_CLIENT_ID}
+  access-token: ${IGDB_ACCESS_TOKEN}

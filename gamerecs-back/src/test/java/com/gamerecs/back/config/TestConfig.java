@@ -17,5 +17,17 @@ public class TestConfig {
         return new ObjectMapper();
     }
 
+    @Bean("igdbClientId")
+    @Primary
+    public String igdbClientId() {
+        return "test-client-id";
+    }
+    
+    @Bean("igdbAccessToken")
+    @Primary
+    public String igdbAccessToken() {
+        return "test-access-token";
+    }
+
     // Add more test-specific beans as needed
 } 

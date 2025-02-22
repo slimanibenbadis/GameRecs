@@ -61,7 +61,8 @@ public class SecurityConfig {
         "/login/oauth2/code/**",
         "/api/auth/oauth2/failure",
         "/api/auth/google/callback",
-        "/api/users/profile"
+        "/api/users/profile",
+        "/api/igdb/update"
     };
 
     private static final String[] TEST_ENDPOINTS = {

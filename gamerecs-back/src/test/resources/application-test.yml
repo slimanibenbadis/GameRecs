@@ -27,6 +27,11 @@ spring:
               - profile
             redirect-uri: http://localhost:4200/auth/google/callback
 
+# IGDB Configuration
+igdb:
+  client-id: test-client-id
+  access-token: test-access-token
+
 # App specific configuration
 app:
   oauth2:
