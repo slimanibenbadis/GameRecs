@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +163,40 @@ public class GlobalExceptionHandler {
             "Please verify your email before logging in"
         );
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
+    }
+    
+    /**
+     * Handles REST client exceptions that occur during API calls.
+     *
+     * @param ex the REST client exception
+     * @return ResponseEntity containing error details
+     */
+    @ExceptionHandler(RestClientException.class)
+    public ResponseEntity<ApiError> handleRestClientException(RestClientException ex) {
+        logger.error("REST client error during external API call: {}", ex.getMessage(), ex);
+        ApiError apiError = new ApiError(
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            "Unable to communicate with external service",
+            Map.of("detail", ex.getMessage())
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    
+    /**
+     * Handles resource access exceptions that occur during API calls (e.g., network issues).
+     *
+     * @param ex the resource access exception
+     * @return ResponseEntity containing error details
+     */
+    @ExceptionHandler(ResourceAccessException.class)
+    public ResponseEntity<ApiError> handleResourceAccessException(ResourceAccessException ex) {
+        logger.error("Network or resource error during external API call: {}", ex.getMessage(), ex);
+        ApiError apiError = new ApiError(
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            "Network error while communicating with external service",
+            Map.of("detail", ex.getMessage())
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.SERVICE_UNAVAILABLE);
     }
     
     /**
