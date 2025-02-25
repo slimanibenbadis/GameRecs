@@ -22,12 +22,10 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2UserService.class);
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
 
     @Autowired
-    public OAuth2UserService(UserRepository userRepository, JwtService jwtService) {
+    public OAuth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.jwtService = jwtService;
     }
 
     @Override

@@ -25,19 +25,42 @@ public class GameSyncService {
     private final PlatformRepository platformRepository;
     private final IGDBClientService igdbClientService;
 
+    /**
+     * Syncs games from IGDB based on a search query
+     * Leverages the caching mechanism in IGDBClientService
+     * 
+     * @param searchQuery the search query to use
+     * @return list of synchronized Game entities
+     */
     @Transactional
     public List<Game> syncGamesFromSearch(String searchQuery) {
+        log.debug("Syncing games from IGDB using search query: {}", searchQuery);
         List<IGDBGameDTO> igdbGames = igdbClientService.searchGames(searchQuery);
+        log.debug("Found {} games from IGDB for query: {}", igdbGames.size(), searchQuery);
         return syncGamesFromSearch(igdbGames);
     }
 
+    /**
+     * Syncs games from a list of IGDB game DTOs
+     * 
+     * @param igdbGames list of IGDB game DTOs
+     * @return list of synchronized Game entities
+     */
     @Transactional
     public List<Game> syncGamesFromSearch(List<IGDBGameDTO> igdbGames) {
+        log.debug("Syncing {} games from IGDB to database", igdbGames.size());
         return igdbGames.stream()
             .map(this::upsertGame)
             .toList();
     }
 
+    /**
+     * Upserts a single game from an IGDB game DTO
+     * Only updates if the game has been updated in IGDB
+     * 
+     * @param igdbGame the IGDB game DTO
+     * @return the synchronized Game entity
+     */
     @Transactional
     public Game upsertGame(IGDBGameDTO igdbGame) {
         // Check if game exists
@@ -99,6 +122,7 @@ public class GameSyncService {
             }
         }
         
+        log.debug("Successfully upserted game: {} (IGDB ID: {})", game.getTitle(), game.getIgdbId());
         return gameRepository.save(game);
     }
 

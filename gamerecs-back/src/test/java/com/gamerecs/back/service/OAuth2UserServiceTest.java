@@ -31,8 +31,6 @@ class OAuth2UserServiceTest extends BaseUnitTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private JwtService jwtService;
 
     private OAuth2UserService oAuth2UserService;
     private OAuth2User defaultOAuth2User;
@@ -62,7 +60,7 @@ class OAuth2UserServiceTest extends BaseUnitTest {
         userRequest = mock(OAuth2UserRequest.class);
 
         // Create service with mocked delegate
-        oAuth2UserService = spy(new OAuth2UserService(userRepository, jwtService));
+        oAuth2UserService = spy(new OAuth2UserService(userRepository));
 
         // Create and configure mock delegate service
         mockDelegate = mock(DefaultOAuth2UserService.class);

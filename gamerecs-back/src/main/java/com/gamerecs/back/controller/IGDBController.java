@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import com.gamerecs.back.service.GameSyncService;
 import com.gamerecs.back.model.Game;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/igdb")
@@ -59,6 +60,30 @@ public class IGDBController {
             logger.error("Error during IGDB update process", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse("Error during IGDB update process", List.of()));
+        }
+    }
+    
+    /**
+     * Endpoint to manually clear the IGDB game search cache.
+     * Requires ADMIN role to perform this operation.
+     * 
+     * @return ResponseEntity with a success message
+     */
+    @PostMapping("/clear-cache")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> clearIGDBCache() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        
+        logger.info("Admin user {} requesting to clear IGDB cache", userDetails.getUsername());
+        
+        try {
+            igdbClientService.clearGameSearchCache();
+            return ResponseEntity.ok("IGDB cache successfully cleared");
+        } catch (Exception e) {
+            logger.error("Error while clearing IGDB cache", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to clear IGDB cache: " + e.getMessage());
         }
     }
     

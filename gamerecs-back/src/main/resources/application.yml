@@ -48,6 +48,11 @@ spring:
         connection.release_mode: after_transaction
         # Batch fetching
         default_batch_fetch_size: 25
+  # Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -107,7 +112,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus
+        include: health,metrics,prometheus,caches
       base-path: /actuator
   endpoint:
     health:
@@ -119,6 +124,8 @@ management:
           include: ping
     metrics:
       enabled: true
+    caches:
+      enabled: true
   metrics:
     enable:
       jvm: true
@@ -126,6 +133,7 @@ management:
       system: true
       hikaricp: true
       tomcat: true
+      cache: true
     distribution:
       percentiles-histogram:
         http.server.requests: true
@@ -155,3 +163,9 @@ app:
 igdb:
   client-id: ${IGDB_CLIENT_ID}
   access-token: ${IGDB_ACCESS_TOKEN}
+
+# Cache Configuration
+cache:
+  igdb:
+    ttl-minutes: 60
+    max-size: 1000

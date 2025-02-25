@@ -26,6 +26,11 @@ spring:
               - email
               - profile
             redirect-uri: http://localhost:4200/auth/google/callback
+  # Cache Configuration for Tests
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=10m
 
 # IGDB Configuration
 igdb:
@@ -60,13 +65,14 @@ logging:
     com.gamerecs: DEBUG
     org.hibernate.SQL: DEBUG
     org.springdoc: DEBUG  # Added for debugging Swagger/OpenAPI issues 
+    org.springframework.cache: TRACE  # Enable cache logging for testing
 
 # Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,caches
       base-path: /actuator
   endpoint:
     health:
@@ -78,6 +84,8 @@ management:
           include: db,diskSpace,ping
         liveness:
           include: ping
+    caches:
+      enabled: true
   health:
     mail:
       enabled: false
@@ -85,3 +93,9 @@ management:
       enabled: true
     readinessState:
       enabled: true 
+
+# Cache Configuration for tests
+cache:
+  igdb:
+    ttl-minutes: 10
+    max-size: 100 
