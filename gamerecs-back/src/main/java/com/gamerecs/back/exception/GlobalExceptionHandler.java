@@ -200,6 +200,22 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Handles ResponseStatusException thrown by services or controllers.
+     *
+     * @param ex the response status exception
+     * @return ResponseEntity containing error details with the appropriate status code
+     */
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ApiError> handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        logger.warn("Response status exception: {} - {}", ex.getStatusCode(), ex.getMessage());
+        ApiError apiError = new ApiError(
+            ex.getStatusCode().value(),
+            ex.getReason() != null ? ex.getReason() : "Error processing request"
+        );
+        return new ResponseEntity<>(apiError, ex.getStatusCode());
+    }
+    
+    /**
      * Handles all other unhandled exceptions.
      *
      * @param ex the exception
