@@ -33,7 +33,7 @@ public class IGDBController {
      */
     @PostMapping("/update")
     public ResponseEntity<?> updateIGDBData(@RequestParam("query") String query) {
-        logger.debug("Received IGDB update request for query: {}", query);
+        logger.debug("Received IGDB update request");
         
         // Check authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

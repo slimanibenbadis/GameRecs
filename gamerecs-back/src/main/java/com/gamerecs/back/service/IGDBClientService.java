@@ -81,12 +81,12 @@ public class IGDBClientService {
         backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public List<IGDBGameDTO> searchGames(String query) {
-        logger.debug("Cache miss for IGDB game search with query: {}", query);
+        logger.debug("Cache miss for IGDB game search");
         
         // Acquire a permit from the rate limiter before proceeding
         double waitTime = rateLimiter.acquire();
         if (waitTime > 0.0) {
-            logger.debug("Rate limiter delay: {} seconds for query: {}", waitTime, query);
+            logger.debug("Rate limiter delay: {} seconds", waitTime);
         }
         
         try {
@@ -139,8 +139,7 @@ public class IGDBClientService {
                 game.processInvolvedCompanies();
             }
             
-            logger.info("Successfully retrieved and processed {} games from IGDB API for query: {}", 
-                       games.size(), query);
+            logger.info("Successfully retrieved and processed {} games from IGDB API", games.size());
             return games;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
