@@ -67,4 +67,7 @@ public class User {
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private GameLibrary gameLibrary;
 } 

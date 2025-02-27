@@ -2,8 +2,10 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.dto.ProfileResponseDto;
 import com.gamerecs.back.dto.UpdateProfileRequestDto;
+import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.model.VerificationToken;
+import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.UsernameNormalizer;
@@ -30,6 +32,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final GameLibraryRepository gameLibraryRepository;
 
     @Value("${app.verification.token.expiration-hours:24}")
     private int tokenExpirationHours;
@@ -38,15 +41,18 @@ public class UserService {
     public UserService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
                       EmailService emailService,
-                      VerificationTokenRepository verificationTokenRepository) {
+                      VerificationTokenRepository verificationTokenRepository,
+                      GameLibraryRepository gameLibraryRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.verificationTokenRepository = verificationTokenRepository;
+        this.gameLibraryRepository = gameLibraryRepository;
     }
     
     /**
      * Registers a new user in the system and sends a verification email.
+     * Also creates a game library for the user.
      *
      * @param user the user to register
      * @return the registered user with generated ID
@@ -84,7 +90,18 @@ public class UserService {
         User savedUser = userRepository.save(user);
         logger.info("Successfully registered new user with ID: {}", savedUser.getUserId());
         
-        // Generate and save verification token
+        // Create a GameLibrary for the saved user
+        GameLibrary library = new GameLibrary();
+        library.setUser(savedUser);
+        library = gameLibraryRepository.save(library);
+        logger.info("Created game library for user ID: {}", savedUser.getUserId());
+        
+        // Link the library to the user
+        savedUser.setGameLibrary(library);
+        // No need to save the user again, as we're in a transactional context
+        // and all changes to the managed entity will be persisted
+        
+        // Generate and send verification email
         try {
             sendVerificationEmail(savedUser);
             logger.info("Verification email sent successfully to user: {}", savedUser.getEmail());

@@ -2,8 +2,10 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.model.VerificationToken;
+import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
+import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.util.BaseUnitTest;
 import com.gamerecs.back.dto.ProfileResponseDto;
 import com.gamerecs.back.dto.UpdateProfileRequestDto;
@@ -27,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest extends BaseUnitTest {
@@ -43,6 +46,9 @@ class UserServiceTest extends BaseUnitTest {
 
     @Mock
     private VerificationTokenRepository verificationTokenRepository;
+
+    @Mock
+    private GameLibraryRepository gameLibraryRepository;
 
     @InjectMocks
     private UserService userService;
@@ -718,5 +724,90 @@ class UserServiceTest extends BaseUnitTest {
         verify(userRepository).findById(userId);
         verify(userRepository).existsByUsername(newNormalizedUsername);
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    public void testRegisterUserCreatesGameLibrary() throws MessagingException {
+        // Setup
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        
+        // Mock user save to return the user with ID
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            savedUser.setUserId(1L);
+            return savedUser;
+        });
+        
+        // Mock the game library save
+        when(gameLibraryRepository.save(any(GameLibrary.class))).thenAnswer(invocation -> {
+            GameLibrary library = invocation.getArgument(0);
+            library.setLibraryId(1L);
+            return library;
+        });
+        
+        // Mock email service methods
+        when(emailService.generateVerificationToken()).thenReturn("test-token");
+        doNothing().when(verificationTokenRepository).deleteByUser_UserId(anyLong());
+        when(verificationTokenRepository.save(any(VerificationToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
+        
+        User user = new User();
+        user.setUsername("autoUser");
+        user.setEmail("auto@example.com");
+        user.setPasswordHash("password123"); // Setting a password hash directly for testing
+        
+        // Register the user using our service
+        User savedUser = userService.registerUser(user);
+
+        // Verify that the GameLibrary was automatically created
+        assertThat(savedUser.getGameLibrary()).isNotNull();
+        
+        // Mock gameLibraryRepository.findById to return the library
+        when(gameLibraryRepository.findById(anyLong())).thenReturn(Optional.of(savedUser.getGameLibrary()));
+        
+        var library = gameLibraryRepository.findById(savedUser.getGameLibrary().getLibraryId());
+        assertThat(library).isPresent();
+        assertThat(library.get().getUser()).isEqualTo(savedUser);
+        
+        // Verify interactions
+        verify(userRepository).save(any(User.class));
+        verify(gameLibraryRepository).save(any(GameLibrary.class));
+    }
+
+    @Test
+    @DisplayName("Should create game library when registering user")
+    void shouldCreateGameLibraryWhenRegisteringUser() throws MessagingException {
+        logger.debug("Testing game library creation during user registration");
+        
+        // Setup
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        
+        // Mock user save to return the user with ID
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            savedUser.setUserId(1L);
+            return savedUser;
+        });
+        
+        // Mock the game library save
+        when(gameLibraryRepository.save(any())).thenAnswer(invocation -> {
+            GameLibrary library = invocation.getArgument(0);
+            library.setLibraryId(1L);
+            return library;
+        });
+        
+        // Execute
+        User registeredUser = userService.registerUser(testUser);
+        
+        // Verify
+        assertNotNull(registeredUser, "Registered user should not be null");
+        verify(userRepository).save(any(User.class));
+        verify(gameLibraryRepository).save(any(GameLibrary.class));
+        assertNotNull(registeredUser.getGameLibrary(), "User should have a game library");
+        assertEquals(registeredUser, registeredUser.getGameLibrary().getUser(), "Game library should reference back to the user");
     }
 } 
