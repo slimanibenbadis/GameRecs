@@ -35,7 +35,7 @@ public class GameLibraryService {
                 .orElseThrow(() ->
                     new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
         
-        return gameLibraryRepository.findByUserWithGames(user)
+        return gameLibraryRepository.findByUserWithGamesAndCollections(user)
                 .orElseThrow(() ->
                     new ResponseStatusException(HttpStatus.NOT_FOUND, "Game library not found"));
     }

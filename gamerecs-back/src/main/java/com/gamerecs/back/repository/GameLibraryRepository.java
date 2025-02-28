@@ -30,8 +30,24 @@ public interface GameLibraryRepository extends JpaRepository<GameLibrary, Long> 
      * @param user the user whose library to find
      * @return an Optional containing the library with games if found
      */
-    @Query("SELECT gl FROM GameLibrary gl LEFT JOIN FETCH gl.games WHERE gl.user = :user")
+    @Query("SELECT gl FROM GameLibrary gl LEFT JOIN FETCH gl.games g WHERE gl.user = :user")
     Optional<GameLibrary> findByUserWithGames(@Param("user") User user);
+    
+    /**
+     * Find a game library by its associated user and eagerly fetch its games and all game-related collections.
+     * This solves lazy loading exceptions when serializing the response.
+     *
+     * @param user the user whose library to find
+     * @return an Optional containing the library with games and all related collections if found
+     */
+    @Query("SELECT DISTINCT gl FROM GameLibrary gl " +
+           "LEFT JOIN FETCH gl.games g " +
+           "LEFT JOIN FETCH g.genres " +
+           "LEFT JOIN FETCH g.platforms " +
+           "LEFT JOIN FETCH g.publishers " +
+           "LEFT JOIN FETCH g.developers " +
+           "WHERE gl.user = :user")
+    Optional<GameLibrary> findByUserWithGamesAndCollections(@Param("user") User user);
     
     /**
      * Check if a game library exists for the given user.

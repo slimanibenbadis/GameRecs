@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,5 +24,6 @@ public class Platform {
     private String name;
 
     @ManyToMany(mappedBy = "platforms")
+    @JsonIgnore
     private Set<Game> games = new HashSet<>();
 } 
