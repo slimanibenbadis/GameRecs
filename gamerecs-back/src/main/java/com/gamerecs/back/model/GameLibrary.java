@@ -1,5 +1,6 @@
 package com.gamerecs.back.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class GameLibrary {
     @NotNull
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonBackReference  // Prevents infinite recursion by not serializing the 'user' field here
     private User user;
 
     /**

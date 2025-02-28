@@ -137,6 +137,12 @@ export class EmailVerificationComponent implements OnInit, OnDestroy {
 
   navigateToAuth(): void {
     console.log('[EmailVerificationComponent] Navigating to auth page');
-    this.router.navigate(['/auth/login']);
+    if (this.verified && !this.error) {
+      // Navigate to login page after successful verification
+      this.router.navigate(['/auth/login']);
+    } else {
+      // Navigate back to registration page if verification failed
+      this.router.navigate(['/auth/register']);
+    }
   }
 } 
