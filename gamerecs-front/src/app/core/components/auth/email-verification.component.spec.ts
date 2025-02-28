@@ -175,8 +175,15 @@ describe('EmailVerificationComponent', () => {
     });
   }));
 
-  it('should navigate to registration page on button click', () => {
+  it('should navigate to login page on successful verification', () => {
+    component.verified = true;
     component.navigateToAuth();
     expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
+  });
+
+  it('should navigate to registration page on verification error', () => {
+    component.error = true;
+    component.navigateToAuth();
+    expect(router.navigate).toHaveBeenCalledWith(['/auth/register']);
   });
 }); 

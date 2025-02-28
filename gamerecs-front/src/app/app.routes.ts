@@ -7,6 +7,7 @@ import { LandingPageComponent } from './core/components/landing/landing-page.com
 import { GoogleCallbackComponent } from './core/components/auth/google-callback.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { ProfileComponent } from './features/profile/profile.component';
+import { GameLibraryComponent } from './features/game-library/game-library.component';
 
 export const routes: Routes = [
   { 
@@ -27,6 +28,11 @@ export const routes: Routes = [
   { 
     path: 'profile',
     component: ProfileComponent,
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'library',
+    component: GameLibraryComponent,
     canActivate: [AuthGuard]
   },
   { path: '', component: LandingPageComponent, pathMatch: 'full' },

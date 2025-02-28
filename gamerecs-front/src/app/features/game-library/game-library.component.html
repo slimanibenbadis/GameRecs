@@ -1,0 +1,41 @@
+<div class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-4">My Game Library</h1>
+  
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading flex justify-center items-center p-8">
+    <p class="text-primary">Loading your game library...</p>
+  </div>
+  
+  <!-- Error message -->
+  <div *ngIf="errorMessage" class="error bg-red-900 text-text p-4 rounded-lg mb-4">
+    {{ errorMessage }}
+  </div>
+  
+  <!-- Empty library message -->
+  <div *ngIf="library && library.games.length === 0 && !isLoading" class="text-center p-8">
+    <p class="text-xl">Your game library is empty.</p>
+    <p class="mt-2">Add games to your library to see them here.</p>
+  </div>
+  
+  <!-- Game list -->
+  <div *ngIf="library && library.games.length > 0 && !isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let game of library.games" class="game-card bg-surface-200 rounded-lg overflow-hidden shadow-glow hover:transform hover:scale-105 transition-all duration-300">
+      <div class="relative h-48">
+        <img
+          *ngIf="game.coverImageUrl"
+          [src]="game.coverImageUrl"
+          alt="{{ game.title }}"
+          class="w-full h-full object-cover"
+        >
+        <div *ngIf="!game.coverImageUrl" class="w-full h-full flex items-center justify-center bg-secondary">
+          <span class="text-text">No Cover Image</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <h2 class="game-title text-xl font-semibold text-text mb-2">{{ game.title }}</h2>
+        <p *ngIf="game.releaseDate" class="text-sm text-gray-300">Released: {{ game.releaseDate }}</p>
+        <p *ngIf="game.description" class="text-sm mt-2 text-gray-300 line-clamp-2">{{ game.description }}</p>
+      </div>
+    </div>
+  </div>
+</div> 

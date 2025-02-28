@@ -1,0 +1,17 @@
+/* Additional component-specific styles */
+.game-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(123, 234, 219, 0.1);
+}
+
+.game-card:hover {
+  border-color: var(--primary-color);
+}
+
+.loading {
+  min-height: 200px;
+}
+
+.error {
+  border-left: 4px solid var(--primary-color);
+} 

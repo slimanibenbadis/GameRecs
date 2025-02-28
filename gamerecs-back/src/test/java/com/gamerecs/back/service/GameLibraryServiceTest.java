@@ -52,7 +52,7 @@ public class GameLibraryServiceTest {
     void getLibraryForUser_ValidUser_ReturnsLibrary() {
         // Arrange
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(gameLibraryRepository.findByUser(testUser)).thenReturn(Optional.of(testLibrary));
+        when(gameLibraryRepository.findByUserWithGames(testUser)).thenReturn(Optional.of(testLibrary));
 
         // Act
         GameLibrary result = gameLibraryService.getLibraryForUser(userId);
@@ -64,7 +64,7 @@ public class GameLibraryServiceTest {
         
         // Verify repository methods were called
         verify(userRepository, times(1)).findById(userId);
-        verify(gameLibraryRepository, times(1)).findByUser(testUser);
+        verify(gameLibraryRepository, times(1)).findByUserWithGames(testUser);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class GameLibraryServiceTest {
     void getLibraryForUser_LibraryNotFound_ThrowsNotFound() {
         // Arrange
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(gameLibraryRepository.findByUser(testUser)).thenReturn(Optional.empty());
+        when(gameLibraryRepository.findByUserWithGames(testUser)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(
@@ -103,6 +103,6 @@ public class GameLibraryServiceTest {
         
         // Verify repository methods were called
         verify(userRepository, times(1)).findById(userId);
-        verify(gameLibraryRepository, times(1)).findByUser(testUser);
+        verify(gameLibraryRepository, times(1)).findByUserWithGames(testUser);
     }
 } 
