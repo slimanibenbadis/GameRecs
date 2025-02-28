@@ -21,6 +21,13 @@ CREATE TABLE library_games (
         REFERENCES games(game_id)
 );
 
+-- Create game libraries for existing users
+INSERT INTO game_libraries (user_id)
+SELECT user_id FROM users;
+
+-- Drop the old game_library table
+DROP TABLE game_library;
+
 -- Add indexes for better performance
 CREATE INDEX idx_library_games_library_id ON library_games(library_id);
 CREATE INDEX idx_library_games_game_id ON library_games(game_id); 
