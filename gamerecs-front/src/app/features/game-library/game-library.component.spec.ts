@@ -3,6 +3,7 @@ import { GameLibraryComponent } from './game-library.component';
 import { GameLibraryService, GameLibrary } from '../../core/services/game-library.service';
 import { of, throwError } from 'rxjs';
 import { By } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 
 describe('GameLibraryComponent', () => {
   let component: GameLibraryComponent;
@@ -12,7 +13,7 @@ describe('GameLibraryComponent', () => {
   beforeEach(async () => {
     const spy = jasmine.createSpyObj('GameLibraryService', ['getGameLibrary']);
     await TestBed.configureTestingModule({
-      imports: [ GameLibraryComponent ],
+      imports: [ GameLibraryComponent, FormsModule ],
       providers: [
         { provide: GameLibraryService, useValue: spy }
       ]
@@ -57,6 +58,21 @@ describe('GameLibraryComponent', () => {
     expect(component.isLoading).toBeFalse();
     const gameTitleEl = fixture.debugElement.query(By.css('.game-title'));
     expect(gameTitleEl.nativeElement.textContent).toContain('Test Game');
+  }));
+
+  it('should display a "no results available" message when library is empty after filtering', fakeAsync(() => {
+    // Simulate backend returning an empty library
+    const emptyLibrary: GameLibrary = { libraryId: 1, games: [] };
+    mockService.getGameLibrary.and.returnValue(of(emptyLibrary));
+    
+    // Set filtering option that yields no results
+    component.selectedFilterByGenre = 'UnknownGenre';
+    component.fetchGameLibrary();
+    tick();
+    fixture.detectChanges();
+
+    const emptyMessageEl = fixture.debugElement.query(By.css('.text-center'));
+    expect(emptyMessageEl.nativeElement.textContent).toContain('Your game library is empty');
   }));
 
   it('should display an error message if API call fails', fakeAsync(() => {

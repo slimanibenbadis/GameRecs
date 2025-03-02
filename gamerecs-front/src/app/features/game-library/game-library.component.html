@@ -1,6 +1,23 @@
 <div class="container mx-auto p-4">
   <h1 class="text-3xl font-bold mb-4">My Game Library</h1>
   
+  <!-- Controls for sorting and filtering -->
+  <div class="controls mb-4 flex flex-col md:flex-row items-center gap-4">
+    <div>
+      <label for="sortBy" class="text-text">Sort by:</label>
+      <select id="sortBy" [(ngModel)]="selectedSortBy" (change)="fetchGameLibrary()"
+              class="bg-background text-text p-2 rounded">
+        <option value="title">Title</option>
+        <option value="releaseDate">Release Date</option>
+      </select>
+    </div>
+    <div>
+      <label for="filterByGenre" class="text-text">Filter by Genre:</label>
+      <input id="filterByGenre" [(ngModel)]="selectedFilterByGenre" (input)="fetchGameLibrary()"
+             placeholder="Enter genre" class="bg-background text-text p-2 rounded"/>
+    </div>
+  </div>
+  
   <!-- Loading indicator -->
   <div *ngIf="isLoading" class="loading flex justify-center items-center p-8">
     <p class="text-primary">Loading your game library...</p>

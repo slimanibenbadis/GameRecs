@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -43,5 +44,5 @@ public class GameLibrary {
         joinColumns = @JoinColumn(name = "library_id"),
         inverseJoinColumns = @JoinColumn(name = "game_id")
     )
-    private Set<Game> games = new HashSet<>();
+    private Set<Game> games = new LinkedHashSet<>();
 } 

@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { GameLibraryService, GameLibrary } from '../../core/services/game-library.service';
 
 @Component({
   selector: 'app-game-library',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './game-library.component.html',
   styleUrls: ['./game-library.component.css']
 })
@@ -14,6 +15,9 @@ export class GameLibraryComponent implements OnInit {
   library: GameLibrary | null = null;
   isLoading = false;
   errorMessage: string | null = null;
+  
+  selectedSortBy: string = 'title';
+  selectedFilterByGenre: string = '';
 
   constructor(private libraryService: GameLibraryService) { }
 
@@ -24,7 +28,7 @@ export class GameLibraryComponent implements OnInit {
   fetchGameLibrary(): void {
     this.isLoading = true;
     this.errorMessage = null;
-    this.libraryService.getGameLibrary().subscribe({
+    this.libraryService.getGameLibrary(this.selectedSortBy, this.selectedFilterByGenre).subscribe({
       next: (data: GameLibrary) => {
         this.library = data;
         this.isLoading = false;

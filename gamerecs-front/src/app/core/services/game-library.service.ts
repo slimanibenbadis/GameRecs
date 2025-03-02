@@ -24,7 +24,14 @@ export class GameLibraryService {
 
   constructor(private http: HttpClient) { }
 
-  getGameLibrary(): Observable<GameLibrary> {
-    return this.http.get<GameLibrary>('/api/game-library');
+  getGameLibrary(sortBy?: string, filterByGenre?: string): Observable<GameLibrary> {
+    const params: any = {};
+    if (sortBy) {
+      params.sortBy = sortBy;
+    }
+    if (filterByGenre) {
+      params.filterByGenre = filterByGenre;
+    }
+    return this.http.get<GameLibrary>('/api/game-library', { params });
   }
 } 

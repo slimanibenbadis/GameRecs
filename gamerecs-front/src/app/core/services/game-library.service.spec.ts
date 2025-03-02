@@ -44,6 +44,25 @@ describe('GameLibraryService', () => {
     req.flush(dummyLibrary);
   });
 
+  it('should attach query parameters when provided', () => {
+    const dummyLibrary: GameLibrary = {
+      libraryId: 1,
+      games: []
+    };
+    
+    service.getGameLibrary('releaseDate', 'Action').subscribe(library => {
+      expect(library).toEqual(dummyLibrary);
+    });
+    
+    const req = httpMock.expectOne(r => 
+      r.url === '/api/game-library' &&
+      r.params.get('sortBy') === 'releaseDate' &&
+      r.params.get('filterByGenre') === 'Action'
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(dummyLibrary);
+  });
+
   it('should propagate errors when the API call fails', () => {
     service.getGameLibrary().subscribe({
       next: () => fail('Should have failed with a 404 error'),

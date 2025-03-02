@@ -4,6 +4,7 @@ import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.security.CustomUserDetails;
 import com.gamerecs.back.service.GameLibraryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,18 @@ public class GameLibraryController {
 
     @Operation(summary = "Get the authenticated user's game library",
                description = "Returns the game library associated with the authenticated user. "
-                           + "Requires valid authentication. Returns HTTP 404 if no library exists.")
+                           + "Requires valid authentication. Returns HTTP 404 if no library exists. "
+                           + "Supports sorting by 'title' or 'releaseDate' and filtering by genre name.")
     @GetMapping("/game-library")
-    public ResponseEntity<GameLibrary> getGameLibrary(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                      HttpServletRequest request) {
+    public ResponseEntity<GameLibrary> getGameLibrary(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request,
+            @Parameter(description = "Field to sort games by (title or releaseDate)", example = "title")
+            @RequestParam(required = false, defaultValue = "title") String sortBy,
+            @Parameter(description = "Genre name to filter games by (empty for no filtering)", example = "Action")
+            @RequestParam(required = false, defaultValue = "") String filterByGenre) {
         // The authenticated user's id is provided by CustomUserDetails
-        GameLibrary library = gameLibraryService.getLibraryForUser(userDetails.getUserId());
+        GameLibrary library = gameLibraryService.getLibraryForUser(userDetails.getUserId(), sortBy, filterByGenre);
         return ResponseEntity.ok(library);
     }
 } 
