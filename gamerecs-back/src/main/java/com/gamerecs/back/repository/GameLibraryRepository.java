@@ -1,7 +1,11 @@
 package com.gamerecs.back.repository;
 
+import com.gamerecs.back.model.Game;
 import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,4 +60,48 @@ public interface GameLibraryRepository extends JpaRepository<GameLibrary, Long> 
      * @return true if a library exists for the user
      */
     boolean existsByUser(User user);
+    
+    /**
+     * Method to fetch all games in a user's library paginated with sorting by title.
+     * 
+     * @param user the user whose library to find
+     * @param pageable pagination information
+     * @return a Page of Game objects sorted by title
+     */
+    @Query("SELECT g FROM GameLibrary gl JOIN gl.games g WHERE gl.user = :user ORDER BY g.title ASC")
+    Page<Game> findGamesByUserOrderByTitle(@Param("user") User user, Pageable pageable);
+    
+    /**
+     * Method to fetch all games in a user's library paginated with sorting by release date.
+     * 
+     * @param user the user whose library to find
+     * @param pageable pagination information
+     * @return a Page of Game objects sorted by release date
+     */
+    @Query("SELECT g FROM GameLibrary gl JOIN gl.games g WHERE gl.user = :user ORDER BY g.releaseDate ASC")
+    Page<Game> findGamesByUserOrderByReleaseDate(@Param("user") User user, Pageable pageable);
+    
+    /**
+     * Method to fetch games in a user's library filtered by genre with sorting by title.
+     * 
+     * @param user the user whose library to find
+     * @param genre the genre to filter by
+     * @param pageable pagination information
+     * @return a Page of Game objects filtered by genre and sorted by title
+     */
+    @Query("SELECT g FROM GameLibrary gl JOIN gl.games g JOIN g.genres gr " +
+           "WHERE gl.user = :user AND lower(gr.name) = lower(:genre) ORDER BY g.title ASC")
+    Page<Game> findGamesByUserAndGenreOrderByTitle(@Param("user") User user, @Param("genre") String genre, Pageable pageable);
+    
+    /**
+     * Method to fetch games in a user's library filtered by genre with sorting by release date.
+     * 
+     * @param user the user whose library to find
+     * @param genre the genre to filter by
+     * @param pageable pagination information
+     * @return a Page of Game objects filtered by genre and sorted by release date
+     */
+    @Query("SELECT g FROM GameLibrary gl JOIN gl.games g JOIN g.genres gr " +
+           "WHERE gl.user = :user AND lower(gr.name) = lower(:genre) ORDER BY g.releaseDate ASC")
+    Page<Game> findGamesByUserAndGenreOrderByReleaseDate(@Param("user") User user, @Param("genre") String genre, Pageable pageable);
 } 

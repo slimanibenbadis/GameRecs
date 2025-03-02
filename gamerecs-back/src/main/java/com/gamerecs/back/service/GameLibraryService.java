@@ -2,10 +2,15 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.Game;
 import com.gamerecs.back.model.GameLibrary;
+import com.gamerecs.back.model.PaginatedGameLibraryResponse;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,5 +100,75 @@ public class GameLibraryService {
         sortedAndFilteredLibrary.setGames(new LinkedHashSet<>(sortedGames));
         
         return sortedAndFilteredLibrary;
+    }
+
+    /**
+     * Retrieve the game library for a given user ID with pagination, sorting and filtering options.
+     *
+     * @param userId the authenticated user's ID
+     * @param sortBy the field to sort games by (e.g., "title", "releaseDate")
+     * @param filterByGenre the genre name to filter games by (empty string means no filtering)
+     * @param page the page number (0-indexed)
+     * @param size the page size
+     * @return a PaginatedGameLibraryResponse containing the games and pagination metadata
+     * @throws ResponseStatusException with HTTP 404 if library not found and 401 if the user is missing.
+     */
+    @Transactional(readOnly = true)
+    public PaginatedGameLibraryResponse getPaginatedLibraryForUser(Long userId,
+            String sortBy, String filterByGenre, int page, int size) {
+        
+        // Get the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        
+        // Create pageable without sort as we're using explicit sort in the query methods
+        Pageable pageable = PageRequest.of(page, size);
+        
+        // Get games page based on sort and filter criteria
+        Page<Game> gamesPage;
+        try {
+            // Determine which repository method to call based on sort and filter criteria
+            boolean isReleaseDate = "releasedate".equalsIgnoreCase(sortBy);
+            
+            if (filterByGenre != null && !filterByGenre.trim().isEmpty()) {
+                if (isReleaseDate) {
+                    gamesPage = gameLibraryRepository.findGamesByUserAndGenreOrderByReleaseDate(user, filterByGenre, pageable);
+                } else {
+                    gamesPage = gameLibraryRepository.findGamesByUserAndGenreOrderByTitle(user, filterByGenre, pageable);
+                }
+            } else {
+                if (isReleaseDate) {
+                    gamesPage = gameLibraryRepository.findGamesByUserOrderByReleaseDate(user, pageable);
+                } else {
+                    gamesPage = gameLibraryRepository.findGamesByUserOrderByTitle(user, pageable);
+                }
+            }
+            
+            // Trigger loading of lazy collections for each game
+            for (Game game : gamesPage.getContent()) {
+                game.getGenres().size(); // Force initialization
+                game.getPlatforms().size(); // Force initialization
+                game.getPublishers().size(); // Force initialization
+                game.getDevelopers().size(); // Force initialization
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "Error retrieving paginated game library: " + e.getMessage(), e);
+        }
+        
+        PaginatedGameLibraryResponse response = new PaginatedGameLibraryResponse();
+        // Set metadata
+        response.setLibraryId(gameLibraryRepository.findByUser(user)
+                                              .orElseThrow(() ->
+                                                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Game library not found"))
+                                              .getLibraryId());
+        response.setGames(gamesPage.getContent());
+        response.setCurrentPage(gamesPage.getNumber());
+        response.setTotalPages(gamesPage.getTotalPages());
+        response.setTotalElements(gamesPage.getTotalElements());
+        response.setPageSize(gamesPage.getSize());
+        
+        return response;
     }
 } 

@@ -5,7 +5,7 @@
   <div class="controls mb-4 flex flex-col md:flex-row items-center gap-4">
     <div>
       <label for="sortBy" class="text-text">Sort by:</label>
-      <select id="sortBy" [(ngModel)]="selectedSortBy" (change)="fetchGameLibrary()"
+      <select id="sortBy" [(ngModel)]="selectedSortBy" (change)="fetchGameLibrary(0)"
               class="bg-background text-text p-2 rounded">
         <option value="title">Title</option>
         <option value="releaseDate">Release Date</option>
@@ -13,7 +13,7 @@
     </div>
     <div>
       <label for="filterByGenre" class="text-text">Filter by Genre:</label>
-      <input id="filterByGenre" [(ngModel)]="selectedFilterByGenre" (input)="fetchGameLibrary()"
+      <input id="filterByGenre" [(ngModel)]="selectedFilterByGenre" (input)="fetchGameLibrary(0)"
              placeholder="Enter genre" class="bg-background text-text p-2 rounded"/>
     </div>
   </div>
@@ -54,5 +54,26 @@
         <p *ngIf="game.description" class="text-sm mt-2 text-gray-300 line-clamp-2">{{ game.description }}</p>
       </div>
     </div>
+  </div>
+  
+  <!-- Pagination controls -->
+  <div *ngIf="library && totalPages > 1" class="pagination-container mt-6 flex justify-center">
+    <p-paginator 
+      [first]="currentPage * pageSize"
+      [rows]="pageSize"
+      [totalRecords]="totalElements"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      (onPageChange)="onPageChange($event)">
+    </p-paginator>
+  </div>
+  
+  <!-- Pagination metadata -->
+  <div *ngIf="library && library.games.length > 0 && totalElements > 0" class="pagination-info mt-4 text-center text-sm text-text opacity-70">
+    Showing {{ (currentPage * pageSize) + 1 }} - {{ (currentPage * pageSize) + library.games.length }} of {{ totalElements }} games
+  </div>
+  
+  <!-- Simple count for small libraries -->
+  <div *ngIf="library && library.games.length > 0 && (!totalElements || totalElements <= pageSize)" class="pagination-info mt-4 text-center text-sm text-text opacity-70">
+    Showing {{ library.games.length }} {{ library.games.length === 1 ? 'game' : 'games' }}
   </div>
 </div> 

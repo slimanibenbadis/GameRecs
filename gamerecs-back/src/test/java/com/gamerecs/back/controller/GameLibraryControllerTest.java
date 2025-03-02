@@ -28,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.eq;
 
+import com.gamerecs.back.model.PaginatedGameLibraryResponse;
+
 class GameLibraryControllerTest extends BaseIntegrationTest {
 
     @Autowired
@@ -115,5 +117,58 @@ class GameLibraryControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.libraryId").value(2));
+    }
+
+    @Test
+    void testGetGameLibrary_WithPagination() throws Exception {
+        // Arrange: Prepare a dummy paginated response
+        PaginatedGameLibraryResponse dummyResponse = new PaginatedGameLibraryResponse();
+        dummyResponse.setLibraryId(1L);
+        dummyResponse.setCurrentPage(0);
+        dummyResponse.setTotalPages(2);
+        dummyResponse.setTotalElements(15L);
+        dummyResponse.setPageSize(10);
+        // Assume the games list contains some games
+        dummyResponse.setGames(testLibrary.getGames().stream().toList());
+
+        when(gameLibraryService.getPaginatedLibraryForUser(eq(TEST_USER_ID),
+               eq("title"), eq(""), eq(0), eq(10)))
+               .thenReturn(dummyResponse);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/game-library/paginated")
+                .with(authentication(authentication))
+                .param("page", "0")
+                .param("size", "10")
+                .param("sortBy", "title")
+                .param("filterByGenre", "")
+                .contentType(MediaType.APPLICATION_JSON))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.libraryId").value(1))
+               .andExpect(jsonPath("$.currentPage").value(0))
+               .andExpect(jsonPath("$.totalPages").value(2))
+               .andExpect(jsonPath("$.totalElements").value(15))
+               .andExpect(jsonPath("$.pageSize").value(10));
+    }
+    
+    @Test
+    void testGetGameLibrary_WithPagination_InvalidParameters() throws Exception {
+        // Act & Assert for negative page
+        mockMvc.perform(get("/api/game-library/paginated")
+                .with(authentication(authentication))
+                .param("page", "-1")
+                .param("size", "10")
+                .contentType(MediaType.APPLICATION_JSON))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.message").value("Invalid pagination parameters"));
+        
+        // Act & Assert for zero size
+        mockMvc.perform(get("/api/game-library/paginated")
+                .with(authentication(authentication))
+                .param("page", "0")
+                .param("size", "0")
+                .contentType(MediaType.APPLICATION_JSON))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.message").value("Invalid pagination parameters"));
     }
 } 
