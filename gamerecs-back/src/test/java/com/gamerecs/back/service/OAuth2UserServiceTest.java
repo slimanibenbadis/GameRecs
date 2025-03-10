@@ -2,6 +2,8 @@ package com.gamerecs.back.service;
 
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
+import com.gamerecs.back.model.GameLibrary;
+import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.util.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +32,9 @@ class OAuth2UserServiceTest extends BaseUnitTest {
 
     @Mock
     private UserRepository userRepository;
-
+    
+    @Mock
+    private GameLibraryRepository gameLibraryRepository;
 
     private OAuth2UserService oAuth2UserService;
     private OAuth2User defaultOAuth2User;
@@ -60,7 +64,7 @@ class OAuth2UserServiceTest extends BaseUnitTest {
         userRequest = mock(OAuth2UserRequest.class);
 
         // Create service with mocked delegate
-        oAuth2UserService = spy(new OAuth2UserService(userRepository));
+        oAuth2UserService = spy(new OAuth2UserService(userRepository, gameLibraryRepository));
 
         // Create and configure mock delegate service
         mockDelegate = mock(DefaultOAuth2UserService.class);
@@ -85,6 +89,13 @@ class OAuth2UserServiceTest extends BaseUnitTest {
             User user = invocation.getArgument(0);
             user.setUserId(1L); // Set a mock ID
             return user;
+        });
+        
+        // Mock game library save
+        when(gameLibraryRepository.save(any(GameLibrary.class))).thenAnswer(invocation -> {
+            GameLibrary savedLibrary = invocation.getArgument(0);
+            savedLibrary.setLibraryId(1L); // Set ID to simulate database save
+            return savedLibrary;
         });
         
         // Mock findById for verification

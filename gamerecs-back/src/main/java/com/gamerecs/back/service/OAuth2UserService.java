@@ -1,6 +1,8 @@
 package com.gamerecs.back.service;
 
+import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.model.User;
+import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +24,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2UserService.class);
 
     private final UserRepository userRepository;
+    private final GameLibraryRepository gameLibraryRepository;
 
     @Autowired
-    public OAuth2UserService(UserRepository userRepository) {
+    public OAuth2UserService(UserRepository userRepository, GameLibraryRepository gameLibraryRepository) {
         this.userRepository = userRepository;
+        this.gameLibraryRepository = gameLibraryRepository;
     }
 
     @Override
@@ -134,6 +138,18 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         logger.debug("Attempting to save new OAuth2 user with username: {}", username);
         User savedUser = userRepository.save(user);
         logger.debug("User saved successfully. UserId: {}", savedUser.getUserId());
+        
+        // Create a GameLibrary for the saved user
+        GameLibrary library = new GameLibrary();
+        library.setUser(savedUser);
+        library = gameLibraryRepository.save(library);
+        logger.info("Created game library for OAuth2 user ID: {}", savedUser.getUserId());
+        
+        // Link the library to the user
+        savedUser.setGameLibrary(library);
+        // No need to save the user again, as we're in a transactional context
+        // and all changes to the managed entity will be persisted
+        
         return savedUser;
     }
 
