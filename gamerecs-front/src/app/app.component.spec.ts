@@ -1,37 +1,47 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AppComponent } from './app.component';
+import { NavBarComponent } from './core/components/nav/nav-bar.component';
+import { AuthService } from './core/services/auth.service';
+import { BehaviorSubject } from 'rxjs';
+import { ButtonModule } from 'primeng/button';
+import { MenubarModule } from 'primeng/menubar';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('AppComponent', () => {
-  let mediaQuery: { matches: boolean; addEventListener: Function; removeEventListener: Function };
-  let eventListener: Function;
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let authService: jasmine.SpyObj<AuthService>;
+  let isAuthenticatedSubject: BehaviorSubject<boolean>;
 
   beforeEach(async () => {
-    // Reset DOM state
-    document.documentElement.classList.remove('dark');
-
-    // Setup mock
-    mediaQuery = {
-      matches: false,
-      addEventListener: (event: string, listener: Function) => {
-        eventListener = listener;
-      },
-      removeEventListener: () => {}
-    };
-
-    // Mock window.matchMedia
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      value: () => mediaQuery
+    isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+    authService = jasmine.createSpyObj('AuthService', ['logout'], {
+      isAuthenticated$: isAuthenticatedSubject.asObservable()
     });
 
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      imports: [
+        RouterTestingModule,
+        HttpClientTestingModule,
+        ButtonModule,
+        MenubarModule,
+        NoopAnimationsModule,
+        AppComponent,
+        NavBarComponent
+      ],
+      providers: [
+        { provide: AuthService, useValue: authService }
+      ]
     }).compileComponents();
+
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(component).toBeTruthy();
   });
 });

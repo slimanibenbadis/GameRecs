@@ -1,0 +1,36 @@
+:host ::ng-deep .p-menubar {
+  padding: 1rem 0;
+}
+
+:host ::ng-deep .p-menubar-root-list {
+  gap: 1rem;
+}
+
+:host ::ng-deep .p-menuitem-link {
+  color: var(--text-color) !important;
+  font-family: 'Rubik', sans-serif;
+  transition: color 0.2s;
+}
+
+:host ::ng-deep .p-menuitem-link:hover {
+  color: var(--primary-color) !important;
+}
+
+:host ::ng-deep .p-menuitem-link.p-menuitem-link-active {
+  color: var(--primary-color) !important;
+}
+
+@media (max-width: 768px) {
+  :host ::ng-deep .p-menubar-button {
+    color: var(--text-color) !important;
+  }
+  
+  :host ::ng-deep .p-menubar-button:hover {
+    color: var(--primary-color) !important;
+  }
+  
+  :host ::ng-deep .p-menubar-root-list {
+    background: var(--bg-color) !important;
+    border-color: var(--secondary-color) !important;
+  }
+} 

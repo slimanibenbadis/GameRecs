@@ -1,0 +1,22 @@
+<nav *ngIf="isAuthenticated" class="w-full bg-background border-b border-secondary shadow-lg"
+     role="navigation" aria-label="Main navigation">
+  <div class="container mx-auto px-4">
+    <p-menubar [model]="menuItems" styleClass="border-none bg-transparent">
+      <ng-template pTemplate="start">
+        <a routerLink="/" class="text-primary text-xl font-fira font-bold">
+          GameRecs
+        </a>
+      </ng-template>
+      <ng-template pTemplate="end">
+        <p-button 
+          (click)="logout()" 
+          label="Logout"
+          severity="secondary"
+          [rounded]="true"
+          [text]="true"
+          class="hover:text-primary transition-colors duration-200">
+        </p-button>
+      </ng-template>
+    </p-menubar>
+  </div>
+</nav> 
