@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ButtonModule } from 'primeng/button';
@@ -10,7 +10,12 @@ import { MenuItem } from 'primeng/api';
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonModule, MenubarModule],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    ButtonModule, 
+    MenubarModule
+  ],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
@@ -19,7 +24,10 @@ export class NavBarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [];
   private authSubscription?: Subscription;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     // Subscribe to authentication state changes
@@ -42,7 +50,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
       {
         label: 'Home',
         icon: 'pi pi-home',
-        routerLink: '/',
+        routerLink: '',
         routerLinkActiveOptions: { exact: true }
       },
       {
@@ -53,12 +61,12 @@ export class NavBarComponent implements OnInit, OnDestroy {
       {
         label: 'Recommendations',
         icon: 'pi pi-star',
-        routerLink: '/recommendations'
+        routerLink: ''
       },
       {
         label: 'Backlog',
         icon: 'pi pi-list',
-        routerLink: '/backlog'
+        routerLink: ''
       },
       {
         label: 'Profile',
@@ -69,6 +77,12 @@ export class NavBarComponent implements OnInit, OnDestroy {
   }
 
   logout() {
+    // Log the user out
     this.authService.logout();
+    
+    // Redirect to the login page
+    this.router.navigate(['/auth/login']);
+    
+    console.log('[NavBarComponent] User logged out, redirecting to login page');
   }
 } 
