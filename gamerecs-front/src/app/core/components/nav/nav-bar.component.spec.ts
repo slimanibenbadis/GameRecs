@@ -74,7 +74,7 @@ describe('NavBarComponent', () => {
     
     expect(component.menuItems.length).toBe(5);
     expect(component.menuItems.map(item => item.label)).toEqual([
-      'Home',
+      'Dashboard',
       'Game Library',
       'Recommendations',
       'Backlog',
@@ -82,7 +82,7 @@ describe('NavBarComponent', () => {
     ]);
     
     // Check that unimplemented pages use empty string as routerLink
-    expect(component.menuItems[0].routerLink).toBe('');
+    expect(component.menuItems[0].routerLink).toBe('/dashboard');
     expect(component.menuItems[1].routerLink).toBe('/library');
     expect(component.menuItems[2].routerLink).toBe('');
     expect(component.menuItems[3].routerLink).toBe('');

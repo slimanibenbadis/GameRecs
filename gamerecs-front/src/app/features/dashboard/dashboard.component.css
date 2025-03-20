@@ -1,0 +1,86 @@
+/* Dashboard Container Styles */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Game Card Hover Effects */
+.game-card {
+  transition: transform 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Custom Carousel Styling */
+::ng-deep .p-carousel .p-carousel-indicators .p-carousel-indicator.p-highlight button {
+  background-color: var(--primary-color);
+}
+
+::ng-deep .p-carousel .p-carousel-indicators .p-carousel-indicator button {
+  background-color: var(--surface-400);
+}
+
+::ng-deep .p-carousel .p-carousel-content .p-carousel-prev,
+::ng-deep .p-carousel .p-carousel-content .p-carousel-next {
+  color: var(--primary-color);
+  background: rgba(123, 234, 219, 0.1);
+  border-radius: 50%;
+  margin: 0.5rem;
+}
+
+::ng-deep .p-carousel .p-carousel-content .p-carousel-prev:hover,
+::ng-deep .p-carousel .p-carousel-content .p-carousel-next:hover {
+  background: rgba(123, 234, 219, 0.2);
+}
+
+/* Table Styling */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: var(--surface-300);
+  color: var(--text-color);
+  border-color: var(--surface-400);
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr {
+  background-color: var(--surface-200);
+  color: var(--text-color);
+  transition: background-color 0.2s;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: var(--surface-300);
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  border-color: var(--surface-400);
+}
+
+/* Paginator Styling */
+::ng-deep .p-paginator {
+  background-color: var(--surface-200);
+  border-color: var(--surface-400);
+}
+
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background-color: var(--primary-color);
+  color: var(--bg-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  ::ng-deep .p-datatable-responsive .p-datatable-tbody > tr > td {
+    text-align: left;
+    display: block;
+    width: 100%;
+    border: 0 none;
+    padding: 0.5rem 1rem;
+  }
+  
+  ::ng-deep .p-datatable-responsive .p-datatable-tbody > tr > td:before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: inline-block;
+    width: 40%;
+  }
+} 

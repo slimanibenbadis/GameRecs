@@ -8,6 +8,7 @@ import { GoogleCallbackComponent } from './core/components/auth/google-callback.
 import { AuthGuard } from './core/guards/auth.guard';
 import { ProfileComponent } from './features/profile/profile.component';
 import { GameLibraryComponent } from './features/game-library/game-library.component';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
 
 export const routes: Routes = [
   { 
@@ -25,6 +26,11 @@ export const routes: Routes = [
     ]
   },
   { path: 'verify', component: EmailVerificationComponent },
+  { 
+    path: 'dashboard',
+    component: DashboardComponent,
+    canActivate: [AuthGuard]
+  },
   { 
     path: 'profile',
     component: ProfileComponent,

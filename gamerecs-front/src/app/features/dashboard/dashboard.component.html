@@ -1,0 +1,133 @@
+<div class="dashboard-container p-4 md:p-6 animate-fadeIn">
+  <h1 class="text-gradient mb-8 text-center">Welcome to Your Gaming Dashboard</h1>
+  
+  <!-- Top Rated Games Carousel Section -->
+  <section class="mb-12">
+    <div class="flex justify-between items-center mb-4">
+      <h2>Top Rated Games</h2>
+      <div class="text-sm text-primary">Last 7 days</div>
+    </div>
+    
+    <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
+      <p class="text-center mb-4 text-sm italic">Top Rated Games Carousel coming soon...</p>
+      
+      <p-carousel [value]="topRatedGames" [numVisible]="3" [numScroll]="1" [circular]="true"
+                 [responsiveOptions]="carouselResponsiveOptions" [autoplayInterval]="5000">
+        <ng-template let-game pTemplate="item">
+          <div class="game-card p-2">
+            <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
+              <div class="game-image-container h-40 overflow-hidden relative">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-surface-300 opacity-50"></div>
+                <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
+              </div>
+              <div class="p-3 flex-grow">
+                <h3 class="text-lg font-bold mb-2">{{ game.title }}</h3>
+                <div class="flex items-center">
+                  <span class="text-primary font-bold">{{ game.rating }}</span>
+                  <span class="ml-1 text-xs">/5</span>
+                  <div class="ml-auto flex">
+                    <i class="pi pi-star-fill text-primary text-sm"></i>
+                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                    <i class="pi pi-star text-primary text-sm ml-1"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </p-carousel>
+    </div>
+  </section>
+  
+  <!-- Personalized Game Recommendations Section -->
+  <section class="mb-12">
+    <h2 class="mb-4">Personalized Recommendations</h2>
+    
+    <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
+      <p class="text-center mb-4 text-sm italic">Personalized Game Recommendations coming soon...</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        @for (game of recommendedGames; track game.id) {
+          <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
+            <div class="h-32 bg-surface-400 flex items-center justify-center">
+              <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
+            </div>
+            <div class="p-3 flex-grow">
+              <h3 class="text-base font-bold mb-2">{{ game.title }}</h3>
+              <p class="text-xs text-text/80">{{ game.description }}</p>
+            </div>
+            <div class="p-3 pt-0">
+              <button pButton label="View Details" class="p-button-sm p-button-outlined w-full"></button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+  
+  <!-- User Backlog Table Section -->
+  <section class="mb-12">
+    <h2 class="mb-4">Your Gaming Backlog</h2>
+    
+    <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
+      <p class="text-center mb-4 text-sm italic">User Backlog Table coming soon...</p>
+      
+      <p-table [value]="backlogGames" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}"
+              [paginator]="true" [rows]="5" [showCurrentPageReport]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Platform</th>
+            <th>Added Date</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-game>
+          <tr>
+            <td>{{ game.title }}</td>
+            <td>
+              <p-tag [value]="game.status" [severity]="getStatusSeverity(game.status)"></p-tag>
+            </td>
+            <td>{{ game.platform }}</td>
+            <td>{{ game.addedDate }}</td>
+            <td>
+              <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm"
+                      pTooltip="Edit" tooltipPosition="top"></button>
+              <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger p-button-sm"
+                      pTooltip="Remove" tooltipPosition="top"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </section>
+  
+  <!-- Top Library Recommendations Section -->
+  <section class="mb-8">
+    <h2 class="mb-4">From Your Library</h2>
+    
+    <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
+      <p class="text-center mb-4 text-sm italic">Top Library Recommendations coming soon...</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        @for (game of libraryRecommendations; track game.id) {
+          <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
+            <div class="h-32 bg-surface-400 flex items-center justify-center">
+              <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
+            </div>
+            <div class="p-3 flex-grow">
+              <h3 class="text-base font-bold mb-2">{{ game.title }}</h3>
+              <p class="text-xs text-text/80">{{ game.reason }}</p>
+            </div>
+            <div class="p-3 pt-0">
+              <button pButton label="Play Now" class="p-button-sm w-full"></button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</div> 

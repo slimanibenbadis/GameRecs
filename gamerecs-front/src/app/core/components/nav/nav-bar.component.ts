@@ -48,9 +48,9 @@ export class NavBarComponent implements OnInit, OnDestroy {
   private initializeMenuItems() {
     this.menuItems = [
       {
-        label: 'Home',
-        icon: 'pi pi-home',
-        routerLink: '',
+        label: 'Dashboard',
+        icon: 'pi pi-th-large',
+        routerLink: '/dashboard',
         routerLinkActiveOptions: { exact: true }
       },
       {
