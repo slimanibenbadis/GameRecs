@@ -58,7 +58,7 @@ describe('GoogleCallbackComponent', () => {
 
     // Assert
     expect(authServiceSpy.handleGoogleToken).toHaveBeenCalledWith('valid-jwt-token');
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/profile']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
     expect(component.isLoading).toBeFalse();
     expect(component.error).toBeNull();
   }));
@@ -88,7 +88,7 @@ describe('GoogleCallbackComponent', () => {
 
     // Assert
     expect(authServiceSpy.handleGoogleCallback).toHaveBeenCalledWith('valid-auth-code');
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/profile']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
     expect(component.isLoading).toBeFalse();
     expect(component.error).toBeNull();
   }));
@@ -147,7 +147,7 @@ describe('GoogleCallbackComponent', () => {
     fixture.detectChanges();
     
     expect(component.isLoading).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/profile']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
   }));
 
   it('should handle network errors during callback', fakeAsync(() => {

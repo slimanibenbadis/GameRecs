@@ -53,7 +53,7 @@ describe('Login Flow', () => {
       .click();
     
     // Verify navigation
-    cy.url().should('include', '/profile');
+    cy.url().should('include', '/dashboard');
   });
 
   it('should handle invalid credentials', () => {
@@ -106,11 +106,11 @@ describe('Login Flow', () => {
 
 
     cy.reload();
-    cy.url().should('include', '/profile');
+    cy.url().should('include', '/dashboard');
   });
 
   it('should redirect to login when accessing protected route without auth', () => {
-    cy.visit('/profile');
+    cy.visit('/dashboard');
     cy.url().should('include', '/auth/login');
   });
 
@@ -248,7 +248,7 @@ describe('Google OAuth Login Flow', () => {
       expect(interception.request.url).to.include('code=mock_auth_code');
     });
 
-    cy.url().should('include', '/profile');
+    cy.url().should('include', '/dashboard');
   });
 
   it('should handle Google OAuth failure', () => {

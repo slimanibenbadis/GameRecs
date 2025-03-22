@@ -151,7 +151,7 @@ describe('LoginFormComponent', () => {
         detail: `Successfully logged in as ${mockLoginResponse.username}`,
         life: 3000
       });
-      expect(router.navigate).toHaveBeenCalledWith(['/profile']);
+      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
       expect(component.loading).toBeFalse();
     }));
 
