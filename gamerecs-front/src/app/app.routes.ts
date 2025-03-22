@@ -6,6 +6,7 @@ import { LoginFormComponent } from './core/components/auth/login-form.component'
 import { LandingPageComponent } from './core/components/landing/landing-page.component';
 import { GoogleCallbackComponent } from './core/components/auth/google-callback.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { LandingGuard } from './core/guards/landing.guard';
 import { ProfileComponent } from './features/profile/profile.component';
 import { GameLibraryComponent } from './features/game-library/game-library.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
@@ -41,6 +42,11 @@ export const routes: Routes = [
     component: GameLibraryComponent,
     canActivate: [AuthGuard]
   },
-  { path: '', component: LandingPageComponent, pathMatch: 'full' },
+  { 
+    path: '', 
+    component: LandingPageComponent, 
+    canActivate: [LandingGuard],
+    pathMatch: 'full' 
+  },
   { path: '**', redirectTo: '/' }
 ];

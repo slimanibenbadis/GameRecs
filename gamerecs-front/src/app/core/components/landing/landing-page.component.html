@@ -1,7 +1,7 @@
 <!-- Main Container -->
 <div class="min-h-screen flex flex-col bg-background">
   <!-- Navigation Bar - Only shown for unauthenticated users -->
-  <nav *ngIf="!isAuthenticated" class="w-full p-4 flex justify-between items-center relative z-20">
+  <nav class="w-full p-4 flex justify-between items-center relative z-20">
     <div class="text-2xl font-fira font-bold text-text">
       Gamer-Reco
     </div>
@@ -18,9 +18,6 @@
       </button>
     </div>
   </nav>
-
-  <!-- Include the main nav-bar for authenticated users -->
-  <app-nav-bar *ngIf="isAuthenticated"></app-nav-bar>
 
   <!-- Enhanced Hero Section with Gaming Background -->
   <div class="relative flex-1 flex flex-col items-center justify-center p-4 text-center overflow-hidden min-h-[80vh]">

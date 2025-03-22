@@ -8,7 +8,6 @@ import { ButtonModule } from 'primeng/button';
 
 // App Imports
 import { AuthService } from '../../services/auth.service';
-import { NavBarComponent } from '../nav/nav-bar.component';
 
 @Component({
   selector: 'app-landing-page',
@@ -19,7 +18,6 @@ import { NavBarComponent } from '../nav/nav-bar.component';
     CommonModule,
     RouterModule,
     ButtonModule,
-    NavBarComponent
   ]
 })
 export class LandingPageComponent implements OnInit, OnDestroy {

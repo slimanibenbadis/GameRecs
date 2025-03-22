@@ -115,21 +115,7 @@ describe('LandingPageComponent', () => {
       expect(nav.classList.contains('flex')).toBeTruthy();
     });
     
-    it('should not show landing page nav when authenticated', () => {
-      isAuthenticatedSubject.next(true);
-      fixture.detectChanges();
-      
-      const landingNav = fixture.nativeElement.querySelector('nav:not(app-nav-bar nav)');
-      expect(landingNav).toBeNull();
-    });
     
-    it('should show nav-bar component when authenticated', () => {
-      isAuthenticatedSubject.next(true);
-      fixture.detectChanges();
-      
-      const navBarComponent = fixture.nativeElement.querySelector('app-nav-bar');
-      expect(navBarComponent).toBeTruthy();
-    });
 
     it('should have hero section with background image', () => {
       const heroSection = fixture.nativeElement.querySelector('.relative.flex-1');
