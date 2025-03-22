@@ -1,0 +1,27 @@
+<svg width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#082420" />
+  
+  <!-- Gaming controller outline -->
+  <rect x="75" y="100" width="150" height="100" rx="15" stroke="#155b89" stroke-width="3" fill="none" />
+  <circle cx="120" cy="150" r="20" stroke="#7beadb" stroke-width="2" fill="none" />
+  <circle cx="180" cy="150" r="20" stroke="#7beadb" stroke-width="2" fill="none" />
+  <rect x="110" y="80" width="80" height="30" rx="15" stroke="#4684e2" stroke-width="2" fill="none" />
+  
+  <!-- Text elements -->
+  <text x="150" y="240" font-family="Fira Sans, sans-serif" font-size="24" fill="#7beadb" text-anchor="middle">Game Title</text>
+  <text x="150" y="270" font-family="Rubik, sans-serif" font-size="16" fill="#4684e2" text-anchor="middle">3:4 Ratio Poster</text>
+  
+  <!-- Decorative elements -->
+  <line x1="50" y1="300" x2="250" y2="300" stroke="#155b89" stroke-width="2" />
+  <line x1="75" y1="320" x2="225" y2="320" stroke="#155b89" stroke-width="1" />
+  <line x1="100" y1="340" x2="200" y2="340" stroke="#155b89" stroke-width="1" />
+  
+  <!-- Rating stars -->
+  <g transform="translate(90, 360)">
+    <path d="M10,0 L13,6 L20,7 L15,12 L16,19 L10,16 L4,19 L5,12 L0,7 L7,6 Z" fill="#7beadb" />
+    <path d="M30,0 L33,6 L40,7 L35,12 L36,19 L30,16 L24,19 L25,12 L20,7 L27,6 Z" fill="#7beadb" />
+    <path d="M50,0 L53,6 L60,7 L55,12 L56,19 L50,16 L44,19 L45,12 L40,7 L47,6 Z" fill="#7beadb" />
+    <path d="M70,0 L73,6 L80,7 L75,12 L76,19 L70,16 L64,19 L65,12 L60,7 L67,6 Z" fill="#7beadb" />
+    <path d="M90,0 L93,6 L100,7 L95,12 L96,19 L90,16 L84,19 L85,12 L80,7 L87,6 Z" fill="#4684e2" />
+  </g>
+</svg> 

@@ -11,33 +11,47 @@
     <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
       <p class="text-center mb-4 text-sm italic">Top Rated Games Carousel coming soon...</p>
       
-      <p-carousel [value]="topRatedGames" [numVisible]="3" [numScroll]="1" [circular]="true"
+      @if (loading) {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (i of [1,2,3]; track i) {
+            <div class="p-2">
+              <p-skeleton height="360px" width="100%" styleClass="mb-2 rounded-lg" [style]="{'aspect-ratio': '3/4'}"></p-skeleton>
+              <p-skeleton width="80%" height="1.5rem" styleClass="mb-2"></p-skeleton>
+              <p-skeleton width="60%" height="1rem"></p-skeleton>
+            </div>
+          }
+        </div>
+      } @else {
+        <p-carousel [value]="topRatedGames" [numVisible]="3" [numScroll]="1" [circular]="true"
                  [responsiveOptions]="carouselResponsiveOptions" [autoplayInterval]="5000">
-        <ng-template let-game pTemplate="item">
-          <div class="game-card p-2">
-            <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
-              <div class="game-image-container h-40 overflow-hidden relative">
-                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-surface-300 opacity-50"></div>
-                <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
-              </div>
-              <div class="p-3 flex-grow">
-                <h3 class="text-lg font-bold mb-2">{{ game.title }}</h3>
-                <div class="flex items-center">
-                  <span class="text-primary font-bold">{{ game.rating }}</span>
-                  <span class="ml-1 text-xs">/5</span>
-                  <div class="ml-auto flex">
-                    <i class="pi pi-star-fill text-primary text-sm"></i>
-                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
-                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
-                    <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
-                    <i class="pi pi-star text-primary text-sm ml-1"></i>
+          <ng-template let-game pTemplate="item">
+            <div class="game-card p-2">
+              <div class="game-poster-card" (click)="navigateToGameDetails(game.id)"
+                   role="button" tabindex="0"
+                   [attr.aria-label]="'View details for ' + game.title + ' with rating ' + game.rating + ' out of 5'"
+                   (keydown.enter)="navigateToGameDetails(game.id)">
+                <div class="game-poster" style="aspect-ratio: 3/4">
+                  <img [src]="game.imageUrl" [alt]="game.title + ' poster'" class="w-full h-full object-cover rounded-lg" loading="lazy">
+                  <div class="game-info-overlay" aria-hidden="true">
+                    <h3 class="game-title">{{ game.title }}</h3>
+                    <div class="flex items-center mb-1">
+                      <span class="text-primary font-bold">{{ game.rating }}</span>
+                      <span class="ml-1 text-xs">/5</span>
+                    </div>
+                    <div class="flex">
+                      <i class="pi pi-star-fill text-primary text-sm"></i>
+                      <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                      <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                      <i class="pi pi-star-fill text-primary text-sm ml-1"></i>
+                      <i class="pi pi-star text-primary text-sm ml-1"></i>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ng-template>
-      </p-carousel>
+          </ng-template>
+        </p-carousel>
+      }
     </div>
   </section>
   
@@ -48,20 +62,31 @@
     <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
       <p class="text-center mb-4 text-sm italic">Personalized Game Recommendations coming soon...</p>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        @for (game of recommendedGames; track game.id) {
-          <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
-            <div class="h-32 bg-surface-400 flex items-center justify-center">
-              <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        @if (loading) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="game-poster-card">
+              <p-skeleton height="360px" width="100%" styleClass="mb-2 rounded-lg" [style]="{'aspect-ratio': '3/4'}"></p-skeleton>
+              <p-skeleton width="80%" height="1.5rem" styleClass="mb-2"></p-skeleton>
+              <p-skeleton width="60%" height="1rem"></p-skeleton>
             </div>
-            <div class="p-3 flex-grow">
-              <h3 class="text-base font-bold mb-2">{{ game.title }}</h3>
-              <p class="text-xs text-text/80">{{ game.description }}</p>
+          }
+        } @else {
+          @for (game of recommendedGames; track game.id) {
+            <div class="game-poster-card" (click)="navigateToGameDetails(game.id)" 
+                 role="button" tabindex="0" 
+                 [attr.aria-label]="'View details for ' + game.title + ' on ' + game.platform"
+                 (keydown.enter)="navigateToGameDetails(game.id)">
+              <div class="game-poster" style="aspect-ratio: 3/4">
+                <img [src]="game.imageUrl" [alt]="game.title + ' poster'" class="w-full h-full object-cover rounded-lg" loading="lazy">
+                <div class="game-info-overlay" aria-hidden="true">
+                  <h3 class="game-title">{{ game.title }}</h3>
+                  <p class="game-rating">Rating: 85/100</p>
+                  <p class="game-platform">{{ game.platform || 'PC, PS5' }}</p>
+                </div>
+              </div>
             </div>
-            <div class="p-3 pt-0">
-              <button pButton label="View Details" class="p-button-sm p-button-outlined w-full"></button>
-            </div>
-          </div>
+          }
         }
       </div>
     </div>
@@ -112,20 +137,31 @@
     <div class="bg-surface-200 p-4 rounded-xl shadow-glow">
       <p class="text-center mb-4 text-sm italic">Top Library Recommendations coming soon...</p>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        @for (game of libraryRecommendations; track game.id) {
-          <div class="bg-surface-300 rounded-lg overflow-hidden shadow-md h-full flex flex-col">
-            <div class="h-32 bg-surface-400 flex items-center justify-center">
-              <img [src]="game.imageUrl" alt="Game image" class="w-full h-full object-cover" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        @if (loading) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="game-poster-card">
+              <p-skeleton height="360px" width="100%" styleClass="mb-2 rounded-lg" [style]="{'aspect-ratio': '3/4'}"></p-skeleton>
+              <p-skeleton width="80%" height="1.5rem" styleClass="mb-2"></p-skeleton>
+              <p-skeleton width="60%" height="1rem"></p-skeleton>
             </div>
-            <div class="p-3 flex-grow">
-              <h3 class="text-base font-bold mb-2">{{ game.title }}</h3>
-              <p class="text-xs text-text/80">{{ game.reason }}</p>
+          }
+        } @else {
+          @for (game of libraryRecommendations; track game.id) {
+            <div class="game-poster-card" (click)="navigateToGameDetails(game.id)"
+                 role="button" tabindex="0"
+                 [attr.aria-label]="'View details for ' + game.title + ' on ' + game.platform"
+                 (keydown.enter)="navigateToGameDetails(game.id)">
+              <div class="game-poster" style="aspect-ratio: 3/4">
+                <img [src]="game.imageUrl" [alt]="game.title + ' poster'" class="w-full h-full object-cover rounded-lg" loading="lazy">
+                <div class="game-info-overlay" aria-hidden="true">
+                  <h3 class="game-title">{{ game.title }}</h3>
+                  <p class="game-rating">{{ game.reason }}</p>
+                  <p class="game-platform">{{ game.platform || 'PC, PS5' }}</p>
+                </div>
+              </div>
             </div>
-            <div class="p-3 pt-0">
-              <button pButton label="Play Now" class="p-button-sm w-full"></button>
-            </div>
-          </div>
+          }
         }
       </div>
     </div>

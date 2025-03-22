@@ -83,4 +83,92 @@
     display: inline-block;
     width: 40%;
   }
+}
+
+/* Game Poster Card Styles */
+.game-poster-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-poster-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px -5px rgba(123, 234, 219, 0.3);
+}
+
+.game-poster {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.game-poster img {
+  transition: transform 0.4s ease;
+}
+
+.game-poster-card:hover img {
+  transform: scale(1.05);
+}
+
+.game-info-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(2, 13, 11, 0.9), transparent);
+  padding: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.game-poster-card:hover .game-info-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.game-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.game-rating, .game-platform {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive adjustments for game posters */
+@media (max-width: 640px) {
+  .game-info-overlay {
+    opacity: 1;
+    transform: translateY(0);
+    padding: 0.75rem;
+  }
+  
+  .game-title {
+    font-size: 0.875rem;
+  }
+  
+  .game-rating, .game-platform {
+    font-size: 0.75rem;
+  }
+}
+
+/* Accessibility focus styles */
+.game-poster-card:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px rgba(123, 234, 219, 0.4);
+  border-radius: 8px;
+}
+
+/* Hide focus outline for mouse users */
+.game-poster-card:focus:not(:focus-visible) {
+  outline: none;
 } 
