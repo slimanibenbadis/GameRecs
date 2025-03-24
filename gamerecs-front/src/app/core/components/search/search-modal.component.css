@@ -1,0 +1,44 @@
+/* Host element styling */
+:host {
+  display: contents;
+}
+
+/* Font styling */
+.font-fira-sans {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+/* Modal animation classes */
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 200ms ease-in, transform 200ms ease-in;
+}
+
+/* Input field focus styles */
+:host ::ng-deep .p-inputtext:enabled:focus {
+  box-shadow: 0 0 0 2px rgba(70, 132, 226, 0.2);
+  border-color: #4684e2;
+}
+
+/* Modal backdrop styles */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+} 

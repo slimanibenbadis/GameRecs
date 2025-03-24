@@ -8,15 +8,29 @@
         </a>
       </ng-template>
       <ng-template pTemplate="end">
-        <p-button 
-          (click)="logout()" 
-          label="Logout"
-          severity="secondary"
-          [rounded]="true"
-          [text]="true"
-          class="hover:text-primary transition-colors duration-200">
-        </p-button>
+        <div class="flex items-center gap-4">
+          <p-button 
+            icon="pi pi-search"
+            [text]="true"
+            severity="secondary"
+            (click)="openSearchModal()"
+            pTooltip="Search Games"
+            tooltipPosition="bottom"
+            [rounded]="true"
+            class="hover:text-primary transition-colors duration-200"
+            aria-label="Open search modal">
+          </p-button>
+          <p-button 
+            (click)="logout()" 
+            label="Logout"
+            severity="secondary"
+            [rounded]="true"
+            [text]="true"
+            class="hover:text-primary transition-colors duration-200">
+          </p-button>
+        </div>
       </ng-template>
     </p-menubar>
   </div>
-</nav> 
+</nav>
+<app-search-modal #searchModal></app-search-modal> 

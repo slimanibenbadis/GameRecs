@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,6 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { ButtonModule } from 'primeng/button';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { SearchModalComponent } from '../search/search-modal.component';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-nav-bar',
@@ -14,12 +16,15 @@ import { MenuItem } from 'primeng/api';
     CommonModule, 
     RouterModule, 
     ButtonModule, 
-    MenubarModule
+    MenubarModule,
+    SearchModalComponent,
+    TooltipModule
   ],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements OnInit, OnDestroy {
+  @ViewChild('searchModal') searchModal!: SearchModalComponent;
   isAuthenticated = false;
   menuItems: MenuItem[] = [];
   private authSubscription?: Subscription;
@@ -74,6 +79,10 @@ export class NavBarComponent implements OnInit, OnDestroy {
         routerLink: '/profile'
       }
     ];
+  }
+
+  openSearchModal() {
+    this.searchModal.show();
   }
 
   logout() {
