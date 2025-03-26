@@ -7,7 +7,7 @@
      aria-modal="true">
   
   <!-- Modal Content -->
-  <div class="bg-[#020d0b] text-[#d7f9f4] p-6 rounded-lg shadow-xl w-[90%] md:w-[50%] relative"
+  <div class="bg-[#020d0b] text-[#d7f9f4] p-6 rounded-lg shadow-xl w-[90%] md:w-[50%] relative max-h-[80vh] overflow-y-auto"
        #modalContent>
     
     <!-- Close Button -->
@@ -27,18 +27,49 @@
         <input type="text" 
                pInputText 
                class="w-full p-3 bg-[#020d0b] border border-[#155b89] rounded-lg focus:border-[#4684e2]"
-               [(ngModel)]="searchQuery"
+               [formControl]="searchControl"
                (keydown.escape)="close()"
-               placeholder="Search for games..."
+               placeholder="Search for games (min 2 characters)..."
                aria-label="Search games input">
       </span>
+      
+      <!-- Search hint -->
+      <small class="text-[#7beadb] block mt-2">Type at least 2 characters to search</small>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="flex justify-center my-4">
+      <i class="pi pi-spin pi-spinner text-[#4684e2] text-2xl"></i>
+    </div>
+
+    <!-- Search Results -->
+    <div *ngIf="searchResults.length > 0 && !isLoading" class="mt-4">
+      <h3 class="text-xl mb-3 font-fira-sans">Results</h3>
+      <div class="grid grid-cols-1 gap-4">
+        <div *ngFor="let game of searchResults" 
+             class="p-3 border border-[#155b89] rounded-lg hover:border-[#4684e2] transition-colors cursor-pointer">
+          <div class="flex items-center">
+            <img *ngIf="game.coverImageUrl" [src]="game.coverImageUrl" alt="{{game.title}} cover" 
+                 class="w-16 h-auto mr-3 rounded">
+            <div>
+              <h4 class="text-[#7beadb] font-bold">{{game.title}}</h4>
+              <p *ngIf="game.releaseDate" class="text-sm">Released: {{game.releaseDate | date:'mediumDate'}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="searchControl.value && searchControl.value.length >= 2 && searchResults.length === 0 && !isLoading" 
+         class="mt-4 text-center">
+      <p>No games found matching your search.</p>
     </div>
 
     <!-- Future Features Section -->
-    <div class="mt-4 text-sm text-[#7beadb]">
+    <div *ngIf="!searchControl.value || searchControl.value.length < 2" class="mt-4 text-sm text-[#7beadb]">
       <p>Coming soon:</p>
       <ul class="list-disc list-inside">
-        <li>Search suggestions</li>
         <li>Filter by genre/platform</li>
         <li>Import from external libraries</li>
       </ul>
