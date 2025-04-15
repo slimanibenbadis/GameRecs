@@ -17,7 +17,7 @@ export class GameService {
    * @returns An Observable of Game array containing search results
    */
   searchGames(query: string): Observable<Game[]> {
-    return this.http.get<Game[]>('/api/igdb/search', { 
+    return this.http.get<Game[]>('/api/games/search', { 
       params: { query }
     });
   }
