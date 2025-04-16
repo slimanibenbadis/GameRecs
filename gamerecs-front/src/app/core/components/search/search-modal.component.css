@@ -41,4 +41,42 @@
 .modal-backdrop {
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
+}
+
+/* Game cover image styles */
+.aspect-\[3\/4\] {
+  aspect-ratio: 3/4;
+  height: auto !important;
+  min-height: 64px;
+}
+
+/* Paginator custom styling */
+:host ::ng-deep .p-paginator {
+  background-color: #020d0b !important;
+  border-color: #155b89 !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-page {
+  color: #d7f9f4 !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-page.p-highlight {
+  background-color: #155b89 !important;
+  color: #7beadb !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-first,
+:host ::ng-deep .p-paginator .p-paginator-prev,
+:host ::ng-deep .p-paginator .p-paginator-next,
+:host ::ng-deep .p-paginator .p-paginator-last {
+  color: #d7f9f4 !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-first:not(.p-disabled):hover,
+:host ::ng-deep .p-paginator .p-paginator-prev:not(.p-disabled):hover,
+:host ::ng-deep .p-paginator .p-paginator-next:not(.p-disabled):hover,
+:host ::ng-deep .p-paginator .p-paginator-last:not(.p-disabled):hover,
+:host ::ng-deep .p-paginator .p-paginator-page:not(.p-highlight):hover {
+  background-color: #155b89 !important;
+  color: #7beadb !important;
 } 

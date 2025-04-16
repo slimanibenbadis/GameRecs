@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { GameService } from '../../services/game.service';
+import { PaginatorModule } from 'primeng/paginator';
+import { GameService, GameSearchResponse } from '../../services/game.service';
 import { Game } from '../../services/game-library.service';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs';
 
@@ -19,6 +20,7 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, take
  * - Accessibility support
  * - Smooth animations
  * - Live search with debouncing
+ * - Pagination support
  */
 @Component({
   selector: 'app-search-modal',
@@ -27,7 +29,8 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, take
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
-    InputTextModule
+    InputTextModule,
+    PaginatorModule
   ],
   templateUrl: './search-modal.component.html',
   styleUrls: ['./search-modal.component.css']
@@ -40,6 +43,13 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   searchControl = new FormControl('');
   searchResults: Game[] = [];
   isLoading = false;
+  
+  // Pagination properties
+  currentPage = 0;
+  totalPages = 0;
+  totalElements = 0;
+  pageSize = 50;
+  currentQuery = '';
   
   private destroy$ = new Subject<void>();
 
@@ -65,9 +75,14 @@ export class SearchModalComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(query => {
       if (query && query.length >= 2) {
-        this.performSearch(query);
+        this.currentQuery = query;
+        this.currentPage = 0; // Reset to first page on new search
+        this.performSearch(query, this.currentPage, this.pageSize);
       } else {
         this.searchResults = [];
+        this.currentPage = 0;
+        this.totalPages = 0;
+        this.totalElements = 0;
       }
     });
   }
@@ -75,21 +90,46 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   /**
    * Performs the actual search API call
    * @param query The search query string
+   * @param page The page number (0-indexed)
+   * @param size The page size
    */
-  private performSearch(query: string): void {
+  private performSearch(query: string, page: number = 0, size: number = 50): void {
     this.isLoading = true;
-    this.gameService.searchGames(query).pipe(
+    
+    // Log the search query for debugging
+    console.log(`Searching for games with query: ${query}, page: ${page}, size: ${size}`);
+    
+    // Perform the search
+    this.gameService.searchGames(query, page, size).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (results) => {
-        this.searchResults = results;
+      next: (response: GameSearchResponse) => {
+        this.searchResults = response.games;
+        this.currentPage = response.currentPage;
+        this.totalPages = response.totalPages;
+        this.totalElements = response.totalElements;
+        this.pageSize = response.pageSize;
         this.isLoading = false;
+        
+        // After search completes, trigger IGDB update in the background
+        // This is fire-and-forget, won't block UI
+        if (page === 0) { // Only trigger IGDB update on first page
+          this.gameService.triggerIgdbUpdate(query);
+        }
       },
       error: (err) => {
         console.error('Error searching games:', err);
         this.isLoading = false;
       }
     });
+  }
+
+  /**
+   * Handles page change events from the paginator
+   * @param event The page event containing page number
+   */
+  onPageChange(event: any): void {
+    this.performSearch(this.currentQuery, event.page, this.pageSize);
   }
 
   /**
@@ -121,6 +161,9 @@ export class SearchModalComponent implements OnInit, OnDestroy {
     this.isVisible = false;
     this.searchControl.setValue('');
     this.searchResults = [];
+    this.currentPage = 0;
+    this.totalPages = 0;
+    this.totalElements = 0;
     this.closeModal.emit();
   }
 

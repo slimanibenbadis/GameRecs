@@ -1,6 +1,6 @@
 <!-- Search Modal Container -->
 <div *ngIf="isVisible" 
-     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center modal-backdrop"
      (click)="closeOnBackdropClick($event)"
      role="dialog"
      aria-labelledby="searchModalTitle"
@@ -44,26 +44,42 @@
 
     <!-- Search Results -->
     <div *ngIf="searchResults.length > 0 && !isLoading" class="mt-4">
-      <h3 class="text-xl mb-3 font-fira-sans">Results</h3>
-      <div class="grid grid-cols-1 gap-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-xl font-fira-sans">Results</h3>
+        <span class="text-sm text-[#7beadb]">Found {{totalElements}} games</span>
+      </div>
+      
+      <div class="grid grid-cols-1 gap-4 mb-4">
         <div *ngFor="let game of searchResults" 
              class="p-3 border border-[#155b89] rounded-lg hover:border-[#4684e2] transition-colors cursor-pointer">
           <div class="flex items-center">
-            <img *ngIf="game.coverImageUrl" [src]="game.coverImageUrl" alt="{{game.title}} cover" 
-                 class="w-16 h-auto mr-3 rounded">
+            <div class="w-16 mr-3 rounded bg-[#155b89] overflow-hidden aspect-[3/4]" *ngIf="!game.coverImageUrl"></div>
+            <div class="w-16 mr-3 rounded overflow-hidden aspect-[3/4]" *ngIf="game.coverImageUrl">
+              <img [src]="game.coverImageUrl" [alt]="game.title + ' cover'" class="w-full h-full object-cover">
+            </div>
             <div>
               <h4 class="text-[#7beadb] font-bold">{{game.title}}</h4>
               <p *ngIf="game.releaseDate" class="text-sm">Released: {{game.releaseDate | date:'mediumDate'}}</p>
+              <p *ngIf="!game.releaseDate" class="text-sm text-gray-400">Release date unknown</p>
             </div>
           </div>
         </div>
       </div>
+      
+      <!-- Pagination Controls -->
+      <p-paginator *ngIf="totalPages > 1"
+                  [rows]="pageSize"
+                  [totalRecords]="totalElements"
+                  [first]="currentPage * pageSize"
+                  [rowsPerPageOptions]="[50]"
+                  (onPageChange)="onPageChange($event)"
+                  styleClass="bg-[#020d0b] border-t border-[#155b89] p-2"></p-paginator>
     </div>
 
     <!-- No Results -->
     <div *ngIf="searchControl.value && searchControl.value.length >= 2 && searchResults.length === 0 && !isLoading" 
-         class="mt-4 text-center">
-      <p>No games found matching your search.</p>
+         class="mt-4 p-4 text-center border border-[#155b89] rounded-lg">
+      <p class="text-[#7beadb]">No games found matching your search.</p>
     </div>
 
     <!-- Future Features Section -->
