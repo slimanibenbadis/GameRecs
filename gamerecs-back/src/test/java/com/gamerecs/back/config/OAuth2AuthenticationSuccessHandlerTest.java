@@ -24,11 +24,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 class OAuth2AuthenticationSuccessHandlerTest extends BaseUnitTest {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandlerTest.class);
 

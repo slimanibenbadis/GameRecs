@@ -3,7 +3,6 @@ package com.gamerecs.back.integration;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.service.GoogleOAuth2Service;
-import com.gamerecs.back.service.JwtService;
 import com.gamerecs.back.service.OAuth2UserService;
 import com.gamerecs.back.util.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -48,8 +44,6 @@ class GoogleOAuth2IntegrationTest extends BaseIntegrationTest {
     @MockBean
     private OAuth2UserService oAuth2UserService;
 
-    @Autowired
-    private JwtService jwtService;
 
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUri;

@@ -1,6 +1,5 @@
 package com.gamerecs.back.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamerecs.back.config.CacheConfig;
 import com.gamerecs.back.dto.IGDBGameDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,9 +38,6 @@ public class IGDBCacheTest {
 
     @Autowired
     private IGDBClientService igdbClientService;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private static final String TEST_QUERY = "zelda";
     private static final String MOCK_RESPONSE = """

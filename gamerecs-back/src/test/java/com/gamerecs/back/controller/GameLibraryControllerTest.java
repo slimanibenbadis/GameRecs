@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 import static org.mockito.Mockito.when;
