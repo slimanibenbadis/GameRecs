@@ -99,8 +99,16 @@ export class SearchModalComponent implements OnInit, OnDestroy {
     // Log the search query for debugging
     console.log(`Searching for games with query: ${query}, page: ${page}, size: ${size}`);
     
+    // Flag to track which search method is being used
+    const isUsingCombinedSearch = (page === 0);
+    
+    // Determine which search method to use
+    const searchMethod = isUsingCombinedSearch
+      ? this.gameService.updateAndSearch(query, page, size) // For first page, update IGDB data first
+      : this.gameService.searchGames(query, page, size);    // For pagination, just search local DB
+    
     // Perform the search
-    this.gameService.searchGames(query, page, size).pipe(
+    searchMethod.pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response: GameSearchResponse) => {
@@ -110,16 +118,37 @@ export class SearchModalComponent implements OnInit, OnDestroy {
         this.totalElements = response.totalElements;
         this.pageSize = response.pageSize;
         this.isLoading = false;
-        
-        // After search completes, trigger IGDB update in the background
-        // This is fire-and-forget, won't block UI
-        if (page === 0) { // Only trigger IGDB update on first page
-          this.gameService.triggerIgdbUpdate(query);
-        }
       },
       error: (err) => {
         console.error('Error searching games:', err);
-        this.isLoading = false;
+        
+        // If the updateAndSearch method failed and this is the first page,
+        // fall back to the regular search method
+        if (isUsingCombinedSearch) {
+          console.log('Falling back to regular search after update-and-search failed');
+          this.gameService.searchGames(query, page, size).pipe(
+            takeUntil(this.destroy$)
+          ).subscribe({
+            next: (response: GameSearchResponse) => {
+              this.searchResults = response.games;
+              this.currentPage = response.currentPage;
+              this.totalPages = response.totalPages;
+              this.totalElements = response.totalElements;
+              this.pageSize = response.pageSize;
+              
+              // After regular search completes, try to trigger IGDB update in the background
+              // This is fire-and-forget, won't block UI
+              this.gameService.triggerIgdbUpdate(query);
+              this.isLoading = false;
+            },
+            error: (fallbackErr) => {
+              console.error('Error with fallback search:', fallbackErr);
+              this.isLoading = false;
+            }
+          });
+        } else {
+          this.isLoading = false;
+        }
       }
     });
   }

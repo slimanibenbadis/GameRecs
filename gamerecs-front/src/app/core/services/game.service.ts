@@ -48,4 +48,20 @@ export class GameService {
       error: (err) => console.error(`Error triggering IGDB update for query: ${query}`, err)
     });
   }
+  
+  /**
+   * Combined operation that first updates IGDB data, then searches with updated results
+   * This ensures search results include the most up-to-date game data by running operations sequentially
+   * 
+   * @param query The search query string
+   * @param page The page number (0-indexed)
+   * @param size The number of results per page
+   * @returns An Observable of GameSearchResponse with fresh results after IGDB update
+   */
+  updateAndSearch(query: string, page: number = 0, size: number = 50): Observable<GameSearchResponse> {
+    console.log(`Performing combined IGDB update and search for query: ${query}`);
+    return this.http.post<GameSearchResponse>('/api/igdb/update-and-search', null, {
+      params: { query, page, size }
+    });
+  }
 } 
