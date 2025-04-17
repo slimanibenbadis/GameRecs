@@ -50,6 +50,59 @@
   min-height: 64px;
 }
 
+/* Search loading animations */
+.searching-text {
+  display: inline-block;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.dot-one, .dot-two, .dot-three {
+  opacity: 0;
+  animation: dot-animation 1.5s infinite;
+  animation-fill-mode: forwards;
+}
+
+.dot-one {
+  animation-delay: 0.2s;
+}
+
+.dot-two {
+  animation-delay: 0.4s;
+}
+
+.dot-three {
+  animation-delay: 0.6s;
+}
+
+@keyframes dot-animation {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Progress spinner overrides */
+:host ::ng-deep .p-progress-spinner circle {
+  stroke: #4684e2 !important;
+}
+
 /* Paginator custom styling */
 :host ::ng-deep .p-paginator {
   background-color: #020d0b !important;

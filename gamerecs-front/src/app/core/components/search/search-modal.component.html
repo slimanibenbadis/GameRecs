@@ -38,8 +38,23 @@
     </div>
 
     <!-- Loading Indicator -->
-    <div *ngIf="isLoading" class="flex justify-center my-4">
-      <i class="pi pi-spin pi-spinner text-[#4684e2] text-2xl"></i>
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center my-6">
+      <!-- Modern, animated spinner -->
+      <p-progressSpinner 
+        styleClass="w-12 h-12" 
+        strokeWidth="4" 
+        fill="transparent" 
+        animationDuration=".7s" 
+        [style]="{'stroke': '#4684e2'}">
+      </p-progressSpinner>
+      
+      <!-- Animated "Searching for games..." message -->
+      <div class="text-[#7beadb] mt-4 text-center">
+        <span class="searching-text">Searching for games</span>
+        <span class="dot-one">.</span>
+        <span class="dot-two">.</span>
+        <span class="dot-three">.</span>
+      </div>
     </div>
 
     <!-- Search Results -->

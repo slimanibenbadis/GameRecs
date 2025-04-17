@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule } from 'primeng/paginator';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { GameService, GameSearchResponse } from '../../services/game.service';
 import { Game } from '../../services/game-library.service';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs';
@@ -30,7 +31,8 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, take
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
-    PaginatorModule
+    PaginatorModule,
+    ProgressSpinnerModule
   ],
   templateUrl: './search-modal.component.html',
   styleUrls: ['./search-modal.component.css']
