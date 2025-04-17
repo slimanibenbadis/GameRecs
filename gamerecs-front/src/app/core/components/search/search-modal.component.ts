@@ -139,8 +139,19 @@ export class SearchModalComponent implements OnInit, OnDestroy {
               this.pageSize = response.pageSize;
               
               // After regular search completes, try to trigger IGDB update in the background
-              // This is fire-and-forget, won't block UI
-              this.gameService.triggerIgdbUpdate(query);
+              // This is asynchronous and won't block UI
+              this.gameService.triggerIgdbUpdate(query).pipe(
+                takeUntil(this.destroy$)
+              ).subscribe({
+                next: (updateResponse) => {
+                  console.log(`IGDB update initiated successfully for query: ${query}`);
+                  console.log(`Response: ${updateResponse.message}`);
+                },
+                error: (updateErr) => {
+                  console.error(`Error triggering IGDB update for query: ${query}`, updateErr);
+                }
+              });
+              
               this.isLoading = false;
             },
             error: (fallbackErr) => {

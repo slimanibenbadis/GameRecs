@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import com.gamerecs.back.dto.GameSearchResponse;
 import com.gamerecs.back.service.GameService;
 import org.springframework.data.domain.Page;
+import com.gamerecs.back.service.AsyncIGDBUpdateService;
 
 @RestController
 @RequestMapping("/api/igdb")
@@ -25,20 +26,29 @@ public class IGDBController {
     private final IGDBClientService igdbClientService;
     private final GameSyncService gameSyncService;
     private final GameService gameService;
+    private final AsyncIGDBUpdateService asyncIGDBUpdateService;
 
-    public IGDBController(IGDBClientService igdbClientService, GameSyncService gameSyncService, GameService gameService) {
+    public IGDBController(
+            IGDBClientService igdbClientService, 
+            GameSyncService gameSyncService, 
+            GameService gameService,
+            AsyncIGDBUpdateService asyncIGDBUpdateService) {
         this.igdbClientService = igdbClientService;
         this.gameSyncService = gameSyncService;
         this.gameService = gameService;
+        this.asyncIGDBUpdateService = asyncIGDBUpdateService;
     }
 
     /**
      * Triggers an IGDB update using the search query provided via a query parameter.
      * Requires authentication to access this endpoint.
+     * 
+     * This endpoint now processes the update asynchronously, returning immediately
+     * to the client while the update continues in the background.
      */
     @PostMapping("/update")
     public ResponseEntity<?> updateIGDBData(@RequestParam("query") String query) {
-        logger.debug("Received IGDB update request");
+        logger.debug("Received IGDB update request for query: {}", query);
         
         // Check authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -51,20 +61,27 @@ public class IGDBController {
         logger.debug("User {} requesting IGDB update", userDetails.getUsername());
         
         try {
-            // Trigger the IGDB search and sync to database
-            List<IGDBGameDTO> igdbResponse = igdbClientService.searchGames(query);
-            List<Game> savedGames = gameSyncService.syncGamesFromSearch(igdbResponse);
+            // Validate query
+            if (query == null || query.trim().isEmpty()) {
+                logger.warn("Empty search query received for IGDB update");
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse("Search query cannot be empty", List.of())
+                );
+            }
             
-            logger.debug("IGDB search and sync completed successfully for user {}, found and processed {} games", 
-                userDetails.getUsername(), savedGames.size());
+            // Trigger the asynchronous update process
+            // This will return immediately and continue processing in the background
+            asyncIGDBUpdateService.updateGamesFromIGDB(query);
             
-            return ResponseEntity.ok().body(
-                new ApiResponse("IGDB update completed and data persisted.", igdbResponse)
+            logger.info("Asynchronous IGDB update initiated for query: {}", query);
+            
+            return ResponseEntity.accepted().body(
+                new ApiResponse("IGDB update initiated and will be processed asynchronously", List.of())
             );
         } catch (Exception e) {
-            logger.error("Error during IGDB update process", e);
+            logger.error("Error starting IGDB update process", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse("Error during IGDB update process", List.of()));
+                .body(new ApiResponse("Error starting IGDB update process: " + e.getMessage(), List.of()));
         }
     }
     
@@ -120,11 +137,17 @@ public class IGDBController {
         logger.debug("User {} requesting IGDB update and search", userDetails.getUsername());
         
         try {
-            // Step 1: Trigger the IGDB search and sync to database
-            List<IGDBGameDTO> igdbResponse = igdbClientService.searchGames(query);
-            List<Game> savedGames = gameSyncService.syncGamesFromSearch(igdbResponse);
+            // Validate query
+            if (query == null || query.trim().isEmpty()) {
+                logger.warn("Empty search query received for IGDB update-and-search");
+                return ResponseEntity.badRequest().build();
+            }
             
-            logger.debug("IGDB update completed successfully, synced {} games", savedGames.size());
+            // Step 1: Trigger the IGDB update for this specific request
+            // The difference with the /update endpoint is that we wait for THIS update to complete
+            // but any previous async updates can continue in the background
+            Integer gamesUpdated = asyncIGDBUpdateService.updateGamesFromIGDB(query).get();
+            logger.debug("IGDB update completed for current request, synced {} games", gamesUpdated);
             
             // Step 2: Perform search against the updated database
             logger.debug("Executing search against updated database");

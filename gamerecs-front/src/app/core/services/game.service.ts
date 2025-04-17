@@ -12,6 +12,11 @@ export interface GameSearchResponse {
   query: string;
 }
 
+export interface IgdbUpdateResponse {
+  message: string;
+  data: any[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,17 +40,15 @@ export class GameService {
   
   /**
    * Triggers a background update from IGDB API for the given query
-   * This is a "fire-and-forget" operation that doesn't block the UI
+   * This is an asynchronous operation that doesn't block the UI
    * 
    * @param query The search query string to use for the IGDB update
+   * @returns Observable with the update acknowledgement response
    */
-  triggerIgdbUpdate(query: string): void {
+  triggerIgdbUpdate(query: string): Observable<IgdbUpdateResponse> {
     console.log(`Triggering IGDB update for query: ${query}`);
-    this.http.post('/api/igdb/update', null, { 
+    return this.http.post<IgdbUpdateResponse>('/api/igdb/update', null, { 
       params: { query } 
-    }).subscribe({
-      next: () => console.log(`IGDB update successfully triggered for query: ${query}`),
-      error: (err) => console.error(`Error triggering IGDB update for query: ${query}`, err)
     });
   }
   
