@@ -46,6 +46,10 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   searchResults: Game[] = [];
   isLoading = false;
   
+  // Error handling properties
+  errorMessage: string | null = null;
+  showError = false;
+  
   // Pagination properties
   currentPage = 0;
   totalPages = 0;
@@ -76,10 +80,15 @@ export class SearchModalComponent implements OnInit, OnDestroy {
       filter(query => !query || query.length >= 2), // Only proceed if query is empty or has at least 2 characters
       takeUntil(this.destroy$)
     ).subscribe(query => {
+      // Clear any previous error messages when starting a new search
+      this.clearError();
+      
       if (query && query.length >= 2) {
-        this.currentQuery = query;
+        // Sanitize the query to avoid XSS (even though we're not rendering it as HTML)
+        const sanitizedQuery = this.sanitizeSearchQuery(query);
+        this.currentQuery = sanitizedQuery;
         this.currentPage = 0; // Reset to first page on new search
-        this.performSearch(query, this.currentPage, this.pageSize);
+        this.performSearch(sanitizedQuery, this.currentPage, this.pageSize);
       } else {
         this.searchResults = [];
         this.currentPage = 0;
@@ -90,6 +99,38 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Sanitizes the search query to prevent injection attacks
+   * @param query The raw search query from user input
+   * @returns A sanitized query string
+   */
+  private sanitizeSearchQuery(query: string): string {
+    // Basic sanitization - trim whitespace and remove potentially harmful characters
+    return query.trim().replace(/[<>{}()]/g, '');
+  }
+
+  /**
+   * Displays an error message to the user
+   * @param message The error message to display
+   */
+  private showErrorMessage(message: string): void {
+    this.errorMessage = message;
+    this.showError = true;
+    
+    // Auto-hide error after 5 seconds
+    setTimeout(() => {
+      this.clearError();
+    }, 5000);
+  }
+  
+  /**
+   * Clears the current error message
+   */
+  private clearError(): void {
+    this.errorMessage = null;
+    this.showError = false;
+  }
+
+  /**
    * Performs the actual search API call
    * @param query The search query string
    * @param page The page number (0-indexed)
@@ -97,6 +138,7 @@ export class SearchModalComponent implements OnInit, OnDestroy {
    */
   private performSearch(query: string, page: number = 0, size: number = 50): void {
     this.isLoading = true;
+    this.clearError();
     
     // Log the search query for debugging
     console.log(`Searching for games with query: ${query}, page: ${page}, size: ${size}`);
@@ -128,6 +170,10 @@ export class SearchModalComponent implements OnInit, OnDestroy {
         // fall back to the regular search method
         if (isUsingCombinedSearch) {
           console.log('Falling back to regular search after update-and-search failed');
+          
+          // Show a non-intrusive message about the fallback
+          this.showErrorMessage('IGDB update failed. Showing local results only.');
+          
           this.gameService.searchGames(query, page, size).pipe(
             takeUntil(this.destroy$)
           ).subscribe({
@@ -149,6 +195,7 @@ export class SearchModalComponent implements OnInit, OnDestroy {
                 },
                 error: (updateErr) => {
                   console.error(`Error triggering IGDB update for query: ${query}`, updateErr);
+                  // Don't show another error message to avoid overwhelming the user
                 }
               });
               
@@ -157,10 +204,32 @@ export class SearchModalComponent implements OnInit, OnDestroy {
             error: (fallbackErr) => {
               console.error('Error with fallback search:', fallbackErr);
               this.isLoading = false;
+              
+              // Format the error message based on the HTTP status
+              let errorMsg = 'Failed to search for games. Please try again later.';
+              
+              if (fallbackErr.status === 400) {
+                errorMsg = 'Invalid search query. Please try a different search term.';
+              } else if (fallbackErr.status === 503) {
+                errorMsg = 'Game service is currently unavailable. Please try again later.';
+              }
+              
+              this.showErrorMessage(errorMsg);
             }
           });
         } else {
           this.isLoading = false;
+          
+          // Format the error message based on the HTTP status
+          let errorMsg = 'Failed to load results. Please try again later.';
+          
+          if (err.status === 400) {
+            errorMsg = 'Invalid search query. Please try a different search term.';
+          } else if (err.status === 503) {
+            errorMsg = 'Game service is currently unavailable. Please try again later.';
+          }
+          
+          this.showErrorMessage(errorMsg);
         }
       }
     });
@@ -172,6 +241,13 @@ export class SearchModalComponent implements OnInit, OnDestroy {
    */
   onPageChange(event: any): void {
     this.performSearch(this.currentQuery, event.page, this.pageSize);
+  }
+
+  /**
+   * Manually dismisses the error message
+   */
+  dismissError(): void {
+    this.clearError();
   }
 
   /**
@@ -187,6 +263,8 @@ export class SearchModalComponent implements OnInit, OnDestroy {
    */
   show() {
     this.isVisible = true;
+    // Clear any previous errors when opening the modal
+    this.clearError();
     // Focus the input when modal opens
     setTimeout(() => {
       const input = this.modalContent.nativeElement.querySelector('input');
@@ -206,6 +284,7 @@ export class SearchModalComponent implements OnInit, OnDestroy {
     this.currentPage = 0;
     this.totalPages = 0;
     this.totalElements = 0;
+    this.clearError();
     this.closeModal.emit();
   }
 

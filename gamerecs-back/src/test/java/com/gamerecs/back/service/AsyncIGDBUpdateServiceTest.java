@@ -1,14 +1,5 @@
 package com.gamerecs.back.service;
 
-import com.gamerecs.back.dto.IGDBGameDTO;
-import com.gamerecs.back.model.Game;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.scheduling.annotation.AsyncResult;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -16,10 +7,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.gamerecs.back.dto.IGDBGameDTO;
+import com.gamerecs.back.model.Game;
 
 @ExtendWith(MockitoExtension.class)
 class AsyncIGDBUpdateServiceTest {
@@ -32,6 +36,19 @@ class AsyncIGDBUpdateServiceTest {
 
     @InjectMocks
     private AsyncIGDBUpdateService asyncIGDBUpdateService;
+    
+    private static final int TEST_TIMEOUT_SECONDS = 20;
+    
+    @BeforeEach
+    void setUp() {
+        // Manually initialize service to set appropriate timeout for tests
+        // This prevents the timeout issue where the test is failing with 0 seconds timeout
+        ReflectionTestUtils.setField(asyncIGDBUpdateService, "configuredTimeoutSeconds", TEST_TIMEOUT_SECONDS);
+        ReflectionTestUtils.setField(asyncIGDBUpdateService, "igdbUpdateTimeoutSeconds", TEST_TIMEOUT_SECONDS);
+        
+        // Alternative approach using the new method
+        // asyncIGDBUpdateService.setTimeoutForTests(TEST_TIMEOUT_SECONDS);
+    }
 
     @Test
     void testUpdateGamesFromIGDB_Success() throws ExecutionException, InterruptedException, TimeoutException {
@@ -104,5 +121,17 @@ class AsyncIGDBUpdateServiceTest {
         assertEquals(0, count);
         verify(igdbClientService).searchGames(anyString());
         verify(gameSyncService, never()).syncGamesFromSearch(anyList());
+    }
+    
+    @Test
+    void testWaitForUpdateCompletion() throws ExecutionException, InterruptedException, TimeoutException {
+        // Arrange
+        CompletableFuture<Integer> future = CompletableFuture.completedFuture(5);
+        
+        // Act
+        int result = asyncIGDBUpdateService.waitForUpdateCompletion(future, 1);
+        
+        // Assert
+        assertEquals(5, result);
     }
 } 

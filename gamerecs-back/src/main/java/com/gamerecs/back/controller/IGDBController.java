@@ -11,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeoutException;
 import com.gamerecs.back.service.GameSyncService;
 import com.gamerecs.back.model.Game;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,11 +22,15 @@ import com.gamerecs.back.dto.GameSearchResponse;
 import com.gamerecs.back.service.GameService;
 import org.springframework.data.domain.Page;
 import com.gamerecs.back.service.AsyncIGDBUpdateService;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/igdb")
 public class IGDBController {
     private static final Logger logger = LoggerFactory.getLogger(IGDBController.class);
+    private static final int MAX_QUERY_LENGTH = 100;
+    private static final int MIN_QUERY_LENGTH = 2;
+    
     private final IGDBClientService igdbClientService;
     private final GameSyncService gameSyncService;
     private final GameService gameService;
@@ -63,23 +71,40 @@ public class IGDBController {
         try {
             // Validate query
             if (query == null || query.trim().isEmpty()) {
-                logger.warn("Empty search query received for IGDB update");
+                logger.warn("Empty search query received for IGDB update from user {}", userDetails.getUsername());
                 return ResponseEntity.badRequest().body(
                     new ApiResponse("Search query cannot be empty", List.of())
                 );
             }
             
+            // Check minimum query length
+            if (query.trim().length() < MIN_QUERY_LENGTH) {
+                logger.warn("Query too short received for IGDB update from user {}: '{}'", 
+                          userDetails.getUsername(), query);
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse("Search query must be at least " + MIN_QUERY_LENGTH + " characters long", List.of())
+                );
+            }
+            
+            // Sanitize the query
+            String sanitizedQuery = sanitizeQuery(query);
+            if (!sanitizedQuery.equals(query)) {
+                logger.warn("Query sanitized for user {}: '{}' -> '{}'", 
+                          userDetails.getUsername(), query, sanitizedQuery);
+            }
+            
             // Trigger the asynchronous update process
             // This will return immediately and continue processing in the background
-            asyncIGDBUpdateService.updateGamesFromIGDB(query);
+            asyncIGDBUpdateService.updateGamesFromIGDB(sanitizedQuery);
             
-            logger.info("Asynchronous IGDB update initiated for query: {}", query);
+            logger.info("Asynchronous IGDB update initiated for query: {} by user {}", 
+                     sanitizedQuery, userDetails.getUsername());
             
             return ResponseEntity.accepted().body(
                 new ApiResponse("IGDB update initiated and will be processed asynchronously", List.of())
             );
         } catch (Exception e) {
-            logger.error("Error starting IGDB update process", e);
+            logger.error("Error starting IGDB update process for user {}", userDetails.getUsername(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse("Error starting IGDB update process: " + e.getMessage(), List.of()));
         }
@@ -139,19 +164,81 @@ public class IGDBController {
         try {
             // Validate query
             if (query == null || query.trim().isEmpty()) {
-                logger.warn("Empty search query received for IGDB update-and-search");
-                return ResponseEntity.badRequest().build();
+                logger.warn("Empty search query received for IGDB update-and-search from user {}", 
+                          userDetails.getUsername());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Search query cannot be empty");
+            }
+            
+            // Check minimum query length
+            if (query.trim().length() < MIN_QUERY_LENGTH) {
+                logger.warn("Query too short received for IGDB update-and-search from user {}: '{}'", 
+                          userDetails.getUsername(), query);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Search query must be at least " + MIN_QUERY_LENGTH + " characters long");
+            }
+            
+            // Sanitize the query
+            String sanitizedQuery = sanitizeQuery(query);
+            if (!sanitizedQuery.equals(query)) {
+                logger.warn("Query sanitized for user {}: '{}' -> '{}'", 
+                          userDetails.getUsername(), query, sanitizedQuery);
+            }
+            
+            // Validate pagination parameters
+            if (page < 0) {
+                logger.warn("Invalid page number from user {}: {}", userDetails.getUsername(), page);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page number cannot be negative");
+            }
+            
+            if (size <= 0 || size > 100) {
+                logger.warn("Invalid page size from user {}: {}", userDetails.getUsername(), size);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page size must be between 1 and 100");
             }
             
             // Step 1: Trigger the IGDB update for this specific request
-            // The difference with the /update endpoint is that we wait for THIS update to complete
-            // but any previous async updates can continue in the background
-            Integer gamesUpdated = asyncIGDBUpdateService.updateGamesFromIGDB(query).get();
-            logger.debug("IGDB update completed for current request, synced {} games", gamesUpdated);
+            logger.info("Starting IGDB update for query '{}' by user {}", 
+                      sanitizedQuery, userDetails.getUsername());
+            
+            Integer gamesUpdated;
+            try {
+                // The difference with the /update endpoint is that we wait for THIS update to complete
+                // but any previous async updates can continue in the background
+                gamesUpdated = asyncIGDBUpdateService.updateGamesFromIGDB(sanitizedQuery).get();
+                logger.debug("IGDB update completed for current request, synced {} games", gamesUpdated);
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                logger.error("IGDB update failed for query '{}' by user {}", 
+                          sanitizedQuery, userDetails.getUsername(), e);
+                
+                // If the cause is a timeout, provide a specific message
+                if (cause instanceof TimeoutException) {
+                    throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, 
+                        "IGDB service timed out. Please try again later.");
+                }
+                
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, 
+                    "IGDB service is temporarily unavailable. Search will proceed with existing data.");
+            } catch (Exception e) {
+                logger.error("Unexpected error during IGDB update for query '{}' by user {}", 
+                          sanitizedQuery, userDetails.getUsername(), e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Unexpected error during IGDB update: " + e.getMessage());
+            }
             
             // Step 2: Perform search against the updated database
-            logger.debug("Executing search against updated database");
-            Page<Game> searchResults = gameService.searchGamesByTitle(query, page, size);
+            logger.debug("Executing search against updated database for query '{}'", sanitizedQuery);
+            Page<Game> searchResults;
+            try {
+                searchResults = gameService.searchGamesByTitle(sanitizedQuery, page, size);
+            } catch (ResponseStatusException e) {
+                // Re-throw with the same status code
+                throw e;
+            } catch (Exception e) {
+                logger.error("Search failed after IGDB update for query '{}' by user {}", 
+                          sanitizedQuery, userDetails.getUsername(), e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Error during game search: " + e.getMessage());
+            }
             
             // Step 3: Create and return response
             GameSearchResponse response = new GameSearchResponse();
@@ -160,16 +247,49 @@ public class IGDBController {
             response.setTotalPages(searchResults.getTotalPages());
             response.setTotalElements(searchResults.getTotalElements());
             response.setPageSize(searchResults.getSize());
-            response.setQuery(query);
+            response.setQuery(sanitizedQuery);
             
             logger.debug("Search completed successfully against updated database, found {} results", 
                 searchResults.getTotalElements());
             
             return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            // Log the error and re-throw
+            logger.warn("Response status exception during update-and-search: {} - {}", 
+                     e.getStatusCode(), e.getReason());
+            throw e;
         } catch (Exception e) {
-            logger.error("Error during combined IGDB update and search process", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Log the error and wrap with a ResponseStatusException
+            logger.error("Unexpected error during update-and-search for query '{}' by user {}", 
+                       query, userDetails.getUsername(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "Unexpected error during update and search: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Sanitizes a search query to prevent injection and other attacks
+     * 
+     * @param query The original query string
+     * @return A sanitized query string
+     */
+    private String sanitizeQuery(String query) {
+        if (query == null) {
+            return "";
+        }
+        
+        // Trim whitespace
+        String sanitized = query.trim();
+        
+        // Remove potentially harmful characters
+        sanitized = sanitized.replaceAll("[;\"'<>()\\[\\]{}]", "");
+        
+        // Limit length
+        if (sanitized.length() > MAX_QUERY_LENGTH) {
+            sanitized = sanitized.substring(0, MAX_QUERY_LENGTH);
+        }
+        
+        return sanitized;
     }
     
     public static class ApiResponse {

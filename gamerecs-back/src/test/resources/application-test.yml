@@ -36,6 +36,8 @@ spring:
 igdb:
   client-id: test-client-id
   access-token: test-access-token
+  update:
+    timeout: 30  # Set a reasonable timeout for IGDB updates in tests
 
 # App specific configuration
 app:

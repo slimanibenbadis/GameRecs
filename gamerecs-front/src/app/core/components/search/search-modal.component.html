@@ -37,6 +37,19 @@
       <small class="text-[#7beadb] block mt-2">Type at least 2 characters to search</small>
     </div>
 
+    <!-- Error Message Alert -->
+    <div *ngIf="showError && errorMessage" 
+         class="mt-4 p-3 bg-red-900 bg-opacity-30 border border-red-700 rounded-lg text-[#d7f9f4] flex items-center justify-between"
+         role="alert">
+      <div class="flex items-center">
+        <i class="pi pi-exclamation-triangle text-red-400 mr-2"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+      <button (click)="dismissError()" class="text-[#d7f9f4] hover:text-[#7beadb] focus:outline-none" aria-label="Dismiss error">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
     <!-- Loading Indicator -->
     <div *ngIf="isLoading" class="flex flex-col items-center justify-center my-6">
       <!-- Modern, animated spinner -->
