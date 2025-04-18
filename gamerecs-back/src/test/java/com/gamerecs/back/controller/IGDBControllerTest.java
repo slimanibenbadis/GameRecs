@@ -141,7 +141,7 @@ class IGDBControllerTest extends BaseIntegrationTest {
         Page<Game> mockPage = new PageImpl<>(mockGames, PageRequest.of(0, 50), 1);
         
         when(asyncIGDBUpdateService.updateGamesFromIGDB("Halo")).thenReturn(CompletableFuture.completedFuture(1));
-        when(gameService.searchGamesByTitle(eq("Halo"), anyInt(), anyInt())).thenReturn(mockPage);
+        when(gameService.searchGamesByTitleNormalized(eq("Halo"), anyInt(), anyInt())).thenReturn(mockPage);
         
         // Act & Assert
         mockMvc.perform(post("/api/igdb/update-and-search")

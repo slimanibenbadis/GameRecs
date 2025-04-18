@@ -32,7 +32,8 @@ public class GameController {
     @Operation(summary = "Search for games in the local database",
                description = "Returns games that match the provided search query. " +
                              "The query must be at least 2 characters long. " +
-                             "Results are paginated and sorted alphabetically by title.")
+                             "Results are paginated and sorted alphabetically by title. " +
+                             "This search is accent-insensitive and punctuation-insensitive.")
     @GetMapping("/search")
     public ResponseEntity<GameSearchResponse> searchGames(
             @Parameter(description = "Search query (minimum 2 characters)", example = "zelda")
@@ -79,9 +80,9 @@ public class GameController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page size must be between 1 and 100");
             }
             
-            // Call the service to perform the search
+            // Call the service to perform the search using the normalized search method
             logger.info("User '{}' searching for '{}' (page: {}, size: {})", username, sanitizedQuery, page, size);
-            Page<Game> gamePage = gameService.searchGamesByTitle(sanitizedQuery, page, size);
+            Page<Game> gamePage = gameService.searchGamesByTitleNormalized(sanitizedQuery, page, size);
             
             // Create response DTO
             GameSearchResponse response = new GameSearchResponse();

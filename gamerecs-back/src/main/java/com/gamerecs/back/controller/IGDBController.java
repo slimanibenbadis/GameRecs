@@ -229,7 +229,7 @@ public class IGDBController {
             logger.debug("Executing search against updated database for query '{}'", sanitizedQuery);
             Page<Game> searchResults;
             try {
-                searchResults = gameService.searchGamesByTitle(sanitizedQuery, page, size);
+                searchResults = gameService.searchGamesByTitleNormalized(sanitizedQuery, page, size);
             } catch (ResponseStatusException e) {
                 // Re-throw with the same status code
                 throw e;

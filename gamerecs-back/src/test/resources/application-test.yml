@@ -9,7 +9,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
   flyway:
-    enabled: false
+    enabled: false  # Disable Flyway for tests - H2 doesn't need the PostgreSQL UNACCENT extension
   mail:
     host: localhost
     port: 3025
