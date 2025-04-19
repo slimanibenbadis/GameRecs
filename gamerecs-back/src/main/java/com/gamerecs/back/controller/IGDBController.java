@@ -205,22 +205,39 @@ public class IGDBController {
                 // but any previous async updates can continue in the background
                 gamesUpdated = asyncIGDBUpdateService.updateGamesFromIGDB(sanitizedQuery).get();
                 logger.debug("IGDB update completed for current request, synced {} games", gamesUpdated);
-            } catch (CompletionException e) {
-                Throwable cause = e.getCause();
+            } catch (Exception e) {
+                Throwable rootCause = e;
+                
+                // Extract the cause from CompletionException or ExecutionException
+                if (e instanceof CompletionException || 
+                    e.getClass().getName().equals("java.util.concurrent.ExecutionException")) {
+                    rootCause = e.getCause();
+                }
+                
                 logger.error("IGDB update failed for query '{}' by user {}", 
                           sanitizedQuery, userDetails.getUsername(), e);
                 
+                // Handle interrupted exception
+                if (e.getClass().getName().equals("java.util.concurrent.InterruptedException")) {
+                    Thread.currentThread().interrupt(); // Restore interrupted state
+                    throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, 
+                        "IGDB update was interrupted. Please try again.");
+                }
+                
                 // If the cause is a timeout, provide a specific message
-                if (cause instanceof TimeoutException) {
+                if (rootCause instanceof TimeoutException) {
                     throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, 
                         "IGDB service timed out. Please try again later.");
                 }
                 
-                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, 
-                    "IGDB service is temporarily unavailable. Search will proceed with existing data.");
-            } catch (Exception e) {
-                logger.error("Unexpected error during IGDB update for query '{}' by user {}", 
-                          sanitizedQuery, userDetails.getUsername(), e);
+                // For completion or execution exceptions with a different cause, return 503
+                if (e instanceof CompletionException || 
+                    e.getClass().getName().equals("java.util.concurrent.ExecutionException")) {
+                    throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, 
+                        "IGDB service is temporarily unavailable. Search will proceed with existing data.");
+                }
+                
+                // For all other exceptions, return 500
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
                     "Unexpected error during IGDB update: " + e.getMessage());
             }

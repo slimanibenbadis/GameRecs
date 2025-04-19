@@ -129,8 +129,20 @@ export class GameService {
       const errorMessage = this.getErrorMessage(error);
       console.error(`${operation} failed for "${context}":`, errorMessage, error);
       
+      // Create a new error with the formatted message
+      const formattedError = new HttpErrorResponse({
+        error: error.error,
+        headers: error.headers,
+        status: error.status,
+        statusText: error.statusText,
+        url: error.url || undefined
+      });
+      
+      // Set the formatted message
+      Object.defineProperty(formattedError, 'message', { value: errorMessage });
+      
       // The returned observable will be caught by the component
-      return throwError(() => error);
+      return throwError(() => formattedError);
     };
   }
   
