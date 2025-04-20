@@ -1,11 +1,14 @@
 package com.gamerecs.back.controller;
 
+import com.gamerecs.back.dto.GameDto;
 import com.gamerecs.back.dto.GameSearchResponse;
 import com.gamerecs.back.model.Game;
 import com.gamerecs.back.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,5 +136,27 @@ public class GameController {
         }
         
         return sanitized;
+    }
+
+    /**
+     * Retrieves a game by its ID.
+     *
+     * @param id the ID of the game to retrieve
+     * @return ResponseEntity containing the GameDto if found, or 404 if not found
+     */
+    @Operation(summary = "Get game by ID", description = "Returns a game by its unique ID. Returns 404 if not found.")
+    @GetMapping("/{id}")
+    public ResponseEntity<GameDto> getGame(@PathVariable Long id) {
+        logger.info("GET /api/games/{}", id);
+        try {
+            GameDto dto = gameService.getGameById(id);
+            return ResponseEntity.ok(dto);
+        } catch (EntityNotFoundException e) {
+            logger.warn("Game not found for id {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid game id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 } 

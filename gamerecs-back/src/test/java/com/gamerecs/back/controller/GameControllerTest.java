@@ -1,10 +1,14 @@
 package com.gamerecs.back.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gamerecs.back.dto.GameDto;
 import com.gamerecs.back.dto.GameSearchResponse;
 import com.gamerecs.back.model.Game;
 import com.gamerecs.back.service.GameService;
 import com.gamerecs.back.util.BaseIntegrationTest;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -308,5 +312,59 @@ class GameControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.query").value(truncatedQuery));
 
         verify(gameService).searchGamesByTitleNormalized(eq(truncatedQuery), eq(page), eq(size));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 200 and GameDto when game is found by id")
+    void shouldReturnGameById() throws Exception {
+        // Arrange
+        Long id = 42L;
+        GameDto dto = GameDto.builder()
+                .id(id)
+                .title("Test Game")
+                .build();
+        when(gameService.getGameById(id)).thenReturn(dto);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/games/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.title").value("Test Game"));
+
+        verify(gameService).getGameById(id);
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 404 when game is not found by id")
+    void shouldReturn404WhenGameNotFoundById() throws Exception {
+        // Arrange
+        Long id = 99L;
+        when(gameService.getGameById(id)).thenThrow(new EntityNotFoundException("Game not found"));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/games/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(gameService).getGameById(id);
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    @DisplayName("Should return 400 when id is invalid (negative)")
+    void shouldReturn400WhenIdIsInvalid() throws Exception {
+        // Arrange
+        Long id = -1L;
+        when(gameService.getGameById(id)).thenThrow(new IllegalArgumentException("Id must be positive"));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/games/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(gameService).getGameById(id);
     }
 } 
