@@ -13,8 +13,11 @@ import com.gamerecs.back.model.Game;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
+    Optional<Game> findById(Long id);
     Optional<Game> findByIgdbId(Long igdbId);
     boolean existsByIgdbId(Long igdbId);
+
+    
     
     /**
      * Find games where the title contains the search query string (case insensitive).
