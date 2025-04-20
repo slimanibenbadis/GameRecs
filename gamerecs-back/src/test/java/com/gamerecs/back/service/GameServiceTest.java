@@ -1,8 +1,10 @@
 package com.gamerecs.back.service;
 
+import com.gamerecs.back.dto.GameDto;
 import com.gamerecs.back.model.Game;
 import com.gamerecs.back.repository.GameRepository;
 import com.gamerecs.back.util.StringNormalizer;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,10 +22,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +79,53 @@ public class GameServiceTest {
         assassinsCreed.setPublishers(new HashSet<>());
         assassinsCreed.setDevelopers(new HashSet<>());
         sampleGames.add(assassinsCreed);
+    }
+
+    @Test
+    void getGameById_shouldReturnGameDto_whenIdExists() {
+        // Arrange
+        Game game = sampleGames.get(0);
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+
+        // Act
+        GameDto result = gameService.getGameById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(game.getGameId(), result.getId());
+        assertEquals(game.getTitle(), result.getTitle());
+        assertEquals(game.getDescription(), result.getDescription());
+        assertEquals(game.getReleaseDate(), result.getReleaseDate());
+        assertEquals(game.getCoverImageUrl(), result.getCoverImageUrl());
+    }
+
+    @Test
+    void getGameById_shouldThrowEntityNotFoundException_whenIdDoesNotExist() {
+        // Arrange
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            gameService.getGameById(999L);
+        });
+        
+        assertTrue(exception.getMessage().contains("Game not found"));
+    }
+
+    @Test
+    void getGameById_shouldThrowIllegalArgumentException_whenIdIsNotPositive() {
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.getGameById(0L);
+        });
+        
+        assertEquals("Id must be positive", exception.getMessage());
+        
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.getGameById(-1L);
+        });
+        
+        assertEquals("Id must be positive", exception.getMessage());
     }
 
     @Test

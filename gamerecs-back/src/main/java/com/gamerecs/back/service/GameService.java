@@ -3,6 +3,8 @@ package com.gamerecs.back.service;
 import com.gamerecs.back.model.Game;
 import com.gamerecs.back.repository.GameRepository;
 import com.gamerecs.back.util.StringNormalizer;
+import com.gamerecs.back.dto.GameDto;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
 
 /**
  * Service for handling game-related operations.
@@ -25,6 +29,57 @@ public class GameService {
     @Autowired
     public GameService(GameRepository gameRepository) {
         this.gameRepository = gameRepository;
+    }
+
+    /**
+     * Retrieves a game by its ID and maps it to a GameDto.
+     *
+     * @param id the ID of the game to retrieve
+     * @return a GameDto containing all game information
+     * @throws IllegalArgumentException if the ID is not positive
+     * @throws EntityNotFoundException if no game with the given ID exists
+     */
+    @Transactional(readOnly = true)
+    public GameDto getGameById(Long id) {
+        logger.info("Retrieving game with ID: {}", id);
+        
+        if (id <= 0) {
+            throw new IllegalArgumentException("Id must be positive");
+        }
+        
+        Game game = gameRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Game not found with id: " + id));
+            
+        // Trigger loading of lazy collections
+        game.getGenres().size();
+        game.getPlatforms().size();
+        game.getPublishers().size();
+        game.getDevelopers().size();
+        
+        GameDto gameDto = mapToDto(game);
+        logger.debug("Mapped game to DTO: {}", gameDto);
+        
+        return gameDto;
+    }
+    
+    /**
+     * Maps a Game entity to a GameDto.
+     * 
+     * @param game the Game entity to map
+     * @return the mapped GameDto
+     */
+    private GameDto mapToDto(Game game) {
+        return GameDto.builder()
+            .id(game.getGameId())
+            .title(game.getTitle())
+            .description(game.getDescription())
+            .releaseDate(game.getReleaseDate())
+            .coverImageUrl(game.getCoverImageUrl())
+            .genres(new ArrayList<>(game.getGenres()))
+            .platforms(new ArrayList<>(game.getPlatforms()))
+            .publishers(new ArrayList<>(game.getPublishers()))
+            .developers(new ArrayList<>(game.getDevelopers()))
+            .build();
     }
 
     /**
