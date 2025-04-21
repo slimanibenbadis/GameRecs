@@ -9,6 +9,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { NO_ERRORS_SCHEMA, ElementRef } from '@angular/core';
 import { of, throwError } from 'rxjs';
+import { MessageService } from 'primeng/api';
 
 describe('SearchModalComponent', () => {
   let component: SearchModalComponent;
@@ -45,7 +46,8 @@ describe('SearchModalComponent', () => {
         SearchModalComponent
       ],
       providers: [
-        { provide: GameService, useValue: mockGameService }
+        { provide: GameService, useValue: mockGameService },
+        MessageService
       ],
       schemas: [NO_ERRORS_SCHEMA] // For any unrecognized elements
     }).compileComponents();

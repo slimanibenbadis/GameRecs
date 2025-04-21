@@ -3,6 +3,8 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry, map } from 'rxjs/operators';
 import { Game } from './game-library.service';
+import { MessageService } from 'primeng/api';
+import { GameDto } from '../../models/game.dto';
 
 export interface GameSearchResponse {
   games: Game[];
@@ -23,7 +25,30 @@ export interface IgdbUpdateResponse {
 })
 export class GameService {
   
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private messageService: MessageService
+  ) { }
+  
+  /**
+   * Retrieves a game by its ID
+   * 
+   * @param id The ID of the game to retrieve
+   * @returns An Observable of GameDto containing the game details
+   */
+  getGameById(id: number): Observable<GameDto> {
+    return this.http.get<GameDto>(`/api/games/${id}`)
+      .pipe(
+        catchError(err => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Could not load game'
+          });
+          return throwError(() => err);
+        })
+      );
+  }
   
   /**
    * Searches for games based on a query string with pagination support

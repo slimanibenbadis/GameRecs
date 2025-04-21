@@ -2,10 +2,30 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { GameService, GameSearchResponse, IgdbUpdateResponse } from './game.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MessageService } from 'primeng/api';
+import { GameDto } from '../../models/game.dto';
 
 describe('GameService', () => {
   let service: GameService;
   let httpMock: HttpTestingController;
+  let messageService: MessageService;
+
+  // Mock response data for game by ID
+  const mockGameDto: GameDto = {
+    id: 42,
+    title: 'Test Game',
+    description: 'A test game description',
+    releaseDate: '2023-01-01',
+    coverImageUrl: 'http://example.com/cover.jpg',
+    genres: [{ id: 1, name: 'RPG' }],
+    platforms: [{ id: 1, name: 'PC' }],
+    publishers: [{ id: 1, name: 'Test Publisher' }],
+    developers: [{ id: 1, name: 'Test Developer' }],
+    userRating: 85,
+    percentileRank: 90,
+    predictedRating: 82,
+    backlogStatus: 'In Progress'
+  };
 
   // Mock response data
   const mockGameSearchResponse: GameSearchResponse = {
@@ -36,12 +56,19 @@ describe('GameService', () => {
   };
 
   beforeEach(() => {
+    // Create mock for MessageService
+    const messageServiceSpy = jasmine.createSpyObj('MessageService', ['add']);
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [GameService]
+      providers: [
+        GameService,
+        { provide: MessageService, useValue: messageServiceSpy }
+      ]
     });
     service = TestBed.inject(GameService);
     httpMock = TestBed.inject(HttpTestingController);
+    messageService = TestBed.inject(MessageService);
   });
 
   afterEach(() => {
@@ -51,6 +78,44 @@ describe('GameService', () => {
   // Basic service tests
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  // getGameById method tests
+  describe('getGameById', () => {
+    it('should return a game by ID', () => {
+      const gameId = 42;
+      
+      service.getGameById(gameId).subscribe(game => {
+        expect(game).toEqual(mockGameDto);
+        expect(game.id).toBe(gameId);
+        expect(game.title).toBe('Test Game');
+      });
+
+      const req = httpMock.expectOne(`/api/games/${gameId}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockGameDto);
+    });
+
+    it('should show error toast when API returns an error', () => {
+      const gameId = 999;
+      
+      service.getGameById(gameId).subscribe({
+        next: () => fail('Should have thrown an error'),
+        error: err => {
+          expect(err.status).toBe(404);
+        }
+      });
+
+      const req = httpMock.expectOne(`/api/games/${gameId}`);
+      req.flush('Game not found', { status: 404, statusText: 'Not Found' });
+      
+      // Verify toast was displayed
+      expect(messageService.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Could not load game'
+      });
+    });
   });
 
   // searchGames method tests

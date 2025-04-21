@@ -8,6 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { MenubarModule } from 'primeng/menubar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MessageService } from 'primeng/api';
 
 describe('AppComponent', () => {
   let component: AppComponent;
@@ -32,7 +33,8 @@ describe('AppComponent', () => {
         NavBarComponent
       ],
       providers: [
-        { provide: AuthService, useValue: authService }
+        { provide: AuthService, useValue: authService },
+        MessageService
       ]
     }).compileComponents();
 
