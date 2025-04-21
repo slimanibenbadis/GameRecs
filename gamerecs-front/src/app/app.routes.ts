@@ -10,6 +10,7 @@ import { LandingGuard } from './core/guards/landing.guard';
 import { ProfileComponent } from './features/profile/profile.component';
 import { GameLibraryComponent } from './features/game-library/game-library.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { GameDetailsComponent } from './features/game-details/game-details.component';
 
 export const routes: Routes = [
   { 
@@ -40,6 +41,11 @@ export const routes: Routes = [
   { 
     path: 'library',
     component: GameLibraryComponent,
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'games/:id',
+    component: GameDetailsComponent,
     canActivate: [AuthGuard]
   },
   { 

@@ -1,0 +1,72 @@
+.game-cover {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.game-detail-card {
+  background-color: rgba(2, 13, 11, 0.8);
+  border: 1px solid #155b89;
+  border-radius: 8px;
+}
+
+.section-title {
+  font-family: 'Fira Sans', sans-serif;
+  color: #7beadb;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.game-title {
+  font-family: 'Fira Sans', sans-serif;
+  color: #7beadb;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.game-description {
+  font-family: 'Rubik', sans-serif;
+  color: #d7f9f4;
+  line-height: 1.6;
+}
+
+.info-chip {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #155b89;
+  color: #d7f9f4;
+}
+
+.skeleton-container {
+  height: 400px;
+  border-radius: 8px;
+  background-color: rgba(21, 91, 137, 0.2);
+}
+
+.rating-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #7beadb;
+}
+
+.rating-label {
+  font-size: 0.875rem;
+  color: #d7f9f4;
+}
+
+.rating-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: rgba(21, 91, 137, 0.2);
+}
+
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 1.5rem;
+  }
+} 

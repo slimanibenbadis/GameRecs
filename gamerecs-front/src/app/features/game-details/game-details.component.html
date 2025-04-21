@@ -1,0 +1,151 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="animate-pulse">
+    <div class="skeleton-container mb-6"></div>
+    <div class="h-10 w-3/4 bg-gray-700 rounded mb-4"></div>
+    <div class="h-4 bg-gray-700 rounded mb-2"></div>
+    <div class="h-4 bg-gray-700 rounded mb-2"></div>
+    <div class="h-4 bg-gray-700 rounded mb-2"></div>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error" class="bg-red-700 text-white p-4 rounded">
+    {{ error }}
+    <button 
+      pButton 
+      class="mt-4"
+      label="Go Back" 
+      icon="pi pi-arrow-left" 
+      (click)="router.navigate(['/dashboard'])">
+    </button>
+  </div>
+
+  <!-- Game details -->
+  <div *ngIf="!loading && !error && game" class="game-details">
+    <!-- Game Header Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Game cover image -->
+      <div class="md:col-span-1">
+        <img 
+          *ngIf="game.coverImageUrl" 
+          [src]="game.coverImageUrl" 
+          [alt]="game.title + ' cover'" 
+          class="game-cover rounded shadow"
+          (error)="handleImageError($event)"
+        />
+        <img 
+          *ngIf="!game.coverImageUrl" 
+          src="assets/placeholders/game-poster.svg"
+          [alt]="game.title + ' cover'" 
+          class="game-cover rounded shadow"
+        />
+      </div>
+
+      <!-- Game info -->
+      <div class="md:col-span-2">
+        <h1 class="game-title mb-4">{{ game.title }}</h1>
+        
+        <!-- Release date & platforms -->
+        <div class="mb-4">
+          <p class="text-gray-300 mb-2">
+            <span *ngIf="game.releaseDate">Released: {{ game.releaseDate | date:'mediumDate' }}</span>
+          </p>
+          
+          <!-- Platforms -->
+          <div class="flex flex-wrap mb-4">
+            <p-chip 
+              *ngFor="let platform of game.platforms" 
+              [label]="platform.name"
+              class="info-chip"
+            ></p-chip>
+          </div>
+          
+          <!-- Genres -->
+          <div class="flex flex-wrap mb-4">
+            <p-chip 
+              *ngFor="let genre of game.genres" 
+              [label]="genre.name"
+              class="info-chip"
+            ></p-chip>
+          </div>
+        </div>
+        
+        <!-- Backlog status (if available) -->
+        <div *ngIf="game.backlogStatus" class="mb-4">
+          <p-tag 
+            [value]="game.backlogStatus" 
+            [severity]="getBacklogStatusSeverity(game.backlogStatus)">
+          </p-tag>
+        </div>
+        
+        <!-- Publishers & Developers -->
+        <div class="mb-4">
+          <p *ngIf="game.publishers && game.publishers.length > 0" class="text-gray-300">
+            Publisher: 
+            <span *ngFor="let publisher of game.publishers; let last = last">
+              {{ publisher.name }}{{ !last ? ', ' : '' }}
+            </span>
+          </p>
+          
+          <p *ngIf="game.developers && game.developers.length > 0" class="text-gray-300">
+            Developer: 
+            <span *ngFor="let developer of game.developers; let last = last">
+              {{ developer.name }}{{ !last ? ', ' : '' }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab sections -->
+    <p-tabView>
+      <!-- Game Info Tab -->
+      <p-tabPanel header="About">
+        <div class="game-description" [innerHTML]="game.description"></div>
+      </p-tabPanel>
+      
+      <!-- Ratings Tab -->
+      <p-tabPanel header="Ratings">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <!-- User Rating -->
+          <div class="rating-card">
+            <div class="rating-value">{{ game.userRating ?? '-' }}</div>
+            <div class="rating-label">Your Rating</div>
+          </div>
+          
+          <!-- Percentile Rank -->
+          <div class="rating-card">
+            <div class="rating-value">{{ game.percentileRank ?? '-' }}</div>
+            <div class="rating-label">Percentile Rank</div>
+          </div>
+          
+          <!-- Predicted Rating -->
+          <div class="rating-card">
+            <div class="rating-value">{{ game.predictedRating ?? '-' }}</div>
+            <div class="rating-label">Predicted Rating</div>
+          </div>
+        </div>
+        
+        <!-- Rating actions placeholder -->
+        <div class="mt-4">
+          <button pButton label="Rate this Game" icon="pi pi-star" class="mr-2"></button>
+        </div>
+      </p-tabPanel>
+      
+      <!-- Backlog Tab -->
+      <p-tabPanel header="Backlog">
+        <div class="mt-4">
+          <p class="mb-4 text-gray-300">Add this game to your backlog or update its status:</p>
+          
+          <!-- Backlog actions placeholder -->
+          <div class="flex flex-wrap gap-2">
+            <button pButton label="To Play" class="p-button-info"></button>
+            <button pButton label="In Progress" class="p-button-warn"></button>
+            <button pButton label="Completed" class="p-button-success"></button>
+            <button pButton label="Abandoned" class="p-button-danger"></button>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div> 

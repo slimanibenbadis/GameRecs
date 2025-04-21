@@ -98,12 +98,8 @@ export class DashboardComponent implements OnInit {
    * @param gameId The ID of the game to navigate to
    */
   navigateToGameDetails(gameId: number): void {
-    // In a real implementation, this would navigate to a game details page
     console.log(`Navigating to game details for game ID: ${gameId}`);
-    // this.router.navigate(['/games', gameId]);
-    
-    // For now, just show an alert
-    alert(`Game details page for ID: ${gameId} will be available soon!`);
+    this.router.navigate(['/games', gameId]);
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' {
