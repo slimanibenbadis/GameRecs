@@ -1,10 +1,15 @@
 package com.gamerecs.back.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -13,8 +18,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
-import java.util.HashMap;
-import java.util.Map;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Global exception handler for the application.
@@ -69,84 +74,6 @@ public class GlobalExceptionHandler {
             errors
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
-    
-    /**
-     * Handles user registration conflicts (duplicate username/email).
-     *
-     * @param ex the illegal argument exception
-     * @return ResponseEntity containing error details
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleUserRegistrationConflict(IllegalArgumentException ex) {
-        String message = ex.getMessage();
-        HttpStatus status = HttpStatus.CONFLICT;
-        Map<String, String> errors = new HashMap<>();
-
-        if ("Username already exists".equals(message)) {
-            logger.warn("Registration failed: Username already exists");
-            errors.put("username", "This username is already taken");
-        } else if ("Email already exists".equals(message)) {
-            logger.warn("Registration failed: Email already exists");
-            errors.put("email", "This email is already registered");
-        } else {
-            // For other IllegalArgumentException cases, delegate to the generic handler
-            return handleGenericIllegalArgumentException(ex);
-        }
-
-        ApiError apiError = new ApiError(
-            status.value(),
-            "Registration failed",
-            errors
-        );
-        return new ResponseEntity<>(apiError, status);
-    }
-
-    /**
-     * Handles other illegal argument exceptions.
-     *
-     * @param ex the illegal argument exception
-     * @return ResponseEntity containing error message
-     */
-    private ResponseEntity<ApiError> handleGenericIllegalArgumentException(IllegalArgumentException ex) {
-        logger.warn("Invalid argument: {}", ex.getMessage());
-        ApiError apiError = new ApiError(
-            HttpStatus.BAD_REQUEST.value(),
-            ex.getMessage()
-        );
-        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Handles illegal state exceptions.
-     *
-     * @param ex the illegal state exception
-     * @return ResponseEntity containing error message
-     */
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex) {
-        logger.warn("Invalid state: {}", ex.getMessage());
-        ApiError apiError = new ApiError(
-            HttpStatus.BAD_REQUEST.value(),
-            ex.getMessage()
-        );
-        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Handles authentication failures.
-     *
-     * @param ex the bad credentials exception
-     * @return ResponseEntity containing error message
-     */
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiError> handleBadCredentialsException(BadCredentialsException ex) {
-        logger.warn("Authentication failed: {}", ex.getMessage());
-        ApiError apiError = new ApiError(
-            HttpStatus.UNAUTHORIZED.value(),
-            "Invalid credentials"
-        );
-        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
     
     /**
@@ -216,18 +143,87 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Handles all other unhandled exceptions.
-     *
-     * @param ex the exception
-     * @return ResponseEntity containing generic error message
+     * Handles EntityNotFoundException and returns 404 with a standard ApiError JSON.
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiError> handleEntityNotFoundException(EntityNotFoundException ex, HttpServletRequest request) {
+        logger.error("Entity not found at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiError apiError = new ApiError(HttpStatus.NOT_FOUND.value(), "Game not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
+    
+    /**
+     * Handles IllegalArgumentException and returns 409 for username/email conflicts, 400 otherwise, always as ApiError.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        logger.error("Illegal argument at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        String message = ex.getMessage();
+        if ("Username already exists".equals(message)) {
+            ApiError apiError = new ApiError(HttpStatus.CONFLICT.value(), "Registration failed", Map.of("username", "This username is already taken"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+        } else if ("Email already exists".equals(message)) {
+            ApiError apiError = new ApiError(HttpStatus.CONFLICT.value(), "Registration failed", Map.of("email", "This email is already registered"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+        } else {
+            ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), message != null ? message : "Bad request");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+        }
+    }
+    
+    /**
+     * Handles all other unhandled exceptions and returns 500 with ApiError.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGenericException(Exception ex) {
-        logger.error("Unexpected error occurred", ex);
-        ApiError apiError = new ApiError(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "An unexpected error occurred"
-        );
-        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiError> handleGenericException(Exception ex, HttpServletRequest request) {
+        logger.error("Internal server error at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+    }
+
+    /**
+     * Handles authentication failures (invalid credentials).
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
+        logger.error("Authentication failed at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    /**
+     * Handles user not found during authentication.
+     */
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ApiError> handleUsernameNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
+        logger.error("User not found at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), "User not found");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+    }
+
+    /**
+     * Handles generic Spring Security authentication exceptions.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
+        logger.error("Authentication exception at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+        if (msg.contains("not found")) {
+            ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), "User not found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+        } else {
+            ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+        }
+    }
+
+    /**
+     * Handles IllegalStateException and returns 400 with the exception message.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
+        logger.error("Illegal state at path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), ex.getMessage() != null ? ex.getMessage() : "Bad request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
 } 

@@ -160,7 +160,7 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(authenticationManager).authenticate(any(Authentication.class));

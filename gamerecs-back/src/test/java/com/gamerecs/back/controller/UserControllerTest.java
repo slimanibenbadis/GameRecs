@@ -245,7 +245,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(validRegistrationDto)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.errors").isEmpty());
 
@@ -340,7 +340,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .param("token", token))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.errors").isEmpty());
 
@@ -483,7 +483,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService).getUserProfile(userId);
@@ -685,7 +685,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
