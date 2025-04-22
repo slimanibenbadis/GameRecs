@@ -1,8 +1,24 @@
+.game-cover-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: rgba(21, 91, 137, 0.1);
+  height: 100%;
+  max-height: 500px;
+}
+
 .game-cover {
   width: 100%;
   height: auto;
   max-height: 400px;
   object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.game-cover:hover {
+  transform: scale(1.03);
 }
 
 .game-detail-card {
@@ -23,6 +39,7 @@
   color: #7beadb;
   font-size: 2rem;
   font-weight: 600;
+  text-shadow: 0 0 10px rgba(123, 234, 219, 0.3);
 }
 
 .game-description {
@@ -44,29 +61,97 @@
   background-color: rgba(21, 91, 137, 0.2);
 }
 
-.rating-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #7beadb;
+.metadata-item {
+  display: flex;
+  align-items: center;
 }
 
-.rating-label {
-  font-size: 0.875rem;
-  color: #d7f9f4;
+.metadata-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  font-family: 'Fira Sans', sans-serif;
+}
+
+.metadata-block {
+  padding: 0.75rem;
+  background-color: rgba(21, 91, 137, 0.08);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.metadata-block:hover {
+  background-color: rgba(21, 91, 137, 0.15);
 }
 
 .rating-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: 8px;
-  background-color: rgba(21, 91, 137, 0.2);
+  background-color: rgba(21, 91, 137, 0.1);
+  transition: all 0.3s ease;
 }
 
+.rating-card:hover {
+  background-color: rgba(21, 91, 137, 0.2);
+  transform: translateY(-3px);
+}
+
+.rating-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #d7f9f4;
+}
+
+.rating-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #7beadb;
+  text-align: center;
+}
+
+.rating-label {
+  font-size: 0.875rem;
+  color: #d7f9f4;
+  text-align: center;
+}
+
+/* Override tab styling */
+:host ::ng-deep .p-tabview .p-tabview-nav {
+  background-color: transparent;
+  border-color: rgba(123, 234, 219, 0.2);
+}
+
+:host ::ng-deep .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  color: #d7f9f4;
+  background-color: rgba(21, 91, 137, 0.2);
+  border-color: rgba(123, 234, 219, 0.2);
+}
+
+:host ::ng-deep .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: #7beadb;
+  border-color: #7beadb;
+}
+
+:host ::ng-deep .p-tabview .p-tabview-panels {
+  background-color: rgba(21, 91, 137, 0.05);
+  border-color: rgba(123, 234, 219, 0.2);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .game-title {
     font-size: 1.5rem;
+  }
+  
+  .rating-value {
+    font-size: 1.5rem;
+  }
+  
+  .metadata-block {
+    margin-bottom: 1rem;
   }
 } 

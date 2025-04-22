@@ -21,78 +21,124 @@
   </div>
 
   <!-- Game details -->
-  <div *ngIf="!loading && !error && game" class="game-details">
+  <div *ngIf="!loading && !error && game" class="game-details animate-fadeIn">
     <!-- Game Header Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <!-- Game cover image -->
       <div class="md:col-span-1">
-        <img 
-          *ngIf="game.coverImageUrl" 
-          [src]="game.coverImageUrl" 
-          [alt]="game.title + ' cover'" 
-          class="game-cover rounded shadow"
-          (error)="handleImageError($event)"
-        />
-        <img 
-          *ngIf="!game.coverImageUrl" 
-          src="assets/placeholders/game-poster.svg"
-          [alt]="game.title + ' cover'" 
-          class="game-cover rounded shadow"
-        />
+        <div class="game-cover-container">
+          <img 
+            *ngIf="game.coverImageUrl" 
+            [src]="game.coverImageUrl" 
+            [alt]="game.title + ' cover'" 
+            class="game-cover rounded shadow-glow"
+            (error)="handleImageError($event)"
+          />
+          <img 
+            *ngIf="!game.coverImageUrl" 
+            src="assets/placeholders/game-poster.svg"
+            [alt]="game.title + ' cover'" 
+            class="game-cover rounded shadow-glow"
+          />
+        </div>
       </div>
 
       <!-- Game info -->
       <div class="md:col-span-2">
         <h1 class="game-title mb-4">{{ game.title }}</h1>
         
-        <!-- Release date & platforms -->
+        <!-- Release date -->
+        <div class="metadata-item mb-4" *ngIf="game.releaseDate">
+          <i class="pi pi-calendar text-primary mr-2"></i>
+          <span>Released: {{ game.releaseDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="metadata-item mb-4" *ngIf="!game.releaseDate">
+          <i class="pi pi-calendar text-gray-500 mr-2"></i>
+          <span class="text-gray-500">Release date unknown</span>
+        </div>
+        
+        <!-- Platforms -->
         <div class="mb-4">
-          <p class="text-gray-300 mb-2">
-            <span *ngIf="game.releaseDate">Released: {{ game.releaseDate | date:'mediumDate' }}</span>
-          </p>
-          
-          <!-- Platforms -->
-          <div class="flex flex-wrap mb-4">
+          <div class="metadata-header">
+            <i class="pi pi-desktop text-primary mr-2"></i>
+            <span class="text-primary font-medium">Platforms</span>
+          </div>
+          <div class="flex flex-wrap mt-2" *ngIf="game.platforms && game.platforms.length > 0">
             <p-chip 
               *ngFor="let platform of game.platforms" 
               [label]="platform.name"
               class="info-chip"
             ></p-chip>
           </div>
-          
-          <!-- Genres -->
-          <div class="flex flex-wrap mb-4">
+          <p *ngIf="!game.platforms || game.platforms.length === 0" class="text-gray-500 italic mt-2">
+            No platform information available
+          </p>
+        </div>
+        
+        <!-- Genres -->
+        <div class="mb-4">
+          <div class="metadata-header">
+            <i class="pi pi-tag text-primary mr-2"></i>
+            <span class="text-primary font-medium">Genres</span>
+          </div>
+          <div class="flex flex-wrap mt-2" *ngIf="game.genres && game.genres.length > 0">
             <p-chip 
               *ngFor="let genre of game.genres" 
               [label]="genre.name"
               class="info-chip"
             ></p-chip>
           </div>
+          <p *ngIf="!game.genres || game.genres.length === 0" class="text-gray-500 italic mt-2">
+            No genre information available
+          </p>
         </div>
         
         <!-- Backlog status (if available) -->
         <div *ngIf="game.backlogStatus" class="mb-4">
+          <div class="metadata-header">
+            <i class="pi pi-list text-primary mr-2"></i>
+            <span class="text-primary font-medium">Status</span>
+          </div>
           <p-tag 
             [value]="game.backlogStatus" 
-            [severity]="getBacklogStatusSeverity(game.backlogStatus)">
-          </p-tag>
+            [severity]="getBacklogStatusSeverity(game.backlogStatus)"
+            class="mt-2"
+          ></p-tag>
         </div>
         
         <!-- Publishers & Developers -->
-        <div class="mb-4">
-          <p *ngIf="game.publishers && game.publishers.length > 0" class="text-gray-300">
-            Publisher: 
-            <span *ngFor="let publisher of game.publishers; let last = last">
-              {{ publisher.name }}{{ !last ? ', ' : '' }}
-            </span>
-          </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <!-- Publishers -->
+          <div class="metadata-block">
+            <div class="metadata-header">
+              <i class="pi pi-briefcase text-primary mr-2"></i>
+              <span class="text-primary font-medium">Publisher</span>
+            </div>
+            <div *ngIf="game.publishers && game.publishers.length > 0" class="mt-2">
+              <span *ngFor="let publisher of game.publishers; let last = last">
+                {{ publisher.name }}{{ !last ? ', ' : '' }}
+              </span>
+            </div>
+            <p *ngIf="!game.publishers || game.publishers.length === 0" class="text-gray-500 italic mt-2">
+              No publisher information available
+            </p>
+          </div>
           
-          <p *ngIf="game.developers && game.developers.length > 0" class="text-gray-300">
-            Developer: 
-            <span *ngFor="let developer of game.developers; let last = last">
-              {{ developer.name }}{{ !last ? ', ' : '' }}
-            </span>
-          </p>
+          <!-- Developers -->
+          <div class="metadata-block">
+            <div class="metadata-header">
+              <i class="pi pi-code text-primary mr-2"></i>
+              <span class="text-primary font-medium">Developer</span>
+            </div>
+            <div *ngIf="game.developers && game.developers.length > 0" class="mt-2">
+              <span *ngFor="let developer of game.developers; let last = last">
+                {{ developer.name }}{{ !last ? ', ' : '' }}
+              </span>
+            </div>
+            <p *ngIf="!game.developers || game.developers.length === 0" class="text-gray-500 italic mt-2">
+              No developer information available
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -101,7 +147,10 @@
     <p-tabView>
       <!-- Game Info Tab -->
       <p-tabPanel header="About">
-        <div class="game-description" [innerHTML]="game.description"></div>
+        <div *ngIf="game.description" class="game-description p-3" [innerHTML]="game.description"></div>
+        <div *ngIf="!game.description" class="text-gray-500 italic p-3">
+          No description available for this game.
+        </div>
       </p-tabPanel>
       
       <!-- Ratings Tab -->
@@ -109,20 +158,35 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <!-- User Rating -->
           <div class="rating-card">
-            <div class="rating-value">{{ game.userRating ?? '-' }}</div>
-            <div class="rating-label">Your Rating</div>
+            <div class="rating-header">
+              <i class="pi pi-star-fill text-yellow-400 mr-2"></i>
+              <span>Your Rating</span>
+            </div>
+            <div class="rating-value" [class.text-gray-500]="!game.userRating">
+              {{ game.userRating ?? 'Not Rated' }}
+            </div>
           </div>
           
           <!-- Percentile Rank -->
           <div class="rating-card">
-            <div class="rating-value">{{ game.percentileRank ?? '-' }}</div>
-            <div class="rating-label">Percentile Rank</div>
+            <div class="rating-header">
+              <i class="pi pi-chart-bar text-blue-400 mr-2"></i>
+              <span>Percentile Rank</span>
+            </div>
+            <div class="rating-value" [class.text-gray-500]="!game.percentileRank">
+              {{ game.percentileRank ?? 'N/A' }}
+            </div>
           </div>
           
           <!-- Predicted Rating -->
           <div class="rating-card">
-            <div class="rating-value">{{ game.predictedRating ?? '-' }}</div>
-            <div class="rating-label">Predicted Rating</div>
+            <div class="rating-header">
+              <i class="pi pi-calculator text-green-400 mr-2"></i>
+              <span>Predicted Rating</span>
+            </div>
+            <div class="rating-value" [class.text-gray-500]="!game.predictedRating">
+              {{ game.predictedRating ?? 'Not Available' }}
+            </div>
           </div>
         </div>
         
@@ -137,12 +201,12 @@
         <div class="mt-4">
           <p class="mb-4 text-gray-300">Add this game to your backlog or update its status:</p>
           
-          <!-- Backlog actions placeholder -->
+          <!-- Backlog actions -->
           <div class="flex flex-wrap gap-2">
-            <button pButton label="To Play" class="p-button-info"></button>
-            <button pButton label="In Progress" class="p-button-warn"></button>
-            <button pButton label="Completed" class="p-button-success"></button>
-            <button pButton label="Abandoned" class="p-button-danger"></button>
+            <button pButton label="To Play" icon="pi pi-bookmark" class="p-button-info"></button>
+            <button pButton label="In Progress" icon="pi pi-spin pi-spinner" class="p-button-warn"></button>
+            <button pButton label="Completed" icon="pi pi-check-circle" class="p-button-success"></button>
+            <button pButton label="Abandoned" icon="pi pi-times-circle" class="p-button-danger"></button>
           </div>
         </div>
       </p-tabPanel>

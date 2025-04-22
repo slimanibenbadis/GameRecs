@@ -8,6 +8,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
+import { RippleModule } from 'primeng/ripple';
 import { GameService } from '../../core/services/game.service';
 import { GameDto } from '../../models/game.dto';
 
@@ -24,7 +25,8 @@ import { GameDto } from '../../models/game.dto';
     TabViewModule,
     ChipModule,
     TooltipModule,
-    SkeletonModule
+    SkeletonModule,
+    RippleModule
   ]
 })
 export class GameDetailsComponent implements OnInit {
