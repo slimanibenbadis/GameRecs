@@ -95,4 +95,28 @@ export class GameDetailsComponent implements OnInit {
       return 'info';
     }
   }
+
+  /**
+   * Returns a CSS class based on the PRI rating value
+   * @param rating The PRI rating value (0-100)
+   * @returns A CSS class for styling based on rating quality
+   */
+  getPriRatingClass(rating: number | null): string {
+    if (!rating) return 'text-gray-500';
+    
+    if (rating >= 80) return 'text-green-400';
+    if (rating >= 60) return 'text-blue-400';
+    if (rating >= 40) return 'text-yellow-400';
+    return 'text-red-400';
+  }
+
+  /**
+   * Calculates percentage width for the PRI rating quality indicator
+   * @param rating The PRI rating value (0-100)
+   * @returns A percentage (0-100) representing the rating quality
+   */
+  getPriPercentage(rating: number | null): number {
+    if (!rating) return 0;
+    return rating; // The rating is already 0-100 scale
+  }
 } 

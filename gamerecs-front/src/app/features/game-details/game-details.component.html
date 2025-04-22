@@ -179,13 +179,28 @@
           </div>
           
           <!-- Predicted Rating -->
-          <div class="rating-card">
-            <div class="rating-header">
+          <div class="rating-card" aria-labelledby="predicted-rating-header" aria-describedby="predicted-rating-value">
+            <div class="rating-header" id="predicted-rating-header">
               <i class="pi pi-calculator text-green-400 mr-2"></i>
-              <span>Predicted Rating</span>
+              <span>Predicted Rating (PRI)</span>
+              <i class="pi pi-info-circle ml-2 text-gray-400 cursor-help" 
+                 pTooltip="Based on ratings from users with similar taste to yours" 
+                 tooltipPosition="top"></i>
             </div>
-            <div class="rating-value" [class.text-gray-500]="!game.predictedRating">
-              {{ game.predictedRating ?? 'Not Available' }}
+            <div *ngIf="game.predictedRating" class="rating-value-container">
+              <div class="rating-value" 
+                   [ngClass]="getPriRatingClass(game.predictedRating)"
+                   id="predicted-rating-value">
+                {{ game.predictedRating }}
+              </div>
+              <div class="rating-quality-indicator" 
+                   [ngStyle]="{'width': getPriPercentage(game.predictedRating) + '%'}"
+                   [ngClass]="'bg-' + getPriRatingClass(game.predictedRating).substring(5)">
+              </div>
+            </div>
+            <div *ngIf="!game.predictedRating" class="rating-value text-gray-500" id="predicted-rating-value">
+              Not Available
+              <div class="text-xs mt-1">Need more similar users' ratings</div>
             </div>
           </div>
         </div>
