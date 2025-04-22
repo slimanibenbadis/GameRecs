@@ -206,8 +206,45 @@
         </div>
         
         <!-- Rating actions placeholder -->
-        <div class="mt-4">
-          <button pButton label="Rate this Game" icon="pi pi-star" class="mr-2"></button>
+        <div class="mt-6 mb-4">
+          <div class="rating-input-container">
+            <div class="rating-input-header">
+              <h3 class="section-title text-lg mb-2">Rate This Game</h3>
+              <span class="coming-soon-badge" 
+                   pTooltip="This feature will be available in a future update" 
+                   tooltipPosition="top">Coming Soon</span>
+            </div>
+            
+            <div class="rating-input-placeholder" aria-label="Rating input - feature coming soon">
+              <div class="rating-slider-container">
+                <div class="rating-slider-track">
+                  <div class="rating-slider-thumb"></div>
+                </div>
+                <div class="rating-scale">
+                  <span>0</span>
+                  <span>25</span>
+                  <span>50</span>
+                  <span>75</span>
+                  <span>100</span>
+                </div>
+              </div>
+              
+              <div class="flex mt-4 justify-center">
+                <button pButton 
+                        label="Submit Rating" 
+                        icon="pi pi-star" 
+                        class="p-button-secondary" 
+                        [disabled]="true"
+                        pTooltip="Rating submission will be enabled in a future update"
+                        tooltipPosition="bottom"></button>
+              </div>
+            </div>
+            
+            <div class="text-xs text-gray-400 mt-2 text-center">
+              <i class="pi pi-info-circle mr-1"></i>
+              Rate games on a scale from 0-100 to improve your recommendations
+            </div>
+          </div>
         </div>
       </p-tabPanel>
       

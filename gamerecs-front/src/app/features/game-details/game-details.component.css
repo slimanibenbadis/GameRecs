@@ -201,4 +201,81 @@
   .metadata-block {
     margin-bottom: 1rem;
   }
+}
+
+/* Rating Input Placeholder Styles */
+.rating-input-container {
+  background-color: rgba(21, 91, 137, 0.08);
+  border-radius: 8px;
+  padding: 1.5rem;
+  position: relative;
+  border: 1px dashed rgba(123, 234, 219, 0.3);
+}
+
+.rating-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.coming-soon-badge {
+  background-color: rgba(70, 132, 226, 0.2);
+  color: #4684e2;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(70, 132, 226, 0.4);
+}
+
+.rating-input-placeholder {
+  opacity: 0.75;
+  filter: grayscale(20%);
+  pointer-events: none;
+}
+
+.rating-slider-container {
+  width: 100%;
+  padding: 0 1rem;
+  margin: 1.5rem 0;
+}
+
+.rating-slider-track {
+  height: 8px;
+  background-color: rgba(21, 91, 137, 0.3);
+  border-radius: 4px;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.rating-slider-thumb {
+  width: 20px;
+  height: 20px;
+  background-color: #7beadb;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(123, 234, 219, 0.5);
+}
+
+.rating-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #d7f9f4;
+}
+
+/* Responsive adjustments for rating input */
+@media (max-width: 768px) {
+  .rating-input-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .coming-soon-badge {
+    margin-top: 0.5rem;
+  }
 } 
