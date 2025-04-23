@@ -9,8 +9,11 @@ import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { RippleModule } from 'primeng/ripple';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { MessageModule } from 'primeng/message';
 import { GameService } from '../../core/services/game.service';
 import { GameDto } from '../../models/game.dto';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-game-details',
@@ -26,7 +29,9 @@ import { GameDto } from '../../models/game.dto';
     ChipModule,
     TooltipModule,
     SkeletonModule,
-    RippleModule
+    RippleModule,
+    ProgressSpinnerModule,
+    MessageModule
   ]
 })
 export class GameDetailsComponent implements OnInit {
@@ -34,6 +39,9 @@ export class GameDetailsComponent implements OnInit {
   game: GameDto | null = null;
   loading = true;
   error: string | null = null;
+  notFound = false;
+  retryCount = 0;
+  maxRetries = 1;
 
   constructor(
     private route: ActivatedRoute,
@@ -50,7 +58,14 @@ export class GameDetailsComponent implements OnInit {
         return;
       }
 
-      this.gameId = +idParam;
+      const parsedId = +idParam;
+      if (isNaN(parsedId) || parsedId <= 0) {
+        this.error = 'Invalid game ID: must be a positive number';
+        this.loading = false;
+        return;
+      }
+
+      this.gameId = parsedId;
       this.loadGameDetails();
     });
   }
@@ -58,18 +73,54 @@ export class GameDetailsComponent implements OnInit {
   loadGameDetails(): void {
     this.loading = true;
     this.error = null;
+    this.notFound = false;
 
     this.gameService.getGameById(this.gameId).subscribe({
       next: (game) => {
         this.game = game;
         this.loading = false;
+        this.retryCount = 0; // Reset retry count on success
       },
-      error: (err) => {
-        console.error('Error loading game details:', err);
-        this.error = 'Failed to load game details';
+      error: (err: HttpErrorResponse) => {
         this.loading = false;
+        
+        // Handle 404 Not Found specifically
+        if (err.status === 404) {
+          this.notFound = true;
+          this.error = `Game with ID ${this.gameId} could not be found`;
+          return;
+        }
+        
+        // Handle other error cases
+        console.error('Error loading game details:', err);
+        
+        // Provide more specific error messages based on status code
+        if (err.status === 0) {
+          this.error = 'Network error. Please check your internet connection.';
+        } else if (err.status === 401) {
+          this.error = 'You need to be logged in to view this content.';
+        } else if (err.status === 403) {
+          this.error = 'You don\'t have permission to access this content.';
+        } else if (err.status >= 500) {
+          this.error = 'Server error. Please try again later.';
+          
+          // Attempt to retry if the error was a server error
+          if (this.retryCount < this.maxRetries) {
+            this.retryCount++;
+            setTimeout(() => {
+              this.loadGameDetails();
+            }, 2000); // Wait 2 seconds before retrying
+          }
+        } else {
+          // Use the error message from the API if available
+          this.error = err.error?.message || 'Failed to load game details';
+        }
       }
     });
+  }
+
+  retryLoading(): void {
+    this.loadGameDetails();
   }
 
   handleImageError(event: Event): void {

@@ -352,4 +352,79 @@
   .coming-soon-badge {
     margin-top: 0.5rem;
   }
+}
+
+/* Loading State Styles */
+.loading-state {
+  min-height: 400px;
+}
+
+/* Error and Not Found States */
+.error-container {
+  background-color: rgba(21, 91, 137, 0.1);
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(123, 234, 219, 0.2);
+}
+
+.not-found-state {
+  border-left: 4px solid #7beadb;
+}
+
+.general-error-state {
+  border-left: 4px solid #f87171;
+}
+
+/* PrimeNG Message Override */
+:host ::ng-deep .p-message {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+:host ::ng-deep .p-message-error {
+  background-color: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+/* Animation for content entrance */
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner adjustments */
+:host ::ng-deep .p-progress-spinner-circle {
+  stroke: #7beadb !important;
+}
+
+/* Button styling in error states */
+.error-container .p-button-outlined {
+  color: #7beadb;
+  border-color: #7beadb;
+}
+
+.error-container .p-button-outlined:hover {
+  background-color: rgba(123, 234, 219, 0.1);
+}
+
+/* Responsive adjustments for error states */
+@media (max-width: 768px) {
+  .error-container {
+    padding: 1.5rem;
+  }
 } 

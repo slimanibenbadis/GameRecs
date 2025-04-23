@@ -1,27 +1,113 @@
 <div class="container mx-auto px-4 py-8">
-  <!-- Loading state -->
-  <div *ngIf="loading" class="animate-pulse">
-    <div class="skeleton-container mb-6"></div>
-    <div class="h-10 w-3/4 bg-gray-700 rounded mb-4"></div>
-    <div class="h-4 bg-gray-700 rounded mb-2"></div>
-    <div class="h-4 bg-gray-700 rounded mb-2"></div>
-    <div class="h-4 bg-gray-700 rounded mb-2"></div>
+  <!-- Loading state with skeleton and spinner -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="flex justify-center items-center mb-6">
+      <p-progressSpinner strokeWidth="4" [style]="{width: '50px', height: '50px'}" 
+                        animationDuration=".7s" 
+                        aria-label="Loading game details"></p-progressSpinner>
+    </div>
+    <div class="mt-4 animate-pulse">
+      <!-- Game header skeleton -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Cover image skeleton -->
+        <div class="md:col-span-1">
+          <div class="skeleton-container rounded bg-gray-700"></div>
+        </div>
+        
+        <!-- Details skeleton -->
+        <div class="md:col-span-2">
+          <div class="h-10 w-3/4 bg-gray-700 rounded mb-4"></div>
+          <div class="h-4 w-1/2 bg-gray-700 rounded mb-4"></div>
+          
+          <!-- Platforms skeleton -->
+          <div class="mb-4">
+            <div class="h-6 w-32 bg-gray-700 rounded mb-2"></div>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <div class="h-8 w-24 bg-gray-700 rounded"></div>
+              <div class="h-8 w-28 bg-gray-700 rounded"></div>
+              <div class="h-8 w-20 bg-gray-700 rounded"></div>
+            </div>
+          </div>
+          
+          <!-- Genres skeleton -->
+          <div class="mb-4">
+            <div class="h-6 w-32 bg-gray-700 rounded mb-2"></div>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <div class="h-8 w-20 bg-gray-700 rounded"></div>
+              <div class="h-8 w-24 bg-gray-700 rounded"></div>
+            </div>
+          </div>
+          
+          <!-- Publishers & Developers skeleton -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="h-24 bg-gray-700 rounded"></div>
+            <div class="h-24 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tabs skeleton -->
+      <div class="h-10 bg-gray-700 rounded mb-4"></div>
+      <div class="h-40 bg-gray-700 rounded"></div>
+    </div>
+    <div class="text-center text-gray-400 mt-6">
+      Loading game details...
+    </div>
   </div>
 
-  <!-- Error state -->
-  <div *ngIf="error" class="bg-red-700 text-white p-4 rounded">
-    {{ error }}
-    <button 
-      pButton 
-      class="mt-4"
-      label="Go Back" 
-      icon="pi pi-arrow-left" 
-      (click)="router.navigate(['/dashboard'])">
-    </button>
+  <!-- Not Found state -->
+  <div *ngIf="!loading && notFound" class="error-container not-found-state">
+    <div class="text-center py-8">
+      <div class="text-7xl mb-4 text-primary opacity-70">
+        <i class="pi pi-search"></i>
+      </div>
+      <h2 class="text-2xl font-semibold mb-4">Game Not Found</h2>
+      <p class="text-gray-300 mb-6">
+        Sorry, we couldn't find a game with ID {{ gameId }}. 
+        This game might not exist in our database yet.
+      </p>
+      
+      <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
+        <button pButton 
+                label="Go to Dashboard" 
+                icon="pi pi-home" 
+                class="p-button-primary" 
+                (click)="router.navigate(['/dashboard'])"></button>
+        <button pButton 
+                label="Try Again" 
+                icon="pi pi-refresh" 
+                class="p-button-outlined" 
+                (click)="retryLoading()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- General Error state -->
+  <div *ngIf="!loading && error && !notFound" class="error-container general-error-state">
+    <div class="text-center py-8">
+      <div class="text-7xl mb-4 text-red-500 opacity-70">
+        <i class="pi pi-exclamation-circle"></i>
+      </div>
+      <h2 class="text-2xl font-semibold mb-4">Oops! Something went wrong</h2>
+      <p-message severity="error" [text]="error" styleClass="mb-6" [closable]="false"></p-message>
+      
+      <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
+        <button pButton 
+                label="Go to Dashboard" 
+                icon="pi pi-home" 
+                class="p-button-primary" 
+                (click)="router.navigate(['/dashboard'])"></button>
+        <button pButton 
+                label="Try Again" 
+                icon="pi pi-refresh" 
+                class="p-button-outlined" 
+                (click)="retryLoading()"></button>
+      </div>
+    </div>
   </div>
 
   <!-- Game details -->
-  <div *ngIf="!loading && !error && game" class="game-details animate-fadeIn">
+  <div *ngIf="!loading && !error && !notFound && game" class="game-details animate-fadeIn">
     <!-- Game Header Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <!-- Game cover image -->
