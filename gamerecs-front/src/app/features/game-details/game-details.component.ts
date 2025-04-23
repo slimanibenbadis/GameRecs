@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CardModule } from 'primeng/card';
@@ -14,6 +14,7 @@ import { MessageModule } from 'primeng/message';
 import { GameService } from '../../core/services/game.service';
 import { GameDto } from '../../models/game.dto';
 import { HttpErrorResponse } from '@angular/common/http';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-game-details',
@@ -32,6 +33,20 @@ import { HttpErrorResponse } from '@angular/common/http';
     RippleModule,
     ProgressSpinnerModule,
     MessageModule
+  ],
+  animations: [
+    trigger('fadeSlideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms ease-out', style({ opacity: 1 }))
+      ])
+    ])
   ]
 })
 export class GameDetailsComponent implements OnInit {
@@ -42,6 +57,7 @@ export class GameDetailsComponent implements OnInit {
   notFound = false;
   retryCount = 0;
   maxRetries = 1;
+  screenSize: 'sm' | 'md' | 'lg' = 'lg';
 
   constructor(
     private route: ActivatedRoute,
@@ -50,6 +66,8 @@ export class GameDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.checkScreenSize();
+    
     this.route.paramMap.subscribe(params => {
       const idParam = params.get('id');
       if (!idParam) {
@@ -68,6 +86,18 @@ export class GameDetailsComponent implements OnInit {
       this.gameId = parsedId;
       this.loadGameDetails();
     });
+  }
+
+  @HostListener('window:resize')
+  checkScreenSize(): void {
+    const width = window.innerWidth;
+    if (width < 640) {
+      this.screenSize = 'sm';
+    } else if (width < 1024) {
+      this.screenSize = 'md';
+    } else {
+      this.screenSize = 'lg';
+    }
   }
 
   loadGameDetails(): void {
@@ -127,6 +157,7 @@ export class GameDetailsComponent implements OnInit {
     const imgElement = event.target as HTMLImageElement;
     if (imgElement) {
       imgElement.src = 'assets/placeholders/game-poster.svg';
+      imgElement.alt = 'Game cover placeholder';
     }
   }
 

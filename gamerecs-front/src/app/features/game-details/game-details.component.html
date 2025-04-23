@@ -1,6 +1,9 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8" role="main">
+  <!-- Skip to content link for accessibility -->
+  <a href="#game-content" class="skip-link">Skip to content</a>
+
   <!-- Loading state with skeleton and spinner -->
-  <div *ngIf="loading" class="loading-state">
+  <div *ngIf="loading" class="loading-state" aria-live="polite" aria-busy="true">
     <div class="flex justify-center items-center mb-6">
       <p-progressSpinner strokeWidth="4" [style]="{width: '50px', height: '50px'}" 
                         animationDuration=".7s" 
@@ -11,44 +14,44 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <!-- Cover image skeleton -->
         <div class="md:col-span-1">
-          <div class="skeleton-container rounded bg-gray-700"></div>
+          <div class="skeleton-container rounded bg-gray-700" aria-hidden="true"></div>
         </div>
         
         <!-- Details skeleton -->
         <div class="md:col-span-2">
-          <div class="h-10 w-3/4 bg-gray-700 rounded mb-4"></div>
-          <div class="h-4 w-1/2 bg-gray-700 rounded mb-4"></div>
+          <div class="h-10 w-3/4 bg-gray-700 rounded mb-4" aria-hidden="true"></div>
+          <div class="h-4 w-1/2 bg-gray-700 rounded mb-4" aria-hidden="true"></div>
           
           <!-- Platforms skeleton -->
           <div class="mb-4">
-            <div class="h-6 w-32 bg-gray-700 rounded mb-2"></div>
+            <div class="h-6 w-32 bg-gray-700 rounded mb-2" aria-hidden="true"></div>
             <div class="flex flex-wrap gap-2 mt-2">
-              <div class="h-8 w-24 bg-gray-700 rounded"></div>
-              <div class="h-8 w-28 bg-gray-700 rounded"></div>
-              <div class="h-8 w-20 bg-gray-700 rounded"></div>
+              <div class="h-8 w-24 bg-gray-700 rounded" aria-hidden="true"></div>
+              <div class="h-8 w-28 bg-gray-700 rounded" aria-hidden="true"></div>
+              <div class="h-8 w-20 bg-gray-700 rounded" aria-hidden="true"></div>
             </div>
           </div>
           
           <!-- Genres skeleton -->
           <div class="mb-4">
-            <div class="h-6 w-32 bg-gray-700 rounded mb-2"></div>
+            <div class="h-6 w-32 bg-gray-700 rounded mb-2" aria-hidden="true"></div>
             <div class="flex flex-wrap gap-2 mt-2">
-              <div class="h-8 w-20 bg-gray-700 rounded"></div>
-              <div class="h-8 w-24 bg-gray-700 rounded"></div>
+              <div class="h-8 w-20 bg-gray-700 rounded" aria-hidden="true"></div>
+              <div class="h-8 w-24 bg-gray-700 rounded" aria-hidden="true"></div>
             </div>
           </div>
           
           <!-- Publishers & Developers skeleton -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div class="h-24 bg-gray-700 rounded"></div>
-            <div class="h-24 bg-gray-700 rounded"></div>
+            <div class="h-24 bg-gray-700 rounded" aria-hidden="true"></div>
+            <div class="h-24 bg-gray-700 rounded" aria-hidden="true"></div>
           </div>
         </div>
       </div>
       
       <!-- Tabs skeleton -->
-      <div class="h-10 bg-gray-700 rounded mb-4"></div>
-      <div class="h-40 bg-gray-700 rounded"></div>
+      <div class="h-10 bg-gray-700 rounded mb-4" aria-hidden="true"></div>
+      <div class="h-40 bg-gray-700 rounded" aria-hidden="true"></div>
     </div>
     <div class="text-center text-gray-400 mt-6">
       Loading game details...
@@ -56,10 +59,10 @@
   </div>
 
   <!-- Not Found state -->
-  <div *ngIf="!loading && notFound" class="error-container not-found-state">
+  <div *ngIf="!loading && notFound" class="error-container not-found-state" role="alert" aria-live="assertive" [@fadeSlideIn]>
     <div class="text-center py-8">
       <div class="text-7xl mb-4 text-primary opacity-70">
-        <i class="pi pi-search"></i>
+        <i class="pi pi-search" aria-hidden="true"></i>
       </div>
       <h2 class="text-2xl font-semibold mb-4">Game Not Found</h2>
       <p class="text-gray-300 mb-6">
@@ -67,51 +70,55 @@
         This game might not exist in our database yet.
       </p>
       
-      <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
         <button pButton 
                 label="Go to Dashboard" 
                 icon="pi pi-home" 
                 class="p-button-primary" 
-                (click)="router.navigate(['/dashboard'])"></button>
+                (click)="router.navigate(['/dashboard'])"
+                aria-label="Return to dashboard"></button>
         <button pButton 
                 label="Try Again" 
                 icon="pi pi-refresh" 
                 class="p-button-outlined" 
-                (click)="retryLoading()"></button>
+                (click)="retryLoading()"
+                aria-label="Retry loading the game"></button>
       </div>
     </div>
   </div>
 
   <!-- General Error state -->
-  <div *ngIf="!loading && error && !notFound" class="error-container general-error-state">
+  <div *ngIf="!loading && error && !notFound" class="error-container general-error-state" role="alert" aria-live="assertive" [@fadeSlideIn]>
     <div class="text-center py-8">
       <div class="text-7xl mb-4 text-red-500 opacity-70">
-        <i class="pi pi-exclamation-circle"></i>
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
       </div>
       <h2 class="text-2xl font-semibold mb-4">Oops! Something went wrong</h2>
       <p-message severity="error" [text]="error" styleClass="mb-6" [closable]="false"></p-message>
       
-      <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
         <button pButton 
                 label="Go to Dashboard" 
                 icon="pi pi-home" 
                 class="p-button-primary" 
-                (click)="router.navigate(['/dashboard'])"></button>
+                (click)="router.navigate(['/dashboard'])"
+                aria-label="Return to dashboard"></button>
         <button pButton 
                 label="Try Again" 
                 icon="pi pi-refresh" 
                 class="p-button-outlined" 
-                (click)="retryLoading()"></button>
+                (click)="retryLoading()"
+                aria-label="Retry loading the game"></button>
       </div>
     </div>
   </div>
 
   <!-- Game details -->
-  <div *ngIf="!loading && !error && !notFound && game" class="game-details animate-fadeIn">
+  <div id="game-content" *ngIf="!loading && !error && !notFound && game" class="game-details" [@fadeSlideIn]>
     <!-- Game Header Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <!-- Game cover image -->
-      <div class="md:col-span-1">
+      <div class="md:col-span-1" [@fadeIn]>
         <div class="game-cover-container">
           <img 
             *ngIf="game.coverImageUrl" 
@@ -123,37 +130,38 @@
           <img 
             *ngIf="!game.coverImageUrl" 
             src="assets/placeholders/game-poster.svg"
-            [alt]="game.title + ' cover'" 
+            [alt]="game.title + ' cover placeholder'" 
             class="game-cover rounded shadow-glow"
           />
         </div>
       </div>
 
       <!-- Game info -->
-      <div class="md:col-span-2">
+      <div class="md:col-span-2" [@fadeIn]>
         <h1 class="game-title mb-4">{{ game.title }}</h1>
         
         <!-- Release date -->
-        <div class="metadata-item mb-4" *ngIf="game.releaseDate">
-          <i class="pi pi-calendar text-primary mr-2"></i>
+        <div class="metadata-item mb-4 slide-in-left" *ngIf="game.releaseDate" style="animation-delay: 100ms;">
+          <i class="pi pi-calendar text-primary mr-2" aria-hidden="true"></i>
           <span>Released: {{ game.releaseDate | date:'mediumDate' }}</span>
         </div>
-        <div class="metadata-item mb-4" *ngIf="!game.releaseDate">
-          <i class="pi pi-calendar text-gray-500 mr-2"></i>
+        <div class="metadata-item mb-4 slide-in-left" *ngIf="!game.releaseDate" style="animation-delay: 100ms;">
+          <i class="pi pi-calendar text-gray-500 mr-2" aria-hidden="true"></i>
           <span class="text-gray-500">Release date unknown</span>
         </div>
         
         <!-- Platforms -->
-        <div class="mb-4">
+        <div class="mb-4 slide-in-left" style="animation-delay: 200ms;">
           <div class="metadata-header">
-            <i class="pi pi-desktop text-primary mr-2"></i>
+            <i class="pi pi-desktop text-primary mr-2" aria-hidden="true"></i>
             <span class="text-primary font-medium">Platforms</span>
           </div>
-          <div class="flex flex-wrap mt-2" *ngIf="game.platforms && game.platforms.length > 0">
+          <div class="flex flex-wrap mt-2" *ngIf="game.platforms && game.platforms.length > 0" role="list" aria-label="Available platforms">
             <p-chip 
               *ngFor="let platform of game.platforms" 
               [label]="platform.name"
               class="info-chip"
+              role="listitem"
             ></p-chip>
           </div>
           <p *ngIf="!game.platforms || game.platforms.length === 0" class="text-gray-500 italic mt-2">
@@ -162,16 +170,17 @@
         </div>
         
         <!-- Genres -->
-        <div class="mb-4">
+        <div class="mb-4 slide-in-left" style="animation-delay: 300ms;">
           <div class="metadata-header">
-            <i class="pi pi-tag text-primary mr-2"></i>
+            <i class="pi pi-tag text-primary mr-2" aria-hidden="true"></i>
             <span class="text-primary font-medium">Genres</span>
           </div>
-          <div class="flex flex-wrap mt-2" *ngIf="game.genres && game.genres.length > 0">
+          <div class="flex flex-wrap mt-2" *ngIf="game.genres && game.genres.length > 0" role="list" aria-label="Game genres">
             <p-chip 
               *ngFor="let genre of game.genres" 
               [label]="genre.name"
               class="info-chip"
+              role="listitem"
             ></p-chip>
           </div>
           <p *ngIf="!game.genres || game.genres.length === 0" class="text-gray-500 italic mt-2">
@@ -180,24 +189,27 @@
         </div>
         
         <!-- Backlog status (if available) -->
-        <div *ngIf="game.backlogStatus" class="mb-4">
+        <div *ngIf="game.backlogStatus" class="mb-4 slide-in-left" style="animation-delay: 400ms;">
           <div class="metadata-header">
-            <i class="pi pi-list text-primary mr-2"></i>
+            <i class="pi pi-list text-primary mr-2" aria-hidden="true"></i>
             <span class="text-primary font-medium">Status</span>
           </div>
           <p-tag 
             [value]="game.backlogStatus" 
             [severity]="getBacklogStatusSeverity(game.backlogStatus)"
             class="mt-2"
+            [attr.aria-label]="'Game status: ' + game.backlogStatus"
+            [pTooltip]="getBacklogStatusDescription(game.backlogStatus)"
+            tooltipPosition="right"
           ></p-tag>
         </div>
         
         <!-- Publishers & Developers -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 fade-in-up" style="animation-delay: 500ms;">
           <!-- Publishers -->
           <div class="metadata-block">
             <div class="metadata-header">
-              <i class="pi pi-briefcase text-primary mr-2"></i>
+              <i class="pi pi-briefcase text-primary mr-2" aria-hidden="true"></i>
               <span class="text-primary font-medium">Publisher</span>
             </div>
             <div *ngIf="game.publishers && game.publishers.length > 0" class="mt-2">
@@ -213,7 +225,7 @@
           <!-- Developers -->
           <div class="metadata-block">
             <div class="metadata-header">
-              <i class="pi pi-code text-primary mr-2"></i>
+              <i class="pi pi-code text-primary mr-2" aria-hidden="true"></i>
               <span class="text-primary font-medium">Developer</span>
             </div>
             <div *ngIf="game.developers && game.developers.length > 0" class="mt-2">
@@ -230,22 +242,22 @@
     </div>
 
     <!-- Tab sections -->
-    <p-tabView>
+    <p-tabView [@fadeIn]>
       <!-- Game Info Tab -->
       <p-tabPanel header="About">
-        <div *ngIf="game.description" class="game-description p-3" [innerHTML]="game.description"></div>
-        <div *ngIf="!game.description" class="text-gray-500 italic p-3">
+        <div *ngIf="game.description" class="game-description p-3 fade-in-up" [innerHTML]="game.description" tabindex="0"></div>
+        <div *ngIf="!game.description" class="text-gray-500 italic p-3 fade-in-up">
           No description available for this game.
         </div>
       </p-tabPanel>
       
       <!-- Ratings Tab -->
       <p-tabPanel header="Ratings">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6 fade-in-up">
           <!-- User Rating -->
-          <div class="rating-card">
+          <div class="rating-card" role="region" aria-label="Your rating">
             <div class="rating-header">
-              <i class="pi pi-star-fill text-yellow-400 mr-2"></i>
+              <i class="pi pi-star-fill text-yellow-400 mr-2" aria-hidden="true"></i>
               <span>Your Rating</span>
             </div>
             <div class="rating-value" [class.text-gray-500]="!game.userRating">
@@ -254,9 +266,9 @@
           </div>
           
           <!-- Percentile Rank -->
-          <div class="rating-card">
+          <div class="rating-card" role="region" aria-label="Percentile rank">
             <div class="rating-header">
-              <i class="pi pi-chart-bar text-blue-400 mr-2"></i>
+              <i class="pi pi-chart-bar text-blue-400 mr-2" aria-hidden="true"></i>
               <span>Percentile Rank</span>
             </div>
             <div class="rating-value" [class.text-gray-500]="!game.percentileRank">
@@ -265,13 +277,14 @@
           </div>
           
           <!-- Predicted Rating -->
-          <div class="rating-card" aria-labelledby="predicted-rating-header" aria-describedby="predicted-rating-value">
+          <div class="rating-card" role="region" aria-labelledby="predicted-rating-header" aria-describedby="predicted-rating-value">
             <div class="rating-header" id="predicted-rating-header">
-              <i class="pi pi-calculator text-green-400 mr-2"></i>
+              <i class="pi pi-calculator text-green-400 mr-2" aria-hidden="true"></i>
               <span>Predicted Rating (PRI)</span>
               <i class="pi pi-info-circle ml-2 text-gray-400 cursor-help" 
                  pTooltip="Based on ratings from users with similar taste to yours" 
-                 tooltipPosition="top"></i>
+                 tooltipPosition="top"
+                 aria-label="Information: Predicted rating is based on ratings from users with similar taste to yours"></i>
             </div>
             <div *ngIf="game.predictedRating" class="rating-value-container">
               <div class="rating-value" 
@@ -281,7 +294,8 @@
               </div>
               <div class="rating-quality-indicator" 
                    [ngStyle]="{'width': getPriPercentage(game.predictedRating) + '%'}"
-                   [ngClass]="'bg-' + getPriRatingClass(game.predictedRating).substring(5)">
+                   [ngClass]="'bg-' + getPriRatingClass(game.predictedRating).substring(5)"
+                   [attr.aria-label]="'Rating quality: ' + game.predictedRating + '%'">
               </div>
             </div>
             <div *ngIf="!game.predictedRating" class="rating-value text-gray-500" id="predicted-rating-value">
@@ -292,7 +306,7 @@
         </div>
         
         <!-- Rating actions placeholder -->
-        <div class="mt-6 mb-4">
+        <div class="mt-6 mb-4 fade-in-up" style="animation-delay: 200ms;">
           <div class="rating-input-container">
             <div class="rating-input-header">
               <h3 class="section-title text-lg mb-2">Rate This Game</h3>
@@ -322,12 +336,13 @@
                         class="p-button-secondary" 
                         [disabled]="true"
                         pTooltip="Rating submission will be enabled in a future update"
-                        tooltipPosition="bottom"></button>
+                        tooltipPosition="bottom"
+                        aria-disabled="true"></button>
               </div>
             </div>
             
             <div class="text-xs text-gray-400 mt-2 text-center">
-              <i class="pi pi-info-circle mr-1"></i>
+              <i class="pi pi-info-circle mr-1" aria-hidden="true"></i>
               Rate games on a scale from 0-100 to improve your recommendations
             </div>
           </div>
@@ -336,10 +351,12 @@
       
       <!-- Backlog Tab -->
       <p-tabPanel header="Backlog">
-        <div class="mt-4">
+        <div class="mt-4 fade-in-up">
           <!-- Current backlog status -->
           <div *ngIf="game.backlogStatus" class="backlog-status-container mb-6" 
-               [ngClass]="'border-' + getBacklogBorderColor(game.backlogStatus)">
+               [ngClass]="'border-' + getBacklogBorderColor(game.backlogStatus)"
+               role="region" 
+               [attr.aria-label]="'Current backlog status: ' + game.backlogStatus">
             <h3 class="section-title mb-3">Current Status</h3>
             <div class="backlog-status-badge-container">
               <p-tag 
@@ -356,9 +373,9 @@
           </div>
           
           <!-- Placeholder when not in backlog -->
-          <div *ngIf="!game.backlogStatus" class="empty-backlog-container mb-6">
+          <div *ngIf="!game.backlogStatus" class="empty-backlog-container mb-6" role="region" aria-label="Backlog status">
             <div class="flex items-center mb-3">
-              <i class="pi pi-info-circle text-primary mr-2"></i>
+              <i class="pi pi-info-circle text-primary mr-2" aria-hidden="true"></i>
               <span>This game is not in your backlog yet</span>
             </div>
             <button pButton 
@@ -367,10 +384,11 @@
                     class="p-button-outlined p-button-secondary"
                     [disabled]="true"
                     pTooltip="This feature will be available in a future update"
-                    tooltipPosition="bottom"></button>
+                    tooltipPosition="bottom"
+                    aria-disabled="true"></button>
           </div>
           
-          <div class="backlog-actions-container mt-6">
+          <div class="backlog-actions-container mt-6" role="region" aria-label="Backlog actions">
             <h3 class="section-title mb-3">
               {{ game.backlogStatus ? 'Update Status' : 'Backlog Options' }}
               <span class="coming-soon-badge ml-2">Coming Soon</span>
@@ -386,28 +404,32 @@
                       class="p-button-info"
                       [disabled]="true"
                       pTooltip="Save this game to play later"
-                      tooltipPosition="top"></button>
+                      tooltipPosition="top"
+                      aria-disabled="true"></button>
               <button pButton 
                       label="In Progress" 
                       icon="pi pi-spin pi-spinner" 
                       class="p-button-warning"
                       [disabled]="true"
                       pTooltip="Mark as currently playing"
-                      tooltipPosition="top"></button>
+                      tooltipPosition="top"
+                      aria-disabled="true"></button>
               <button pButton 
                       label="Completed" 
                       icon="pi pi-check-circle" 
                       class="p-button-success"
                       [disabled]="true"
                       pTooltip="Mark as finished playing"
-                      tooltipPosition="top"></button>
+                      tooltipPosition="top"
+                      aria-disabled="true"></button>
               <button pButton 
                       label="Abandoned" 
                       icon="pi pi-times-circle" 
                       class="p-button-danger"
                       [disabled]="true"
                       pTooltip="Mark as stopped playing"
-                      tooltipPosition="top"></button>
+                      tooltipPosition="top"
+                      aria-disabled="true"></button>
             </div>
             
             <div *ngIf="game.backlogStatus" class="mt-4">
@@ -417,7 +439,8 @@
                       class="p-button-text p-button-danger"
                       [disabled]="true"
                       pTooltip="This feature will be available in a future update"
-                      tooltipPosition="bottom"></button>
+                      tooltipPosition="bottom"
+                      aria-disabled="true"></button>
             </div>
           </div>
         </div>

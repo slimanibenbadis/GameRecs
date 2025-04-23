@@ -14,7 +14,7 @@
   height: auto;
   max-height: 400px;
   object-fit: contain;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .game-cover:hover {
@@ -55,6 +55,15 @@
   color: #d7f9f4;
 }
 
+.shadow-glow {
+  box-shadow: 0 0 15px rgba(123, 234, 219, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-glow:hover {
+  box-shadow: 0 0 25px rgba(123, 234, 219, 0.4);
+}
+
 .skeleton-container {
   height: 400px;
   border-radius: 8px;
@@ -77,11 +86,12 @@
   padding: 0.75rem;
   background-color: rgba(21, 91, 137, 0.08);
   border-radius: 8px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .metadata-block:hover {
   background-color: rgba(21, 91, 137, 0.15);
+  transform: translateY(-2px);
 }
 
 .rating-card {
@@ -197,6 +207,7 @@
   color: #d7f9f4;
   background-color: rgba(21, 91, 137, 0.2);
   border-color: rgba(123, 234, 219, 0.2);
+  transition: all 0.2s ease;
 }
 
 :host ::ng-deep .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
@@ -207,6 +218,15 @@
 :host ::ng-deep .p-tabview .p-tabview-panels {
   background-color: rgba(21, 91, 137, 0.05);
   border-color: rgba(123, 234, 219, 0.2);
+}
+
+/* Accessibility focus styles */
+:host ::ng-deep .p-button:focus,
+:host ::ng-deep .p-tabview-nav-link:focus,
+:host ::ng-deep .p-tag:focus,
+:host ::ng-deep .p-chip:focus {
+  outline: 2px solid #7beadb;
+  outline-offset: 2px;
 }
 
 /* Responsive adjustments */
@@ -222,6 +242,25 @@
   .metadata-block {
     margin-bottom: 1rem;
   }
+
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-title {
+    font-size: 1.25rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+  }
+  
+  .game-cover {
+    max-height: 300px;
+  }
 }
 
 /* Rating Input Placeholder Styles */
@@ -231,6 +270,12 @@
   padding: 1.5rem;
   position: relative;
   border: 1px dashed rgba(123, 234, 219, 0.3);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.rating-input-container:hover {
+  background-color: rgba(21, 91, 137, 0.12);
+  border-color: rgba(123, 234, 219, 0.5);
 }
 
 .rating-input-header {
@@ -248,6 +293,19 @@
   font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid rgba(70, 132, 226, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(70, 132, 226, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(70, 132, 226, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(70, 132, 226, 0);
+  }
 }
 
 .rating-input-placeholder {
@@ -295,11 +353,12 @@
   border-radius: 8px;
   padding: 1.25rem;
   border-left: 4px solid;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .backlog-status-container:hover {
   background-color: rgba(21, 91, 137, 0.15);
+  transform: translateX(2px);
 }
 
 .backlog-status-badge-container {
@@ -322,6 +381,11 @@
   border-radius: 8px;
   padding: 1.25rem;
   border-left: 4px solid #155b89;
+  transition: background-color 0.2s ease;
+}
+
+.empty-backlog-container:hover {
+  background-color: rgba(21, 91, 137, 0.1);
 }
 
 .backlog-actions-container {
@@ -329,6 +393,12 @@
   border-radius: 8px;
   padding: 1.5rem;
   border: 1px dashed rgba(123, 234, 219, 0.3);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.backlog-actions-container:hover {
+  background-color: rgba(21, 91, 137, 0.12);
+  border-color: rgba(123, 234, 219, 0.5);
 }
 
 /* Update the warning button color to match PrimeNG warning */
@@ -368,6 +438,12 @@
   margin: 0 auto;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(123, 234, 219, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.error-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.4);
 }
 
 .not-found-state {
@@ -407,6 +483,37 @@
   }
 }
 
+/* Animations */
+.slide-in-left {
+  animation: slideInLeft 0.4s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Spinner adjustments */
 :host ::ng-deep .p-progress-spinner-circle {
   stroke: #7beadb !important;
@@ -427,4 +534,40 @@
   .error-container {
     padding: 1.5rem;
   }
+}
+
+/* Skip to content link for accessibility */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background-color: #020d0b;
+  color: #7beadb;
+  border: 2px solid #7beadb;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* Improve focus visibility for interactive elements */
+button:focus, a:focus {
+  outline: 2px solid #7beadb;
+  outline-offset: 2px;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 } 
