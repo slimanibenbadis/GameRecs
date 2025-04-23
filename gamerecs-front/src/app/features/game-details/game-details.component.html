@@ -251,14 +251,88 @@
       <!-- Backlog Tab -->
       <p-tabPanel header="Backlog">
         <div class="mt-4">
-          <p class="mb-4 text-gray-300">Add this game to your backlog or update its status:</p>
+          <!-- Current backlog status -->
+          <div *ngIf="game.backlogStatus" class="backlog-status-container mb-6" 
+               [ngClass]="'border-' + getBacklogBorderColor(game.backlogStatus)">
+            <h3 class="section-title mb-3">Current Status</h3>
+            <div class="backlog-status-badge-container">
+              <p-tag 
+                [value]="game.backlogStatus" 
+                [severity]="getBacklogStatusSeverity(game.backlogStatus)"
+                [pTooltip]="getBacklogStatusDescription(game.backlogStatus)"
+                tooltipPosition="top"
+                class="backlog-status-badge"
+              ></p-tag>
+              <span class="backlog-status-date ml-3" *ngIf="false">
+                Added on: {{ '2023-09-15' | date:'mediumDate' }}
+              </span>
+            </div>
+          </div>
           
-          <!-- Backlog actions -->
-          <div class="flex flex-wrap gap-2">
-            <button pButton label="To Play" icon="pi pi-bookmark" class="p-button-info"></button>
-            <button pButton label="In Progress" icon="pi pi-spin pi-spinner" class="p-button-warn"></button>
-            <button pButton label="Completed" icon="pi pi-check-circle" class="p-button-success"></button>
-            <button pButton label="Abandoned" icon="pi pi-times-circle" class="p-button-danger"></button>
+          <!-- Placeholder when not in backlog -->
+          <div *ngIf="!game.backlogStatus" class="empty-backlog-container mb-6">
+            <div class="flex items-center mb-3">
+              <i class="pi pi-info-circle text-primary mr-2"></i>
+              <span>This game is not in your backlog yet</span>
+            </div>
+            <button pButton 
+                    label="Add to Backlog" 
+                    icon="pi pi-plus-circle"
+                    class="p-button-outlined p-button-secondary"
+                    [disabled]="true"
+                    pTooltip="This feature will be available in a future update"
+                    tooltipPosition="bottom"></button>
+          </div>
+          
+          <div class="backlog-actions-container mt-6">
+            <h3 class="section-title mb-3">
+              {{ game.backlogStatus ? 'Update Status' : 'Backlog Options' }}
+              <span class="coming-soon-badge ml-2">Coming Soon</span>
+            </h3>
+            
+            <p class="mb-4 text-gray-300">{{ game.backlogStatus ? 'Update this game\'s status:' : 'Add this game to your backlog with a status:' }}</p>
+            
+            <!-- Backlog action buttons -->
+            <div class="flex flex-wrap gap-2">
+              <button pButton 
+                      label="To Play" 
+                      icon="pi pi-bookmark" 
+                      class="p-button-info"
+                      [disabled]="true"
+                      pTooltip="Save this game to play later"
+                      tooltipPosition="top"></button>
+              <button pButton 
+                      label="In Progress" 
+                      icon="pi pi-spin pi-spinner" 
+                      class="p-button-warning"
+                      [disabled]="true"
+                      pTooltip="Mark as currently playing"
+                      tooltipPosition="top"></button>
+              <button pButton 
+                      label="Completed" 
+                      icon="pi pi-check-circle" 
+                      class="p-button-success"
+                      [disabled]="true"
+                      pTooltip="Mark as finished playing"
+                      tooltipPosition="top"></button>
+              <button pButton 
+                      label="Abandoned" 
+                      icon="pi pi-times-circle" 
+                      class="p-button-danger"
+                      [disabled]="true"
+                      pTooltip="Mark as stopped playing"
+                      tooltipPosition="top"></button>
+            </div>
+            
+            <div *ngIf="game.backlogStatus" class="mt-4">
+              <button pButton 
+                      label="Remove from Backlog" 
+                      icon="pi pi-trash" 
+                      class="p-button-text p-button-danger"
+                      [disabled]="true"
+                      pTooltip="This feature will be available in a future update"
+                      tooltipPosition="bottom"></button>
+            </div>
           </div>
         </div>
       </p-tabPanel>

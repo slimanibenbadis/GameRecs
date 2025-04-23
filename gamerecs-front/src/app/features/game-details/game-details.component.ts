@@ -97,6 +97,50 @@ export class GameDetailsComponent implements OnInit {
   }
 
   /**
+   * Returns a descriptive text for each backlog status for tooltips
+   * @param status The backlog status
+   * @returns A descriptive text explaining the status
+   */
+  getBacklogStatusDescription(status: string | null): string {
+    if (!status) return '';
+    
+    switch (status) {
+    case 'To Play':
+      return 'You\'ve saved this game to play later';
+    case 'In Progress':
+      return 'You\'re currently playing this game';
+    case 'Completed':
+      return 'You\'ve finished playing this game';
+    case 'Abandoned':
+      return 'You\'ve stopped playing this game';
+    default:
+      return '';
+    }
+  }
+
+  /**
+   * Returns a CSS class for styling the backlog status container border
+   * @param status The backlog status
+   * @returns A tailwind border color class
+   */
+  getBacklogBorderColor(status: string | null): string {
+    if (!status) return 'gray-500';
+    
+    switch (status) {
+    case 'To Play':
+      return 'blue-400';
+    case 'In Progress':
+      return 'yellow-400';
+    case 'Completed':
+      return 'green-400';
+    case 'Abandoned':
+      return 'red-400';
+    default:
+      return 'gray-500';
+    }
+  }
+
+  /**
    * Returns a CSS class based on the PRI rating value
    * @param rating The PRI rating value (0-100)
    * @returns A CSS class for styling based on rating quality
