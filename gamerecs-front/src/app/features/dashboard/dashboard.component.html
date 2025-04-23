@@ -112,7 +112,11 @@
         </ng-template>
         <ng-template pTemplate="body" let-game>
           <tr>
-            <td>{{ game.title }}</td>
+            <td>
+              <a (click)="navigateToGameDetails(game.id)" class="cursor-pointer hover:text-primary transition-colors">
+                {{ game.title }}
+              </a>
+            </td>
             <td>
               <p-tag [value]="game.status" [severity]="getStatusSeverity(game.status)"></p-tag>
             </td>

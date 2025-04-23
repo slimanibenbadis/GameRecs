@@ -79,7 +79,8 @@
       
       <div class="grid grid-cols-1 gap-4 mb-4">
         <div *ngFor="let game of searchResults" 
-             class="p-3 border border-[#155b89] rounded-lg hover:border-[#4684e2] transition-colors cursor-pointer">
+             class="p-3 border border-[#155b89] rounded-lg hover:border-[#4684e2] transition-colors cursor-pointer"
+             (click)="navigateToGame(game, $event)">
           <div class="flex items-center">
             <div class="w-16 mr-3 rounded bg-[#155b89] overflow-hidden aspect-[3/4]" *ngIf="!game.coverImageUrl"></div>
             <div class="w-16 mr-3 rounded overflow-hidden aspect-[3/4]" *ngIf="game.coverImageUrl">

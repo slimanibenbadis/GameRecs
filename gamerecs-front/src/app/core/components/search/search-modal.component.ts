@@ -8,6 +8,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { GameService, GameSearchResponse } from '../../services/game.service';
 import { Game } from '../../services/game-library.service';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
 
 /**
  * SearchModalComponent provides a modal interface for game search functionality.
@@ -59,7 +60,10 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
-  constructor(private gameService: GameService) {}
+  constructor(
+    private gameService: GameService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.setupSearchListener();
@@ -296,5 +300,16 @@ export class SearchModalComponent implements OnInit, OnDestroy {
     if (event.target === event.currentTarget) {
       this.close();
     }
+  }
+
+  /**
+   * Navigates to the game details page for the selected game
+   * @param game The game to view details for
+   * @param event The mouse event
+   */
+  navigateToGame(game: Game, event: MouseEvent): void {
+    event.stopPropagation();
+    this.close();
+    this.router.navigate(['/games', game.gameId]);
   }
 } 

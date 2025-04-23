@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameLibraryService, PaginatedGameLibraryResponse } from '../../core/services/game-library.service';
 import { PaginatorModule } from 'primeng/paginator';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-game-library',
@@ -26,7 +27,10 @@ export class GameLibraryComponent implements OnInit {
   totalPages: number = 0;
   totalElements: number = 0;
 
-  constructor(private libraryService: GameLibraryService) { }
+  constructor(
+    private libraryService: GameLibraryService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.fetchGameLibrary();
@@ -64,5 +68,13 @@ export class GameLibraryComponent implements OnInit {
     else if (event.page !== this.currentPage) {
       this.fetchGameLibrary(event.page);
     }
+  }
+
+  /**
+   * Navigates to the game details page for the selected game
+   * @param gameId The ID of the game to view details for
+   */
+  navigateToGame(gameId: number): void {
+    this.router.navigate(['/games', gameId]);
   }
 } 
