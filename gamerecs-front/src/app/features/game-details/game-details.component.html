@@ -1,4 +1,4 @@
-<div class="container mx-auto px-4 py-8" role="main">
+<main class="container mx-auto px-4 py-8">
   <!-- Skip to content link for accessibility -->
   <a href="#game-content" class="skip-link">Skip to content</a>
 
@@ -156,14 +156,14 @@
             <i class="pi pi-desktop text-primary mr-2" aria-hidden="true"></i>
             <span class="text-primary font-medium">Platforms</span>
           </div>
-          <div class="flex flex-wrap mt-2" *ngIf="game.platforms && game.platforms.length > 0" role="list" aria-label="Available platforms">
+          <menu class="flex flex-wrap mt-2" *ngIf="game.platforms && game.platforms.length > 0" role="list" aria-label="Available platforms">
             <p-chip 
               *ngFor="let platform of game.platforms" 
               [label]="platform.name"
               class="info-chip"
               role="listitem"
             ></p-chip>
-          </div>
+          </menu>
           <p *ngIf="!game.platforms || game.platforms.length === 0" class="text-gray-500 italic mt-2">
             No platform information available
           </p>
@@ -175,14 +175,14 @@
             <i class="pi pi-tag text-primary mr-2" aria-hidden="true"></i>
             <span class="text-primary font-medium">Genres</span>
           </div>
-          <div class="flex flex-wrap mt-2" *ngIf="game.genres && game.genres.length > 0" role="list" aria-label="Game genres">
+          <menu class="flex flex-wrap mt-2" *ngIf="game.genres && game.genres.length > 0" role="list" aria-label="Game genres">
             <p-chip 
               *ngFor="let genre of game.genres" 
               [label]="genre.name"
               class="info-chip"
               role="listitem"
             ></p-chip>
-          </div>
+          </menu>
           <p *ngIf="!game.genres || game.genres.length === 0" class="text-gray-500 italic mt-2">
             No genre information available
           </p>
@@ -245,7 +245,7 @@
     <p-tabView [@fadeIn]>
       <!-- Game Info Tab -->
       <p-tabPanel header="About">
-        <div *ngIf="game.description" class="game-description p-3 fade-in-up" [innerHTML]="game.description" tabindex="0"></div>
+        <div *ngIf="game.description" class="game-description p-3 fade-in-up" [innerHTML]="game.description"></div>
         <div *ngIf="!game.description" class="text-gray-500 italic p-3 fade-in-up">
           No description available for this game.
         </div>
@@ -447,4 +447,4 @@
       </p-tabPanel>
     </p-tabView>
   </div>
-</div> 
+</main> 

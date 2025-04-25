@@ -61,8 +61,8 @@ export class SearchModalComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private gameService: GameService,
-    private router: Router
+    private readonly gameService: GameService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -307,7 +307,7 @@ export class SearchModalComponent implements OnInit, OnDestroy {
    * @param game The game to view details for
    * @param event The mouse event
    */
-  navigateToGame(game: Game, event: MouseEvent): void {
+  navigateToGame(game: Game, event: Event): void {
     event.stopPropagation();
     this.close();
     this.router.navigate(['/games', game.gameId]);

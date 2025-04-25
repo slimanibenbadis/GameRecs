@@ -97,14 +97,15 @@ public class IGDBClientService {
             headers.setBearerAuth(accessToken);
             headers.setContentType(MediaType.TEXT_PLAIN);
             
+            long currentTimestamp = Instant.now().getEpochSecond();
             String body = """
                 search "%s";
                 fields name,cover.url,first_release_date,summary,platforms.name,genres.name,
                       involved_companies.company.name,involved_companies.developer,involved_companies.publisher,
                       updated_at;
-                      where first_release_date != null & version_parent = null & game_type = 0;
+                      where first_release_date != null & first_release_date <= %d & version_parent = null & game_type = 0;
                 limit 500;
-                """.formatted(query);
+                """.formatted(query, currentTimestamp);
             
             HttpEntity<String> request = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.exchange(
