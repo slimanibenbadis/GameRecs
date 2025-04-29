@@ -10,6 +10,7 @@ import com.gamerecs.back.util.BaseUnitTest;
 import com.gamerecs.back.dto.ProfileResponseDto;
 import com.gamerecs.back.dto.UpdateProfileRequestDto;
 import jakarta.mail.MessagingException;
+import com.gamerecs.back.security.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -471,6 +472,7 @@ class UserServiceTest extends BaseUnitTest {
     void getUserProfile_WhenUserExists_ShouldReturnProfile() {
         // Arrange
         Long userId = 1L;
+        CustomUserDetails userDetails = new CustomUserDetails("testuser", "hashedPassword", true, userId);
         User user = User.builder()
                 .userId(userId)
                 .username("testuser")
@@ -483,7 +485,7 @@ class UserServiceTest extends BaseUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // Act
-        ProfileResponseDto profile = userService.getUserProfile(userId);
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
 
         // Assert
         assertNotNull(profile, "Profile should not be null");
@@ -501,11 +503,12 @@ class UserServiceTest extends BaseUnitTest {
     void getUserProfile_WhenUserNotFound_ShouldThrowException() {
         // Arrange
         Long nonExistentUserId = 999L;
+        CustomUserDetails userDetails = new CustomUserDetails("nonexistent", "pass", true, nonExistentUserId);
         when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
 
         // Act & Assert
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.getUserProfile(nonExistentUserId);
+            userService.getUserProfile(userDetails);
         });
 
         assertEquals("User not found", exception.getMessage(), "Exception message should match");
@@ -517,6 +520,7 @@ class UserServiceTest extends BaseUnitTest {
     void getUserProfile_WhenUserHasNullFields_ShouldReturnProfileWithNullFields() {
         // Arrange
         Long userId = 1L;
+        CustomUserDetails userDetails = new CustomUserDetails("testuser", "hashedPassword", false, userId);
         User user = User.builder()
                 .userId(userId)
                 .username("testuser")
@@ -530,7 +534,7 @@ class UserServiceTest extends BaseUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // Act
-        ProfileResponseDto profile = userService.getUserProfile(userId);
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
 
         // Assert
         assertNotNull(profile, "Profile should not be null");
@@ -548,6 +552,7 @@ class UserServiceTest extends BaseUnitTest {
     void updateUserProfile_Success() {
         // Arrange
         Long userId = 1L;
+        CustomUserDetails userDetails = new CustomUserDetails("oldusername", "hashedPassword", true, userId);
         String newNormalizedUsername = "newusername"; // Already normalized
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername(newNormalizedUsername);
@@ -575,7 +580,7 @@ class UserServiceTest extends BaseUnitTest {
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         // Act
-        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+        ProfileResponseDto result = userService.updateUserProfile(userDetails, updateRequest);
 
         // Assert
         assertNotNull(result, "Profile response should not be null");
@@ -593,6 +598,7 @@ class UserServiceTest extends BaseUnitTest {
     void updateUserProfile_UserNotFound_ThrowsException() {
         // Arrange
         Long nonExistentUserId = 999L;
+        CustomUserDetails userDetails = new CustomUserDetails("nonexistent", "pass", true, nonExistentUserId);
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername("newUsername");
 
@@ -601,7 +607,7 @@ class UserServiceTest extends BaseUnitTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> userService.updateUserProfile(nonExistentUserId, updateRequest)
+            () -> userService.updateUserProfile(userDetails, updateRequest)
         );
 
         assertEquals("User not found", exception.getMessage());
@@ -616,6 +622,7 @@ class UserServiceTest extends BaseUnitTest {
         // Arrange
         Long userId = 1L;
         String existingUsername = "existingusername"; // Already normalized
+        CustomUserDetails userDetails = new CustomUserDetails(existingUsername, "hashedPassword", true, userId);
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername(existingUsername);
         updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
@@ -639,7 +646,7 @@ class UserServiceTest extends BaseUnitTest {
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         // Act
-        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+        ProfileResponseDto result = userService.updateUserProfile(userDetails, updateRequest);
 
         // Assert
         assertNotNull(result, "Profile response should not be null");
@@ -658,6 +665,7 @@ class UserServiceTest extends BaseUnitTest {
         // Arrange
         Long userId = 1L;
         String newNormalizedUsername = "newusername"; // Already normalized
+        CustomUserDetails userDetails = new CustomUserDetails("oldusername", "hashedPassword", true, userId);
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername(newNormalizedUsername);
         updateRequest.setProfilePictureUrl(null);
@@ -684,7 +692,7 @@ class UserServiceTest extends BaseUnitTest {
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         // Act
-        ProfileResponseDto result = userService.updateUserProfile(userId, updateRequest);
+        ProfileResponseDto result = userService.updateUserProfile(userDetails, updateRequest);
 
         // Assert
         assertNotNull(result, "Profile response should not be null");
@@ -703,6 +711,7 @@ class UserServiceTest extends BaseUnitTest {
         // Arrange
         Long userId = 1L;
         String newNormalizedUsername = "existingusername"; // Already normalized
+        CustomUserDetails userDetails = new CustomUserDetails("oldusername", "hashedPassword", true, userId);
         UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
         updateRequest.setUsername(newNormalizedUsername);
 
@@ -717,7 +726,7 @@ class UserServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> 
-            userService.updateUserProfile(userId, updateRequest),
+            userService.updateUserProfile(userDetails, updateRequest),
             "Should throw IllegalArgumentException when username exists"
         );
 

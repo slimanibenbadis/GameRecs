@@ -95,7 +95,7 @@ public class UserController {
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
-        ProfileResponseDto profile = userService.getUserProfile(userDetails.getUserId());
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
         logger.info("Successfully retrieved profile for user: {}", userDetails.getUsername());
         
         return ResponseEntity.ok(profile);
@@ -116,7 +116,7 @@ public class UserController {
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         logger.debug("Received profile update request for user: {}", userDetails.getUsername());
-        ProfileResponseDto updatedProfile = userService.updateUserProfile(userDetails.getUserId(), updateRequest);
+        ProfileResponseDto updatedProfile = userService.updateUserProfile(userDetails, updateRequest);
         logger.info("Successfully updated profile for user: {}", userDetails.getUsername());
         return ResponseEntity.ok(updatedProfile);
     }

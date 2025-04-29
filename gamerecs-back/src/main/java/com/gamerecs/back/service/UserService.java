@@ -9,6 +9,7 @@ import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.UsernameNormalizer;
+import com.gamerecs.back.security.CustomUserDetails;
 import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,13 +178,14 @@ public class UserService {
     }
 
     /**
-     * Retrieves a user's profile by their ID.
+     * Retrieves a user's profile based on the authenticated user details.
      *
-     * @param userId the ID of the user
+     * @param userDetails the details of the authenticated user
      * @return the user's profile data
      * @throws IllegalArgumentException if the user is not found
      */
-    public ProfileResponseDto getUserProfile(Long userId) {
+    public ProfileResponseDto getUserProfile(CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
         logger.debug("Retrieving profile for user ID: {}", userId);
         
         User user = userRepository.findById(userId)
@@ -196,15 +198,16 @@ public class UserService {
     }
 
     /**
-     * Updates a user's profile information.
+     * Updates a user's profile information based on the authenticated user details.
      *
-     * @param userId the ID of the user to update
+     * @param userDetails the details of the authenticated user
      * @param updateRequest the new profile information
      * @return the updated profile data
      * @throws IllegalArgumentException if the user is not found or if the username is already taken
      */
     @Transactional
-    public ProfileResponseDto updateUserProfile(Long userId, UpdateProfileRequestDto updateRequest) {
+    public ProfileResponseDto updateUserProfile(CustomUserDetails userDetails, UpdateProfileRequestDto updateRequest) {
+        Long userId = userDetails.getUserId();
         logger.debug("Updating profile for user ID: {}", userId);
         
         User user = userRepository.findById(userId)

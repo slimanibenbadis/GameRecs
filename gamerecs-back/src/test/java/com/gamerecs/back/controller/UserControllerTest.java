@@ -371,7 +371,7 @@ class UserControllerTest extends BaseIntegrationTest {
         );
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
-        when(userService.getUserProfile(userId)).thenReturn(expectedProfile);
+        when(userService.getUserProfile(userDetails)).thenReturn(expectedProfile);
 
         // Act & Assert
         mockMvc.perform(get("/api/users/profile")
@@ -384,7 +384,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.bio").value(expectedProfile.getBio()))
                 .andExpect(jsonPath("$.emailVerified").value(expectedProfile.isEmailVerified()));
 
-        verify(userService).getUserProfile(userId);
+        verify(userService).getUserProfile(userDetails);
     }
 
     @Test
@@ -411,7 +411,7 @@ class UserControllerTest extends BaseIntegrationTest {
         );
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
-        when(userService.getUserProfile(userId)).thenReturn(profileWithNulls);
+        when(userService.getUserProfile(userDetails)).thenReturn(profileWithNulls);
 
         // Act & Assert
         mockMvc.perform(get("/api/users/profile")
@@ -424,7 +424,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.bio").doesNotExist())
                 .andExpect(jsonPath("$.emailVerified").value(profileWithNulls.isEmailVerified()));
 
-        verify(userService).getUserProfile(userId);
+        verify(userService).getUserProfile(userDetails);
     }
 
     @Test
@@ -443,7 +443,7 @@ class UserControllerTest extends BaseIntegrationTest {
         );
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
-        when(userService.getUserProfile(userId))
+        when(userService.getUserProfile(userDetails))
                 .thenThrow(new IllegalArgumentException("User not found"));
 
         // Act & Assert
@@ -455,7 +455,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("User not found"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verify(userService).getUserProfile(userId);
+        verify(userService).getUserProfile(userDetails);
     }
 
     @Test
@@ -474,7 +474,7 @@ class UserControllerTest extends BaseIntegrationTest {
         );
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
-        when(userService.getUserProfile(userId))
+        when(userService.getUserProfile(userDetails))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
         // Act & Assert
@@ -486,7 +486,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verify(userService).getUserProfile(userId);
+        verify(userService).getUserProfile(userDetails);
     }
 
     @Test
@@ -518,7 +518,7 @@ class UserControllerTest extends BaseIntegrationTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
         // Mock service response
-        when(userService.updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class)))
+        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
                 .thenReturn(expectedResponse);
 
         // Perform request and verify
@@ -533,7 +533,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.bio").value(expectedResponse.getBio()))
                 .andExpect(jsonPath("$.emailVerified").value(expectedResponse.isEmailVerified()));
 
-        verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
+        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
     }
 
     @Test
@@ -639,7 +639,7 @@ class UserControllerTest extends BaseIntegrationTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
         // Mock service throwing exception
-        when(userService.updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class)))
+        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
                 .thenThrow(new IllegalArgumentException("Username already taken"));
 
         // Perform request and verify
@@ -652,7 +652,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Username already taken"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
+        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
     }
 
     @Test
@@ -675,7 +675,7 @@ class UserControllerTest extends BaseIntegrationTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
         // Mock service throwing runtime exception
-        when(userService.updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class)))
+        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
         // Perform request and verify
@@ -688,7 +688,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Internal server error"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
+        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
     }
 
     @Test
@@ -716,7 +716,7 @@ class UserControllerTest extends BaseIntegrationTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
 
         // Mock service response
-        when(userService.updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class)))
+        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
                 .thenReturn(expectedResponse);
 
         // Perform request and verify
@@ -731,7 +731,7 @@ class UserControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.bio").doesNotExist())
                 .andExpect(jsonPath("$.emailVerified").value(expectedResponse.isEmailVerified()));
 
-        verify(userService).updateUserProfile(eq(mockUser.getUserId()), any(UpdateProfileRequestDto.class));
+        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
     }
 
     @Test
