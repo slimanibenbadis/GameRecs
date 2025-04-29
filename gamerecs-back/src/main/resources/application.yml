@@ -158,6 +158,10 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   oauth2:
     redirectUri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/auth/google/callback}
+  security:
+    login:
+      max-attempts: ${LOGIN_MAX_ATTEMPTS:5} # Max failed attempts before lockout
+      lockout-duration-minutes: ${LOGIN_LOCKOUT_DURATION_MINUTES:10} # Lockout duration
 
 # IGDB Configuration
 igdb:

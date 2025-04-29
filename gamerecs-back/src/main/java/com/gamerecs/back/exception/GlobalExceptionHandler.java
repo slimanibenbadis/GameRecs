@@ -226,4 +226,14 @@ public class GlobalExceptionHandler {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), ex.getMessage() != null ? ex.getMessage() : "Bad request");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
+    /**
+     * Handles TooManyRequestsException and returns 429 with ApiError.
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiError> handleTooManyRequestsException(TooManyRequestsException ex, HttpServletRequest request) {
+        logger.warn("Too many requests at path {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiError apiError = new ApiError(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(apiError);
+    }
 } 

@@ -2,9 +2,11 @@ package com.gamerecs.back.controller;
 
 import com.gamerecs.back.dto.LoginRequestDto;
 import com.gamerecs.back.dto.LoginResponseDto;
+import com.gamerecs.back.exception.TooManyRequestsException;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.service.JwtService;
+import com.gamerecs.back.service.LoginAttemptService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -15,12 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import java.time.LocalDateTime;
@@ -36,51 +35,69 @@ public class AuthenticationController {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final CsrfTokenRepository csrfTokenRepository;
+    private final LoginAttemptService loginAttemptService;
 
     @Autowired
     public AuthenticationController(
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             JwtService jwtService,
-            CsrfTokenRepository csrfTokenRepository) {
+            CsrfTokenRepository csrfTokenRepository,
+            LoginAttemptService loginAttemptService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.csrfTokenRepository = csrfTokenRepository;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest, HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("Attempting login for user: {}", loginRequest.getUsername());
+        String clientIp = getClientIP(request);
+        logger.debug("Attempting login for user: {} from IP: {}", loginRequest.getUsername(), clientIp);
 
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-            )
-        );
+        if (loginAttemptService.isBlocked(clientIp)) {
+            logger.warn("Login attempt blocked for IP: {} due to excessive failures.", clientIp);
+            throw new TooManyRequestsException("You have exceeded the maximum number of login attempts. Please try again later.");
+        }
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        
-        User user = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> {
-                logger.error("User not found after successful authentication: {}", userDetails.getUsername());
-                return new IllegalStateException("User not found after authentication");
-            });
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
+            );
 
-        String token = jwtService.generateToken(userDetails);
-        this.csrfTokenRepository.saveToken(this.csrfTokenRepository.generateToken(request), request, response);
-        logger.debug("Explicitly saved CSRF token to response for user: {}", user.getUsername());
-        logger.info("User successfully logged in: {}", user.getUsername());
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> {
+                    logger.error("User not found after successful authentication: {}", userDetails.getUsername());
+                    return new IllegalStateException("User not found after authentication");
+                });
 
-        LoginResponseDto responseDto = LoginResponseDto.builder()
-            .token(token)
-            .username(user.getUsername())
-            .email(user.getEmail())
-            .emailVerified(user.isEmailVerified())
-            .build();
+            loginAttemptService.loginSucceeded(clientIp);
+            logger.info("User successfully logged in: {} from IP: {}", user.getUsername(), clientIp);
 
-        return ResponseEntity.ok(responseDto);
+            String token = jwtService.generateToken(userDetails);
+            this.csrfTokenRepository.saveToken(this.csrfTokenRepository.generateToken(request), request, response);
+            logger.debug("Explicitly saved CSRF token to response for user: {}", user.getUsername());
+
+            LoginResponseDto responseDto = LoginResponseDto.builder()
+                .token(token)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .emailVerified(user.isEmailVerified())
+                .build();
+
+            return ResponseEntity.ok(responseDto);
+
+        } catch (AuthenticationException e) {
+            logger.warn("Login failed for user: {} from IP: {}. Reason: {}", loginRequest.getUsername(), clientIp, e.getMessage());
+            loginAttemptService.loginFailed(clientIp);
+            throw e;
+        }
     }
 
     @GetMapping("/oauth2/failure")
@@ -91,5 +108,13 @@ public class AuthenticationController {
         response.put("message", "OAuth2 authentication failed");
         response.put("timestamp", LocalDateTime.now());
         return ResponseEntity.ok(response);
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null || xfHeader.isEmpty() || "unknown".equalsIgnoreCase(xfHeader)) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0].trim();
     }
 } 
