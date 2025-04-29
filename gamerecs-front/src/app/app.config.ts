@@ -2,7 +2,7 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { routes } from './app.routes';
 import Aura from '@primeng/themes/aura';
 import { MessageService } from 'primeng/api';
@@ -15,7 +15,11 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor])
+      withInterceptors([authInterceptor]),
+      withXsrfConfiguration({
+        cookieName: 'XSRF-TOKEN',
+        headerName: 'X-XSRF-TOKEN'
+      })
     ),
     providePrimeNG({
       ripple: true,

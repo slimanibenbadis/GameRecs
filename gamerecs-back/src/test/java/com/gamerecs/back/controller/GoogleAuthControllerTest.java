@@ -53,6 +53,9 @@ class GoogleAuthControllerTest {
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
 
+    @MockBean
+    private org.springframework.security.web.csrf.CsrfTokenRepository csrfTokenRepository;
+
     private static final String REDIRECT_URI = "http://localhost:4200/auth/google/callback";
     private static final String EXPECTED_STATE = "test_state";
     private static final String TEST_EMAIL = "test@example.com";

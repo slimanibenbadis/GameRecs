@@ -1,17 +1,17 @@
 package com.gamerecs.back.config;
 
-import com.gamerecs.back.service.OAuth2UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,11 +21,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+import com.gamerecs.back.service.OAuth2UserService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +41,7 @@ public class SecurityConfig {
     @Value("${allowed.origins}")
     private String allowedOrigins;
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final @Lazy JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     private final OAuth2UserService oAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
@@ -60,10 +66,7 @@ public class SecurityConfig {
         "/oauth2/authorization/**",
         "/login/oauth2/code/**",
         "/api/auth/oauth2/failure",
-        "/api/auth/google/callback",
-        "/api/users/profile",
-        "/api/igdb/update",
-        "/api/igdb/update-and-search"
+        "/api/auth/google/callback"
     };
 
     private static final String[] TEST_ENDPOINTS = {
@@ -80,7 +83,7 @@ public class SecurityConfig {
 
     @Autowired
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthFilter, 
+            @Lazy JwtAuthenticationFilter jwtAuthFilter,
             UserDetailsService userDetailsService,
             OAuth2UserService oAuth2UserService,
             OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
@@ -96,13 +99,7 @@ public class SecurityConfig {
         
         http
             .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers(PUBLIC_ENDPOINTS)
-                .ignoringRequestMatchers(SWAGGER_WHITELIST)
-                .ignoringRequestMatchers(TEST_ENDPOINTS)
-                .ignoringRequestMatchers(ACTUATOR_ENDPOINTS)
-            )
+            .csrf(AbstractHttpConfigurer::disable)
             .oauth2Login(oauth2 -> {
                 logger.debug("Configuring OAuth2 login");
                 oauth2
@@ -140,7 +137,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, CsrfFilter.class);
 
         return http.build();
     }
@@ -178,5 +175,12 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public CsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        // Optionally configure path, domain, etc. if needed
+        return repository;
     }
 } 

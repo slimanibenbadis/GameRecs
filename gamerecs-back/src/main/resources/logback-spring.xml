@@ -13,8 +13,8 @@
             <appender-ref ref="Console" />
         </root>
         <logger name="com.gamerecs" level="DEBUG"/>
-        <logger name="org.springframework" level="INFO"/>
-        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework" level="DEBUG"/>
+        <logger name="org.hibernate" level="DEBUG"/>
     </springProfile>
 
     <springProfile name="prod">

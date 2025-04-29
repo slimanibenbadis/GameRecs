@@ -20,6 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
@@ -50,6 +53,9 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private CsrfTokenRepository csrfTokenRepository;
 
     private LoginRequestDto validLoginRequest;
     private User mockUser;
@@ -83,16 +89,20 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should authenticate user with valid credentials")
+    @DisplayName("Should authenticate user with valid credentials and save CSRF token")
     void shouldAuthenticateWithValidCredentials() throws Exception {
-        logger.debug("Testing authentication with valid credentials");
+        logger.debug("Testing authentication with valid credentials and CSRF save");
         
+        CsrfToken mockCsrfToken = new DefaultCsrfToken("X-XSRF-TOKEN", "_csrf", "test-csrf-token");
+
         when(authenticationManager.authenticate(any(Authentication.class)))
                 .thenReturn(mockAuthentication);
         when(userRepository.findByUsername(mockUser.getUsername()))
                 .thenReturn(Optional.of(mockUser));
         when(jwtService.generateToken(any(UserDetails.class)))
                 .thenReturn("valid.jwt.token");
+
+        doNothing().when(csrfTokenRepository).saveToken(any(), any(), any());
 
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -105,6 +115,7 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
 
         verify(authenticationManager).authenticate(any(Authentication.class));
         verify(jwtService).generateToken(any(UserDetails.class));
+        verify(csrfTokenRepository).saveToken(any(), any(), any());
     }
 
     @Test

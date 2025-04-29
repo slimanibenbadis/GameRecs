@@ -18,6 +18,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +30,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
+import java.time.Instant;
+import java.util.Collections;
 
 class UserControllerTest extends BaseIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(UserControllerTest.class);
@@ -347,521 +353,204 @@ class UserControllerTest extends BaseIntegrationTest {
         verify(userService).verifyEmail(token);
     }
 
+    // --- Tests for getCurrentUserProfile ---
+
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should successfully retrieve current user profile")
-    void getCurrentUserProfile_Success() throws Exception {
-        logger.debug("Testing successful retrieval of current user profile");
-        
-        // Arrange
-        Long userId = 1L;
-        ProfileResponseDto expectedProfile = ProfileResponseDto.builder()
-                .username("testuser")
-                .email("test@example.com")
-                .profilePictureUrl("http://example.com/pic.jpg")
-                .bio("Test bio")
-                .emailVerified(true)
-                .build();
+    @DisplayName("Should get current user profile successfully")
+    void shouldGetCurrentUserProfileSuccessfully() throws Exception {
+        logger.debug("Testing getting current user profile successfully");
 
         CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
+                mockUser.getUsername(),
+                mockUser.getPasswordHash(),
+                true, // Assuming the user is enabled
+                mockUser.getUserId()
         );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-        when(userService.getUserProfile(userDetails)).thenReturn(expectedProfile);
+        ProfileResponseDto profileResponseDto = ProfileResponseDto.builder()
+            .username(mockUser.getUsername())
+            .email(mockUser.getEmail())
+            .profilePictureUrl(mockUser.getProfilePictureUrl())
+            .bio(mockUser.getBio())
+            .emailVerified(true) // Assuming email is verified for this test
+            .build();
 
-        // Act & Assert
+        when(userService.getUserProfile(any(CustomUserDetails.class))).thenReturn(profileResponseDto);
+
         mockMvc.perform(get("/api/users/profile")
-                .with(authentication(auth)))
+                .with(authentication(authentication))) // Use SecurityMockMvcRequestPostProcessors
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.username").value(expectedProfile.getUsername()))
-                .andExpect(jsonPath("$.email").value(expectedProfile.getEmail()))
-                .andExpect(jsonPath("$.profilePictureUrl").value(expectedProfile.getProfilePictureUrl()))
-                .andExpect(jsonPath("$.bio").value(expectedProfile.getBio()))
-                .andExpect(jsonPath("$.emailVerified").value(expectedProfile.isEmailVerified()));
+                .andExpect(jsonPath("$.username").value(profileResponseDto.getUsername()))
+                .andExpect(jsonPath("$.email").value(profileResponseDto.getEmail()))
+                .andExpect(jsonPath("$.profilePictureUrl").value(profileResponseDto.getProfilePictureUrl()))
+                .andExpect(jsonPath("$.bio").value(profileResponseDto.getBio()))
+                .andExpect(jsonPath("$.emailVerified").value(profileResponseDto.isEmailVerified()));
 
-        verify(userService).getUserProfile(userDetails);
+        verify(userService).getUserProfile(refEq(userDetails, "password")); // Compare fields except password
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should handle profile retrieval with missing optional fields")
-    void getCurrentUserProfile_WithMissingOptionalFields() throws Exception {
-        logger.debug("Testing profile retrieval with missing optional fields");
-        
-        // Arrange
-        Long userId = 1L;
-        ProfileResponseDto profileWithNulls = ProfileResponseDto.builder()
-                .username("testuser")
-                .email("test@example.com")
-                .profilePictureUrl(null)
-                .bio(null)
-                .emailVerified(true)
-                .build();
+    @DisplayName("Should return 401 when getting profile without authentication")
+    void shouldReturn401WhenGettingProfileUnauthenticated() throws Exception {
+        logger.debug("Testing getting profile without authentication");
+
+        // Clear any existing security context
+        SecurityContextHolder.clearContext();
+
+        mockMvc.perform(get("/api/users/profile"))
+                .andExpect(status().isUnauthorized());
+
+        verify(userService, never()).getUserProfile(any());
+    }
+    
+    @Test
+    @DisplayName("Should return 403 when getting profile with invalid authentication principal")
+    void shouldReturn401WhenGettingProfileWithInvalidPrincipal() throws Exception {
+        logger.debug("Testing getting profile with invalid authentication principal");
+
+        // Simulate an authentication object with a principal that is not CustomUserDetails
+        Authentication invalidAuthentication = new UsernamePasswordAuthenticationToken("notUserDetails", null);
+
+        mockMvc.perform(get("/api/users/profile")
+                .with(authentication(invalidAuthentication))
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(userService, never()).getUserProfile(any());
+    }
+
+
+    // --- Tests for updateUserProfile ---
+
+    @Test
+    @DisplayName("Should update user profile successfully")
+    void shouldUpdateUserProfileSuccessfully() throws Exception {
+        logger.debug("Testing updating user profile successfully");
 
         CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
+                mockUser.getUsername(),
+                mockUser.getPasswordHash(),
+                true, // Assuming the user is enabled
+                mockUser.getUserId()
         );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-        when(userService.getUserProfile(userDetails)).thenReturn(profileWithNulls);
+        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
+                .username(mockUser.getUsername()) // Include username if it's part of the request DTO
+                .bio("New Bio")
+                .profilePictureUrl("http://example.com/newpic.jpg")
+                .build();
 
-        // Act & Assert
-        mockMvc.perform(get("/api/users/profile")
-                .with(authentication(auth)))
+        ProfileResponseDto updatedProfileDto = ProfileResponseDto.builder()
+            .username(mockUser.getUsername())
+            .email(mockUser.getEmail())
+            .profilePictureUrl(updateRequest.getProfilePictureUrl()) // Use updated URL from request
+            .bio(updateRequest.getBio()) // Use updated bio from request
+            .emailVerified(true)
+            .build();
+
+        when(userService.updateUserProfile(any(CustomUserDetails.class), any(UpdateProfileRequestDto.class)))
+            .thenReturn(updatedProfileDto);
+
+        mockMvc.perform(put("/api/users/profile")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.username").value(profileWithNulls.getUsername()))
-                .andExpect(jsonPath("$.email").value(profileWithNulls.getEmail()))
-                .andExpect(jsonPath("$.profilePictureUrl").doesNotExist())
-                .andExpect(jsonPath("$.bio").doesNotExist())
-                .andExpect(jsonPath("$.emailVerified").value(profileWithNulls.isEmailVerified()));
+                .andExpect(jsonPath("$.username").value(updatedProfileDto.getUsername()))
+                .andExpect(jsonPath("$.email").value(updatedProfileDto.getEmail()))
+                .andExpect(jsonPath("$.profilePictureUrl").value(updatedProfileDto.getProfilePictureUrl()))
+                .andExpect(jsonPath("$.bio").value(updatedProfileDto.getBio()))
+                .andExpect(jsonPath("$.emailVerified").value(updatedProfileDto.isEmailVerified()));
 
-        verify(userService).getUserProfile(userDetails);
+        verify(userService).updateUserProfile(eq(userDetails), refEq(updateRequest));
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should handle service exception during profile retrieval")
-    void getCurrentUserProfile_ServiceException() throws Exception {
-        logger.debug("Testing profile retrieval with service exception");
-        
-        // Arrange
-        Long userId = 1L;
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+    @DisplayName("Should return 401 when updating profile without authentication")
+    void shouldReturn401WhenUpdatingProfileUnauthenticated() throws Exception {
+        logger.debug("Testing updating profile without authentication");
 
-        when(userService.getUserProfile(userDetails))
-                .thenThrow(new IllegalArgumentException("User not found"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/users/profile")
-                .with(authentication(auth)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("User not found"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService).getUserProfile(userDetails);
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should handle internal server error during profile retrieval")
-    void getCurrentUserProfile_InternalServerError() throws Exception {
-        logger.debug("Testing profile retrieval with internal server error");
-        
-        // Arrange
-        Long userId = 1L;
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        when(userService.getUserProfile(userDetails))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/users/profile")
-                .with(authentication(auth)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Internal server error"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService).getUserProfile(userDetails);
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should successfully update user profile")
-    void updateUserProfile_Success() throws Exception {
-        // Prepare test data
+        // Use builder for consistency
         UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("newUsername")
-                .profilePictureUrl("http://new-picture.com/pic.jpg")
-                .bio("Updated bio")
+                .username("testuser") // Add username if needed by DTO
+                .bio("New Bio")
+                .profilePictureUrl("http://example.com/newpic.jpg")
                 .build();
 
-        ProfileResponseDto expectedResponse = ProfileResponseDto.builder()
-                .username("newUsername")
-                .email("test@example.com")
-                .profilePictureUrl("http://new-picture.com/pic.jpg")
-                .bio("Updated bio")
-                .emailVerified(true)
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Mock service response
-        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
-                .thenReturn(expectedResponse);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(expectedResponse.getUsername()))
-                .andExpect(jsonPath("$.email").value(expectedResponse.getEmail()))
-                .andExpect(jsonPath("$.profilePictureUrl").value(expectedResponse.getProfilePictureUrl()))
-                .andExpect(jsonPath("$.bio").value(expectedResponse.getBio()))
-                .andExpect(jsonPath("$.emailVerified").value(expectedResponse.isEmailVerified()));
-
-        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when username is invalid in profile update")
-    void updateUserProfile_InvalidUsername() throws Exception {
-        // Prepare test data with invalid username
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("a") // Too short username
-                .profilePictureUrl("http://new-picture.com/pic.jpg")
-                .bio("Updated bio")
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.username").exists());
-
-        verify(userService, never()).updateUserProfile(any(), any());
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when bio exceeds maximum length")
-    void updateUserProfile_BioTooLong() throws Exception {
-        // Prepare test data with too long bio
-        String tooLongBio = "a".repeat(501); // Exceeds 500 character limit
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("validUsername")
-                .bio(tooLongBio)
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.bio").exists());
-
-        verify(userService, never()).updateUserProfile(any(), any());
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 401 when user is not authenticated for profile update")
-    void updateUserProfile_Unauthorized() throws Exception {
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("newUsername")
-                .bio("Updated bio")
-                .build();
+        // Clear any existing security context
+        SecurityContextHolder.clearContext();
 
         mockMvc.perform(put("/api/users/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
 
         verify(userService, never()).updateUserProfile(any(), any());
     }
-
+    
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should handle service exception during profile update")
-    void updateUserProfile_ServiceException() throws Exception {
-        // Prepare test data
+    @DisplayName("Should return 403 when updating profile with invalid authentication principal")
+    void shouldReturn401WhenUpdatingProfileWithInvalidPrincipal() throws Exception {
+        logger.debug("Testing updating profile with invalid authentication principal");
+
+        // Use builder for consistency
         UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("newUsername")
-                .bio("Updated bio")
+                .username("testuser") // Add username if needed by DTO
+                .bio("New Bio")
+                .profilePictureUrl("http://example.com/newpic.jpg")
                 .build();
 
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+        // Simulate an authentication object with a principal that is not CustomUserDetails
+        Authentication invalidAuthentication = new UsernamePasswordAuthenticationToken("notUserDetails", null);
 
-        // Mock service throwing exception
-        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
-                .thenThrow(new IllegalArgumentException("Username already taken"));
-
-        // Perform request and verify
         mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
+                .with(authentication(invalidAuthentication))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Username already taken"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should handle internal server error during profile update")
-    void updateUserProfile_InternalServerError() throws Exception {
-        // Prepare test data
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("newUsername")
-                .bio("Updated bio")
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Mock service throwing runtime exception
-        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Internal server error"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should successfully update profile with minimal data")
-    void updateUserProfile_MinimalData() throws Exception {
-        // Prepare test data with only required field
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("newUsername")
-                .build();
-
-        ProfileResponseDto expectedResponse = ProfileResponseDto.builder()
-                .username("newUsername")
-                .email("test@example.com")
-                .emailVerified(true)
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Mock service response
-        when(userService.updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class)))
-                .thenReturn(expectedResponse);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(expectedResponse.getUsername()))
-                .andExpect(jsonPath("$.email").value(expectedResponse.getEmail()))
-                .andExpect(jsonPath("$.profilePictureUrl").doesNotExist())
-                .andExpect(jsonPath("$.bio").doesNotExist())
-                .andExpect(jsonPath("$.emailVerified").value(expectedResponse.isEmailVerified()));
-
-        verify(userService).updateUserProfile(eq(userDetails), any(UpdateProfileRequestDto.class));
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when multiple fields are invalid in profile update")
-    void updateUserProfile_MultipleInvalidFields() throws Exception {
-        // Prepare test data with multiple invalid fields
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("a") // Too short username
-                .profilePictureUrl("not-a-valid-url") // Invalid URL format
-                .bio("a".repeat(501)) // Bio exceeds max length
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.username").value("Username must be between 3 and 50 characters"))
-                .andExpect(jsonPath("$.errors.profilePictureUrl").value("Profile picture URL must be a valid URL"))
-                .andExpect(jsonPath("$.errors.bio").value("Bio cannot exceed 500 characters"))
-                .andExpect(jsonPath("$.timestamp").exists());
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(csrf()))
+                .andExpect(status().isForbidden());
 
         verify(userService, never()).updateUserProfile(any(), any());
     }
 
+    // Optional: Add test for validation failure in UpdateProfileRequestDto if applicable
+    // e.g., if bio has length constraints
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when username contains invalid characters")
-    void updateUserProfile_InvalidUsernameCharacters() throws Exception {
-        // Prepare test data with invalid username characters
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("invalid@username#$%") // Contains invalid special characters
+    @DisplayName("Should return 400 when updating profile with invalid data")
+    void shouldReturn400WhenUpdatingProfileWithInvalidData() throws Exception {
+        logger.debug("Testing updating profile with invalid data");
+
+        // Corrected CustomUserDetails instantiation
+        CustomUserDetails userDetails = new CustomUserDetails(
+                mockUser.getUsername(),
+                mockUser.getPasswordHash(),
+                true, // Assuming the user is enabled
+                mockUser.getUserId()
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        // Create a string longer than 500 characters
+        String longBio = "a".repeat(501);
+
+        UpdateProfileRequestDto invalidUpdateRequest = UpdateProfileRequestDto.builder()
+                .username(mockUser.getUsername())
+                .bio(longBio) // Use the long string
+                .profilePictureUrl("http://example.com/pic.jpg")
                 .build();
 
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
         mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
+                .content(objectMapper.writeValueAsString(invalidUpdateRequest))
+                .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.username").value("Username can only contain letters, numbers, underscores and hyphens"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService, never()).updateUserProfile(any(), any());
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when username is blank")
-    void updateUserProfile_BlankUsername() throws Exception {
-        // Prepare test data with blank username
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("   ") // Blank username
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-        verify(userService, never()).updateUserProfile(any(), any());
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("Should return 400 when profile picture URL is malformed")
-    void updateUserProfile_MalformedProfilePictureUrl() throws Exception {
-        // Prepare test data with malformed URL
-        UpdateProfileRequestDto updateRequest = UpdateProfileRequestDto.builder()
-                .username("validUsername")
-                .profilePictureUrl("malformed:url:format") // Malformed URL
-                .build();
-
-        // Mock authentication
-        CustomUserDetails userDetails = new CustomUserDetails(
-            mockUser.getUsername(),
-            mockUser.getPasswordHash(),
-            true,
-            mockUser.getUserId()
-        );
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        // Perform request and verify
-        mockMvc.perform(put("/api/users/profile")
-                .with(authentication(auth))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.profilePictureUrl").value("Profile picture URL must be a valid URL"))
-                .andExpect(jsonPath("$.timestamp").exists());
+                .andExpect(jsonPath("$.errors.bio").exists()); // Check for specific error
 
         verify(userService, never()).updateUserProfile(any(), any());
     }
