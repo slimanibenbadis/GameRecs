@@ -92,8 +92,6 @@ class AuthenticationControllerTest extends BaseIntegrationTest {
     @DisplayName("Should authenticate user with valid credentials and save CSRF token")
     void shouldAuthenticateWithValidCredentials() throws Exception {
         logger.debug("Testing authentication with valid credentials and CSRF save");
-        
-        CsrfToken mockCsrfToken = new DefaultCsrfToken("X-XSRF-TOKEN", "_csrf", "test-csrf-token");
 
         when(authenticationManager.authenticate(any(Authentication.class)))
                 .thenReturn(mockAuthentication);

@@ -178,8 +178,6 @@ public class SecurityConfig {
 
     @Bean
     public CsrfTokenRepository csrfTokenRepository() {
-        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        // Optionally configure path, domain, etc. if needed
-        return repository;
+        return CookieCsrfTokenRepository.withHttpOnlyFalse();
     }
 } 
