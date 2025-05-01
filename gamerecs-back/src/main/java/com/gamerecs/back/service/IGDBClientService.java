@@ -103,7 +103,7 @@ public class IGDBClientService {
                 fields name,cover.url,first_release_date,summary,platforms.name,genres.name,
                       involved_companies.company.name,involved_companies.developer,involved_companies.publisher,
                       updated_at;
-                      where first_release_date != null & first_release_date <= %d & version_parent = null & game_type = 0;
+                      where first_release_date != null & first_release_date <= %d & version_parent = null & parent_game = null & game_type = 0;
                 limit 500;
                 """.formatted(query, currentTimestamp);
             
