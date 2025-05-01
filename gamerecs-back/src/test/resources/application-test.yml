@@ -39,6 +39,11 @@ igdb:
   update:
     timeout: 30  # Set a reasonable timeout for IGDB updates in tests
 
+# Provide a dummy value for the Steam API key to allow context loading during tests
+steam:
+  api:
+    key: TEST_STEAM_API_KEY_DUMMY
+
 # App specific configuration
 app:
   oauth2:

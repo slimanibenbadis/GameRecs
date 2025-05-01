@@ -168,6 +168,11 @@ igdb:
   client-id: ${IGDB_CLIENT_ID}
   access-token: ${IGDB_ACCESS_TOKEN}
 
+# Steam Configuration
+steam:
+  api:
+    key: ${STEAM_API_KEY}
+
 # Cache Configuration
 cache:
   igdb:
