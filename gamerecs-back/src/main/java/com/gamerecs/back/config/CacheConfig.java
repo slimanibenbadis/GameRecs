@@ -1,6 +1,7 @@
 package com.gamerecs.back.config;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -9,7 +10,7 @@ import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.concurrent.TimeUnit;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Configuration class for caching using Caffeine
@@ -36,6 +37,7 @@ public class CacheConfig {
      * Define cache names as constants for reuse and consistency
      */
     public static final String IGDB_GAME_SEARCH_CACHE = "igdbGameSearchCache";
+    public static final String IGDB_STEAM_ID_SEARCH_CACHE = "igdbSteamIdSearchCache";
 
     /**
      * Creates and configures the Caffeine cache builder
@@ -61,9 +63,12 @@ public class CacheConfig {
      */
     @Bean
     public CacheManager cacheManager(Caffeine<Object, Object> caffeine) {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(IGDB_GAME_SEARCH_CACHE);
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
+            IGDB_GAME_SEARCH_CACHE, 
+            IGDB_STEAM_ID_SEARCH_CACHE
+        );
         cacheManager.setCaffeine(caffeine);
-        logger.info("CaffeineCacheManager initialized with cache: {}", IGDB_GAME_SEARCH_CACHE);
+        logger.info("CaffeineCacheManager initialized with caches: {}", cacheManager.getCacheNames());
         return cacheManager;
     }
 } 
