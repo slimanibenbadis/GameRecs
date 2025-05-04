@@ -25,6 +25,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 import com.gamerecs.back.service.JwtService;
 import com.gamerecs.back.util.BaseUnitTest;
@@ -54,6 +56,9 @@ class JwtAuthenticationFilterTest extends BaseUnitTest {
     @Mock
     private CsrfTokenRepository csrfTokenRepository;
 
+    @Mock
+    private Environment environment;
+
     private CsrfToken csrfToken;
 
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -67,7 +72,7 @@ class JwtAuthenticationFilterTest extends BaseUnitTest {
     void setUp() {
         logger.debug("Setting up test environment");
         
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userDetailsService, csrfTokenRepository);
+        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userDetailsService, csrfTokenRepository, environment);
         userDetails = new User(TEST_USERNAME, "password", Collections.emptyList());
         csrfToken = new DefaultCsrfToken("X-XSRF-TOKEN", "_csrf", VALID_CSRF_TOKEN);
         
@@ -153,7 +158,7 @@ class JwtAuthenticationFilterTest extends BaseUnitTest {
 
         // Verify
         verify(csrfTokenRepository).loadToken(request);
-        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token");
+        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token.");
         verify(filterChain, never()).doFilter(request, response);
         
         assertNull(SecurityContextHolder.getContext().getAuthentication(),
@@ -179,7 +184,7 @@ class JwtAuthenticationFilterTest extends BaseUnitTest {
 
         // Verify
         verify(csrfTokenRepository).loadToken(request);
-        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token");
+        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token.");
         verify(filterChain, never()).doFilter(request, response);
         
         assertNull(SecurityContextHolder.getContext().getAuthentication(),
@@ -343,5 +348,31 @@ class JwtAuthenticationFilterTest extends BaseUnitTest {
         assertNull(SecurityContextHolder.getContext().getAuthentication(),
             "No authentication should be set in SecurityContext when exception occurs");
         verify(response, never()).sendError(anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should skip CSRF check for POST request when 'dev' profile is active")
+    void shouldSkipCsrfCheckForPostWhenDevProfileActive() throws Exception {
+        logger.debug("Testing CSRF check is skipped for POST request with dev profile");
+
+        // Setup
+        when(request.getMethod()).thenReturn(HttpMethod.POST.name());
+        // Mock environment to simulate 'dev' profile
+        when(environment.acceptsProfiles(Profiles.of("dev"))).thenReturn(true);
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
+        // No CSRF header or token repository setup needed, as the check should be skipped
+        when(jwtService.extractUsername(VALID_TOKEN)).thenReturn(TEST_USERNAME);
+        when(userDetailsService.loadUserByUsername(TEST_USERNAME)).thenReturn(userDetails);
+        when(jwtService.isTokenValid(VALID_TOKEN, userDetails)).thenReturn(true);
+
+        // Execute
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Verify
+        verify(csrfTokenRepository, never()).loadToken(any()); // Ensure CSRF repo wasn't accessed
+        verify(response, never()).sendError(anyInt(), anyString()); // Ensure no error was sent
+        verify(filterChain).doFilter(request, response); // Ensure filter chain continued
+        assertNotNull(SecurityContextHolder.getContext().getAuthentication(),
+            "Authentication should be set in SecurityContext");
     }
 } 

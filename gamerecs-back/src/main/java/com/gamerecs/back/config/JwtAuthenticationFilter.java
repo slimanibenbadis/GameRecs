@@ -6,6 +6,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,15 +37,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final CsrfTokenRepository csrfTokenRepository;
+    private final Environment environment;
 
     // HTTP methods that require CSRF protection
     private static final Set<String> METHODS_TO_CHECK = Set.of(HttpMethod.POST.name(), HttpMethod.PUT.name(), HttpMethod.DELETE.name(), HttpMethod.PATCH.name());
 
     @Autowired
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService, CsrfTokenRepository csrfTokenRepository) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService, CsrfTokenRepository csrfTokenRepository, Environment environment) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.csrfTokenRepository = csrfTokenRepository;
+        this.environment = environment;
     }
 
     @Override
@@ -132,9 +136,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(jwt, userDetails)) {
             filterLogger.debug("JWT token is valid for user: {}", username);
 
-            // Perform CSRF check; this method handles sending error response if fails
-            if (!validateCsrfToken(request, response, username)) {
-                return false; // Indicate chain should HALT
+            // Skip manual CSRF check only if 'dev' profile is NOT active
+            boolean isDevProfile = environment.acceptsProfiles(Profiles.of("dev"));
+            if (!isDevProfile) {
+                // Perform CSRF check; this method handles sending error response if fails
+                if (!validateCsrfToken(request, response, username)) {
+                    return false; // Indicate chain should HALT
+                }
+            } else {
+                 filterLogger.debug("Skipping CSRF check because 'dev' profile is active.");
             }
 
             // Set authentication in security context
@@ -176,18 +186,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     private boolean validateCsrfToken(HttpServletRequest request, HttpServletResponse response, String username) throws IOException {
         if (METHODS_TO_CHECK.contains(request.getMethod())) {
+            filterLogger.debug("Performing CSRF check for user {} and method {}", username, request.getMethod());
             CsrfToken expectedToken = csrfTokenRepository.loadToken(request);
             String actualToken = request.getHeader("X-XSRF-TOKEN");
 
             if (expectedToken == null) {
-                filterLogger.warn("CSRF check failed: Expected token not found in repository for user {}", username);
+                // This might happen legitimately if the token hasn't been sent to the client yet.
+                // However, for state-changing requests, we expect one.
+                filterLogger.warn("CSRF check failed: Expected token not found in repository for user {} during {} request to {}", username, request.getMethod(), request.getRequestURI());
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Missing CSRF token");
                 return false; // Indicate failure
             }
             if (actualToken == null || !actualToken.equals(expectedToken.getToken())) {
                 filterLogger.warn("CSRF check failed: Invalid token received (Expected: '{}', Actual: '{}') for user {}",
                                  expectedToken.getToken(), actualToken, username);
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token");
+                 // Send a generic error to avoid leaking token details
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token.");
                 return false; // Indicate failure
             }
             filterLogger.debug("CSRF check passed for user {}", username);
