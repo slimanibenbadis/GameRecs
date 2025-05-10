@@ -15,4 +15,7 @@ public class ProfileResponseDto {
     private String profilePictureUrl;
     private String bio;
     private boolean emailVerified;
+
+    private String steamProfileId;
+    private boolean steamCredentialsSet;
 } 

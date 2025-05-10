@@ -1,9 +1,10 @@
 package com.gamerecs.back.dto;
 
+import org.hibernate.validator.constraints.URL;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,4 +26,9 @@ public class UpdateProfileRequestDto {
     
     @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
+
+    private String steamApiKey;
+
+    @Pattern(regexp = "^[0-9]{17}$", message = "Steam Profile ID must be a 17-digit number")
+    private String steamProfileId;
 } 
