@@ -1,6 +1,22 @@
 package com.gamerecs.back.model;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.gamerecs.back.util.UsernameNormalizer;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,12 +24,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import com.gamerecs.back.util.UsernameNormalizer;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import java.time.LocalDateTime;
 
 /**
  * Entity representing a user in the system.
@@ -51,6 +61,12 @@ public class User {
 
     @Column(name = "google_id", unique = true)
     private String googleId;
+
+    @Column(name = "steam_api_key")
+    private String steamApiKey;
+
+    @Column(name = "steam_profile_id", unique = true)
+    private String steamProfileId;
 
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
