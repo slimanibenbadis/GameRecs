@@ -83,25 +83,20 @@ public class GameLibraryController {
     }
 
     @Operation(summary = "Import Steam library for the authenticated user",
-               description = "Initiates the import of the authenticated user's game library from Steam. "
-                           + "Requires the user's 64-bit Steam ID. This operation can take some time depending on library size. "
-                           + "Returns HTTP 200 OK on successful initiation, or an error status if the import fails (e.g., invalid Steam ID, external service issues).")
+               description = "Initiates the import of the authenticated user\'s game library from Steam. "
+                           + "The user must have their Steam ID and API key configured in their profile. "
+                           + "This operation can take some time depending on library size. "
+                           + "Returns HTTP 200 OK on successful initiation, or an error status if the import fails (e.g., credentials not set, external service issues).")
     @PostMapping("/game-library/import/steam")
     public ResponseEntity<Void> importSteamLibrary(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Parameter(description = "The user's 64-bit Steam ID", required = true, example = "76561197960287930")
-            @RequestParam String steamId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        log.info("Received request to import Steam library for user ID: {} with Steam ID: {}", userDetails.getUserId(), steamId);
+        log.info("Received request to import Steam library for user ID: {}", userDetails.getUserId());
 
         try {
-            // Validate steamId format (basic check, more robust validation might be needed)
-            if (steamId == null || !steamId.matches("\\d{17}")) {
-                 log.warn("Invalid Steam ID format provided: {}", steamId);
-                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Steam ID format. Please provide a 17-digit SteamID64.");
-            }
+            // steamId validation is no longer needed here as it's fetched from user's profile via UserService
             
-            steamImportService.importSteamLibrary(userDetails.getUserId(), steamId);
+            steamImportService.importSteamLibrary(userDetails.getUserId());
             log.info("Successfully initiated Steam library import for user ID: {}", userDetails.getUserId());
             return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {

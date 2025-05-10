@@ -7,6 +7,7 @@ import com.gamerecs.back.model.GameLibrary;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
+import com.gamerecs.back.service.SteamCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,30 +32,39 @@ public class SteamImportService {
     private final GameSyncService gameSyncService;
     private final GameLibraryRepository gameLibraryRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
-     * Imports a user's Steam library based on their Steam ID.
+     * Imports a user's Steam library based on their stored credentials.
      * Fetches owned games from Steam, finds corresponding games on IGDB,
      * syncs game data to the local database, and adds new games to the user's library.
      *
      * // TODO: Consider making this operation asynchronous (@Async) for better performance with large libraries.
      *
      * @param userId The ID of the user performing the import.
-     * @param steamId The 64-bit Steam ID of the user.
      * @throws UserNotFoundException if the user with the given userId is not found.
+     * @throws IllegalStateException if Steam credentials are not configured for the user.
      */
     @Transactional
-    public void importSteamLibrary(Long userId, String steamId) throws UserNotFoundException {
-        log.info("Starting Steam library import for user ID: {} and Steam ID: {}", userId, steamId);
+    public void importSteamLibrary(Long userId) throws UserNotFoundException, IllegalStateException {
+        log.info("Starting Steam library import for user ID: {}", userId);
 
         // 1. Retrieve the User entity
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
 
-        // 2. Fetch owned game App IDs from Steam
-        List<String> steamAppIds = steamClientService.getOwnedGameAppIds(steamId);
+        // 1.5 Fetch decrypted Steam credentials
+        SteamCredentials credentials = userService.getDecryptedSteamCredentials(userId)
+            .orElseThrow(() -> {
+                log.warn("Steam credentials not configured for user ID: {}", userId);
+                return new IllegalStateException("Steam credentials not configured for this user.");
+            });
+        log.info("Successfully retrieved Steam credentials for user ID: {}", userId);
+
+        // 2. Fetch owned game App IDs from Steam using stored credentials
+        List<String> steamAppIds = steamClientService.getOwnedGameAppIds(credentials.profileId(), credentials.apiKey());
         if (CollectionUtils.isEmpty(steamAppIds)) {
-            log.warn("No owned games found or Steam API error for Steam ID: {}. Import process stopped.", steamId);
+            log.warn("No owned games found or Steam API error for user ID: {}. Import process stopped.", userId);
             // Optionally, you might want to inform the user or throw a specific exception here.
             return;
         }
