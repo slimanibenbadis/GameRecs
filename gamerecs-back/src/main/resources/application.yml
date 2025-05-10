@@ -162,6 +162,9 @@ app:
     login:
       max-attempts: ${LOGIN_MAX_ATTEMPTS:5} # Max failed attempts before lockout
       lockout-duration-minutes: ${LOGIN_LOCKOUT_DURATION_MINUTES:10} # Lockout duration
+  encryption: # New encryption settings
+    key: ${ENCRYPTION_KEY}
+    salt: ${ENCRYPTION_SALT} # Hex-encoded 16-byte salt (32 chars)
 
 # IGDB Configuration
 igdb:

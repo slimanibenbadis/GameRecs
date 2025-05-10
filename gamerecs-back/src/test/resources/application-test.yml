@@ -46,9 +46,23 @@ steam:
 
 # App specific configuration
 app:
+  verification:
+    base-url: http://localhost:4200 # Dummy URL for tests
+    token:
+      expiration-hours: 1 # Short expiration for tests
+  jwt:
+    secret: test-super-secret-jwt-key-for-gamerecs-project-longer-than-256-bits-please-ignore # Dummy secret for tests
+    expiration-ms: 3600000 # 1 hour for tests
   oauth2:
-    redirectUri: http://localhost:4200/auth/google/callback
+    redirectUri: http://localhost:4200/auth/google/callback # Dummy redirect URI for tests
     expectedState: test_state
+  security:
+    login:
+      max-attempts: 5
+      lockout-duration-minutes: 10
+  encryption: # Encryption settings for test profile
+    key: TestKeyForEncryptionService12345 # Dummy key for tests
+    salt: abcdef1234567890abcdef1234567890 # Dummy salt for tests (32 hex chars)
 
 # SpringDoc OpenAPI Configuration
 springdoc:
