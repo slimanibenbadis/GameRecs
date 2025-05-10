@@ -10,6 +10,7 @@ import com.gamerecs.back.repository.UserRepository;
 import com.gamerecs.back.repository.VerificationTokenRepository;
 import com.gamerecs.back.util.UsernameNormalizer;
 import com.gamerecs.back.security.CustomUserDetails;
+import com.gamerecs.back.security.crypto.EncryptionService;
 import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Service class for handling user-related business logic.
@@ -34,6 +36,7 @@ public class UserService {
     private final EmailService emailService;
     private final VerificationTokenRepository verificationTokenRepository;
     private final GameLibraryRepository gameLibraryRepository;
+    private final EncryptionService encryptionService;
 
     @Value("${app.verification.token.expiration-hours:24}")
     private int tokenExpirationHours;
@@ -43,12 +46,14 @@ public class UserService {
                       PasswordEncoder passwordEncoder,
                       EmailService emailService,
                       VerificationTokenRepository verificationTokenRepository,
-                      GameLibraryRepository gameLibraryRepository) {
+                      GameLibraryRepository gameLibraryRepository,
+                      EncryptionService encryptionService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.verificationTokenRepository = verificationTokenRepository;
         this.gameLibraryRepository = gameLibraryRepository;
+        this.encryptionService = encryptionService;
     }
     
     /**
@@ -238,6 +243,26 @@ public class UserService {
         user.setProfilePictureUrl(updateRequest.getProfilePictureUrl());
         user.setBio(updateRequest.getBio());
 
+        // Handle Steam API Key
+        String steamApiKey = updateRequest.getSteamApiKey();
+        if (steamApiKey != null && !steamApiKey.isBlank()) {
+            user.setSteamApiKey(encryptionService.encrypt(steamApiKey));
+            logger.debug("Encrypted and set Steam API Key for user ID: {}", userId);
+        } else {
+            user.setSteamApiKey(null); // Clear if blank or null
+            logger.debug("Cleared Steam API Key for user ID: {}", userId);
+        }
+
+        // Handle Steam Profile ID
+        String steamProfileId = updateRequest.getSteamProfileId();
+        if (steamProfileId != null && !steamProfileId.isBlank()) {
+            user.setSteamProfileId(steamProfileId);
+            logger.debug("Set Steam Profile ID for user ID: {}", userId);
+        } else {
+            user.setSteamProfileId(null); // Clear if blank or null
+            logger.debug("Cleared Steam Profile ID for user ID: {}", userId);
+        }
+
         User updatedUser = userRepository.save(user);
         logger.info("Successfully updated profile for user: {}", updatedUser.getUsername());
 
@@ -257,6 +282,32 @@ public class UserService {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .bio(user.getBio())
                 .emailVerified(user.isEmailVerified())
+                .steamProfileId(user.getSteamProfileId())
+                .steamCredentialsSet(user.getSteamApiKey() != null && !user.getSteamApiKey().isBlank() &&
+                                     user.getSteamProfileId() != null && !user.getSteamProfileId().isBlank())
                 .build();
+    }
+
+    /**
+     * Retrieves decrypted Steam credentials for a given user.
+     * This method should only be accessible by trusted services.
+     *
+     * @param userId the ID of the user
+     * @return an Optional containing SteamCredentials if found and valid, otherwise empty
+     */
+    public Optional<SteamCredentials> getDecryptedSteamCredentials(Long userId) {
+        return userRepository.findById(userId).flatMap(user -> {
+            if (user.getSteamApiKey() != null && !user.getSteamApiKey().isBlank() &&
+                user.getSteamProfileId() != null && !user.getSteamProfileId().isBlank()) {
+                try {
+                    String decryptedApiKey = encryptionService.decrypt(user.getSteamApiKey());
+                    return Optional.of(new SteamCredentials(decryptedApiKey, user.getSteamProfileId()));
+                } catch (Exception e) {
+                    logger.error("Failed to decrypt Steam API key for user ID: {}", userId, e);
+                    return Optional.empty();
+                }
+            }
+            return Optional.empty();
+        });
     }
 } 
