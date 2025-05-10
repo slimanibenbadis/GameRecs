@@ -116,6 +116,18 @@ public class UserController {
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         logger.debug("Received profile update request for user: {}", userDetails.getUsername());
+
+        // Check if Steam-related fields are part of the update request
+        boolean steamApiKeyPresent = updateRequest.getSteamApiKey() != null;
+        boolean steamProfileIdPresent = updateRequest.getSteamProfileId() != null;
+
+        if (steamApiKeyPresent || steamProfileIdPresent) {
+            logger.info("User '{}' profile update includes Steam credential information. API Key present in request: {}, Profile ID present in request: {}.",
+                    userDetails.getUsername(),
+                    steamApiKeyPresent, // Log true if key field was in JSON (to set or clear)
+                    steamProfileIdPresent); // Log true if profile ID field was in JSON (to set or clear)
+        }
+        
         ProfileResponseDto updatedProfile = userService.updateUserProfile(userDetails, updateRequest);
         logger.info("Successfully updated profile for user: {}", userDetails.getUsername());
         return ResponseEntity.ok(updatedProfile);
