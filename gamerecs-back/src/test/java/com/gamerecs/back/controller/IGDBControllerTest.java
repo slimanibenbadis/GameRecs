@@ -119,6 +119,22 @@ class IGDBControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    void testTriggerIGDBUpdate_Unauthorized_InvalidPrincipal() throws Exception {
+        Authentication invalidPrincipalAuth = new UsernamePasswordAuthenticationToken(
+            new Object(), // Not CustomUserDetails
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+        mockMvc.perform(post("/api/igdb/update")
+                .with(csrf())
+                .with(authentication(invalidPrincipalAuth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("query", "Halo"))
+            .andExpect(status().isUnauthorized());
+    }
+    
+    @Test
     void testTriggerIGDBUpdateWithEmptyResponse() throws Exception {
         // Perform the request and verify response
         mockMvc.perform(post("/api/igdb/update")
@@ -132,7 +148,7 @@ class IGDBControllerTest extends BaseIntegrationTest {
             .andExpect(jsonPath("$.data").isArray())
             .andExpect(jsonPath("$.data.length()").value(0));
     }
-
+    
     @Test
     void testTriggerIGDBUpdateWithoutAuthentication() throws Exception {
         mockMvc.perform(post("/api/igdb/update")
@@ -289,9 +305,16 @@ class IGDBControllerTest extends BaseIntegrationTest {
     }
     
     @Test
-    void testUpdateAndSearch_WithoutAuthentication() throws Exception {
+    void testUpdateAndSearch_Unauthorized_InvalidPrincipal() throws Exception {
+        Authentication invalidPrincipalAuth = new UsernamePasswordAuthenticationToken(
+            new Object(), // Not CustomUserDetails
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
         mockMvc.perform(post("/api/igdb/update-and-search")
                 .with(csrf())
+                .with(authentication(invalidPrincipalAuth))
                 .contentType(MediaType.APPLICATION_JSON)
                 .param("query", "Halo"))
             .andExpect(status().isUnauthorized());
@@ -451,6 +474,91 @@ class IGDBControllerTest extends BaseIntegrationTest {
             });
     }
     
+    @Test
+    void testUpdateAndSearch_QueryTooShort() throws Exception {
+        mockMvc.perform(post("/api/igdb/update-and-search")
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("query", "A")) // Query shorter than MIN_QUERY_LENGTH (2)
+            .andExpect(status().isBadRequest())
+            .andExpect(result -> {
+                Exception exception = result.getResolvedException();
+                assert exception instanceof ResponseStatusException;
+                ResponseStatusException responseStatusException = (ResponseStatusException) exception;
+                assert responseStatusException.getStatusCode().equals(HttpStatus.BAD_REQUEST);
+                assert responseStatusException.getReason().contains("Search query must be at least 2 characters long");
+            });
+    }
+
+    @Test
+    void testUpdateAndSearch_QueryNeedsSanitization() throws Exception {
+        String queryWithSpecialChars = "Test;Game<with>[special]{chars}";
+        String expectedSanitizedQuery = "TestGamewithspecialchars";
+
+        // Mock successful update and search
+        List<Game> mockGames = List.of(new Game());
+        mockGames.get(0).setTitle(expectedSanitizedQuery);
+        Page<Game> mockPage = new PageImpl<>(mockGames, PageRequest.of(0, 50), 1);
+        
+        when(asyncIGDBUpdateService.updateGamesFromIGDB(expectedSanitizedQuery)).thenReturn(CompletableFuture.completedFuture(1));
+        when(gameService.searchGamesByTitleNormalized(eq(expectedSanitizedQuery), anyInt(), anyInt())).thenReturn(mockPage);
+
+        mockMvc.perform(post("/api/igdb/update-and-search")
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("query", queryWithSpecialChars))
+            .andExpect(status().isOk());
+
+        verify(asyncIGDBUpdateService).updateGamesFromIGDB(expectedSanitizedQuery);
+        verify(gameService).searchGamesByTitleNormalized(eq(expectedSanitizedQuery), anyInt(), anyInt());
+    }
+    
+    @Test
+    void testUpdateAndSearch_AsyncUpdateThrowsInterruptedExceptionFromFuture() throws Exception {
+        CompletableFuture<Integer> interruptedFuture = mock(CompletableFuture.class);
+        when(interruptedFuture.get()).thenThrow(new InterruptedException("Update interrupted"));
+        when(asyncIGDBUpdateService.updateGamesFromIGDB("Halo")).thenReturn(interruptedFuture);
+
+        mockMvc.perform(post("/api/igdb/update-and-search")
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("query", "Halo"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(result -> {
+                Exception exception = result.getResolvedException();
+                assert exception instanceof ResponseStatusException;
+                ResponseStatusException responseStatusException = (ResponseStatusException) exception;
+                assert responseStatusException.getStatusCode().equals(HttpStatus.SERVICE_UNAVAILABLE);
+                assert responseStatusException.getReason().contains("IGDB update was interrupted. Please try again.");
+            });
+    }
+
+    @Test
+    void testUpdateAndSearch_AsyncUpdateThrowsDirectRuntimeExceptionFromService() throws Exception {
+        when(asyncIGDBUpdateService.updateGamesFromIGDB("DirectFailQuery"))
+            .thenThrow(new IllegalArgumentException("Direct service failure"));
+
+        mockMvc.perform(post("/api/igdb/update-and-search")
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("query", "DirectFailQuery"))
+            .andExpect(status().isInternalServerError())
+            .andExpect(result -> {
+                Exception exception = result.getResolvedException();
+                assert exception instanceof ResponseStatusException;
+                ResponseStatusException responseStatusException = (ResponseStatusException) exception;
+                assert responseStatusException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR);
+                // The message in the controller is "Unexpected error during IGDB update: " + e.getMessage()
+                // However, the actual message from ResponseStatusException is just the reason.
+                // Let's check if the reason contains the core part.
+                assert responseStatusException.getReason().contains("Unexpected error during IGDB update: Direct service failure");
+            });
+    }
+
     @Test
     void testUpdateAndSearch_GenericUnhandledException() throws Exception {
         // Setup a test to trigger the final catch block for unexpected exceptions

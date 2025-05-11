@@ -218,7 +218,7 @@ public class IGDBController {
                           sanitizedQuery, userDetails.getUsername(), e);
                 
                 // Handle interrupted exception
-                if (e.getClass().getName().equals("java.util.concurrent.InterruptedException")) {
+                if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt(); // Restore interrupted state
                     throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, 
                         "IGDB update was interrupted. Please try again.");

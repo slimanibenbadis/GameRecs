@@ -28,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.mockito.ArgumentMatchers.eq;
 
 import com.gamerecs.back.model.PaginatedGameLibraryResponse;
+import com.gamerecs.back.service.SteamImportService;
+import com.gamerecs.back.exception.UserNotFoundException;
 
 class GameLibraryControllerTest extends BaseIntegrationTest {
 
@@ -36,6 +38,9 @@ class GameLibraryControllerTest extends BaseIntegrationTest {
 
     @MockBean
     private GameLibraryService gameLibraryService;
+
+    @MockBean
+    private SteamImportService steamImportService;
 
     private Authentication authentication;
     private static final Long TEST_USER_ID = 1L;
@@ -169,5 +174,69 @@ class GameLibraryControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.message").value("Invalid pagination parameters"));
+    }
+
+    @Test
+    void testImportSteamLibrary_Success() throws Exception {
+        // Mock the service to complete successfully
+        // No specific return value for void method, so no "when" needed if no exception is thrown.
+        // Mockito.doNothing().when(steamImportService).importSteamLibrary(TEST_USER_ID); // is default
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/game-library/import/steam")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testImportSteamLibrary_UserNotFound() throws Exception {
+        // Mock the service to throw UserNotFoundException
+        org.mockito.Mockito.doThrow(new UserNotFoundException("User not found"))
+            .when(steamImportService).importSteamLibrary(TEST_USER_ID);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/game-library/import/steam")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("User not found unexpectedly."));
+    }
+
+    @Test
+    void testImportSteamLibrary_ResponseStatusException() throws Exception {
+        // Mock the service to throw ResponseStatusException
+        org.mockito.Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Steam API error"))
+            .when(steamImportService).importSteamLibrary(TEST_USER_ID);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/game-library/import/steam")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.message").value("Steam API error"));
+    }
+
+    @Test
+    void testImportSteamLibrary_GenericException() throws Exception {
+        // Mock the service to throw a generic RuntimeException
+        org.mockito.Mockito.doThrow(new RuntimeException("Some internal error"))
+            .when(steamImportService).importSteamLibrary(TEST_USER_ID);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/game-library/import/steam")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Internal server error"));
+    }
+
+    @Test
+    void testImportSteamLibrary_InternalServerError() throws Exception {
+        // Mock the service to throw an internal server error
+        org.mockito.Mockito.doThrow(new RuntimeException("Internal server error"))
+            .when(steamImportService).importSteamLibrary(TEST_USER_ID);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/game-library/import/steam")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Internal server error"));
     }
 } 

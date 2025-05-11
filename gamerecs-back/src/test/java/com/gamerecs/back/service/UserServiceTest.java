@@ -32,6 +32,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// Added import for EncryptionService
+import com.gamerecs.back.security.crypto.EncryptionService;
+// Added import for the correct SteamCredentials record
+import com.gamerecs.back.service.SteamCredentials;
+
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest extends BaseUnitTest {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceTest.class);
@@ -50,6 +55,10 @@ class UserServiceTest extends BaseUnitTest {
 
     @Mock
     private GameLibraryRepository gameLibraryRepository;
+
+    // Added mock for EncryptionService
+    @Mock
+    private EncryptionService encryptionService;
 
     @InjectMocks
     private UserService userService;
@@ -819,4 +828,313 @@ class UserServiceTest extends BaseUnitTest {
         assertNotNull(registeredUser.getGameLibrary(), "User should have a game library");
         assertEquals(registeredUser, registeredUser.getGameLibrary().getUser(), "Game library should reference back to the user");
     }
-} 
+
+    @Test
+    @DisplayName("updateUserProfile should update Steam API Key and Profile ID when provided")
+    void updateUserProfile_WithSteamCredentials_Success() {
+        // Arrange
+        Long userId = 1L;
+        CustomUserDetails userDetails = new CustomUserDetails("oldusername", "hashedPassword", true, userId);
+        String newNormalizedUsername = "newusername";
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername(newNormalizedUsername);
+        updateRequest.setProfilePictureUrl("http://example.com/new-pic.jpg");
+        updateRequest.setBio("Updated bio");
+        updateRequest.setSteamApiKey("testApiKey");
+        updateRequest.setSteamProfileId("testProfileId");
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("oldusername")
+                .email("test@example.com")
+                .build();
+
+        User userToSave = User.builder() // User instance that will be modified and saved
+            .userId(userId)
+            .username("oldusername") // initially old username
+            .email("test@example.com")
+            .build();
+
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userToSave));
+        when(userRepository.existsByUsername(newNormalizedUsername)).thenReturn(false);
+        when(encryptionService.encrypt("testApiKey")).thenReturn("encryptedApiKey");
+        // Simulate the save operation modifying the userToSave instance as the service does
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            // The service modifies the user instance passed to save, so we reflect that here
+            // for the updatedUser to have the correct values for assertions in mapToProfileResponse.
+            // Or, more simply, we can return a fully formed "updatedUser" directly.
+            User finalUpdatedUser = User.builder()
+                .userId(userId)
+                .username(newNormalizedUsername) // ensure username is updated
+                .email("test@example.com")
+                .profilePictureUrl(updateRequest.getProfilePictureUrl())
+                .bio(updateRequest.getBio())
+                .steamApiKey("encryptedApiKey") // ensure this is set
+                .steamProfileId("testProfileId")  // ensure this is set
+                .build();
+            return finalUpdatedUser;
+        });
+
+        // Act
+        ProfileResponseDto result = userService.updateUserProfile(userDetails, updateRequest);
+
+        // Assert
+        assertNotNull(result, "Profile response should not be null");
+        assertEquals(newNormalizedUsername, result.getUsername(), "Username should be updated");
+        assertEquals("http://example.com/new-pic.jpg", result.getProfilePictureUrl());
+        assertEquals("Updated bio", result.getBio());
+        assertTrue(result.isSteamCredentialsSet(), "Steam credentials should be set"); // Checked by mapToProfileResponse
+
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByUsername(newNormalizedUsername);
+        verify(encryptionService).encrypt("testApiKey");
+        verify(userRepository).save(argThat(savedUser ->
+            "encryptedApiKey".equals(savedUser.getSteamApiKey()) &&
+            "testProfileId".equals(savedUser.getSteamProfileId())
+        ));
+    }
+
+    @Test
+    @DisplayName("updateUserProfile should clear Steam API Key and Profile ID when blank")
+    void updateUserProfile_WithBlankSteamCredentials_ClearsThem() {
+        // Arrange
+        Long userId = 1L;
+        CustomUserDetails userDetails = new CustomUserDetails("testuser", "hashedPassword", true, userId);
+        UpdateProfileRequestDto updateRequest = new UpdateProfileRequestDto();
+        updateRequest.setUsername("testuser");
+        updateRequest.setSteamApiKey("   "); // Blank API Key
+        updateRequest.setSteamProfileId(""); // Blank Profile ID
+
+        User existingUser = User.builder()
+                .userId(userId)
+                .username("testuser")
+                .steamApiKey("oldEncryptedApiKey")
+                .steamProfileId("oldProfileId")
+                .build();
+        
+        User userToReturnFromSave = User.builder()
+            .userId(userId)
+            .username("testuser")
+            .steamApiKey(null) // Expecting it to be cleared
+            .steamProfileId(null) // Expecting it to be cleared
+            .build();
+
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(userToReturnFromSave); // Return a user with cleared fields
+
+        // Act
+        ProfileResponseDto result = userService.updateUserProfile(userDetails, updateRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isSteamCredentialsSet(), "Steam credentials should not be set");
+        
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByUsername(anyString()); // Username not changing
+        verify(encryptionService, never()).encrypt(anyString()); // Should not encrypt blank key
+        verify(userRepository).save(argThat(savedUser ->
+            savedUser.getSteamApiKey() == null &&
+            savedUser.getSteamProfileId() == null
+        ));
+    }
+
+
+    @Test
+    @DisplayName("mapToProfileResponse should correctly set steamCredentialsSet to true")
+    void mapToProfileResponse_SteamCredentialsSet_True() {
+        // Arrange
+        User user = User.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .steamApiKey("encryptedApiKey") // Not null, not blank
+                .steamProfileId("testProfileId")  // Not null, not blank
+                .build();
+        
+        CustomUserDetails userDetails = new CustomUserDetails(user.getUsername(), "pwd", true, 1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+
+        // Act
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
+
+        // Assert
+        assertTrue(profile.isSteamCredentialsSet(), "steamCredentialsSet should be true");
+    }
+
+    @Test
+    @DisplayName("mapToProfileResponse should correctly set steamCredentialsSet to false if API key is blank")
+    void mapToProfileResponse_SteamApiKeyBlank_SteamCredentialsSet_False() {
+        // Arrange
+        User user = User.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .steamApiKey("   ") // Blank API Key
+                .steamProfileId("testProfileId")  // Valid Profile ID
+                .build();
+
+        CustomUserDetails userDetails = new CustomUserDetails(user.getUsername(), "pwd", true, 1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        // Act
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
+
+        // Assert
+        assertFalse(profile.isSteamCredentialsSet(), "steamCredentialsSet should be false due to blank API key");
+    }
+
+    @Test
+    @DisplayName("mapToProfileResponse should correctly set steamCredentialsSet to false if Profile ID is blank")
+    void mapToProfileResponse_SteamProfileIdBlank_SteamCredentialsSet_False() {
+        // Arrange
+        User user = User.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .steamApiKey("encryptedApiKey") // Valid API Key
+                .steamProfileId("  ")        // Blank Profile ID
+                .build();
+        
+        CustomUserDetails userDetails = new CustomUserDetails(user.getUsername(), "pwd", true, 1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        // Act
+        ProfileResponseDto profile = userService.getUserProfile(userDetails);
+
+        // Assert
+        assertFalse(profile.isSteamCredentialsSet(), "steamCredentialsSet should be false due to blank Profile ID");
+    }
+    
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty when user not found")
+    void getDecryptedSteamCredentials_UserNotFound_ReturnsEmpty() {
+        // Arrange
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty(), "Result should be empty when user is not found");
+        verify(userRepository).findById(userId);
+        verifyNoInteractions(encryptionService);
+    }
+
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty when Steam API key is null")
+    void getDecryptedSteamCredentials_ApiKeyNull_ReturnsEmpty() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder().userId(userId).steamApiKey(null).steamProfileId("profileId").build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+        verify(userRepository).findById(userId);
+        verifyNoInteractions(encryptionService);
+    }
+
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty when Steam API key is blank")
+    void getDecryptedSteamCredentials_ApiKeyBlank_ReturnsEmpty() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder().userId(userId).steamApiKey("   ").steamProfileId("profileId").build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+        verify(userRepository).findById(userId);
+        verifyNoInteractions(encryptionService);
+    }
+    
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty when Steam Profile ID is null")
+    void getDecryptedSteamCredentials_ProfileIdNull_ReturnsEmpty() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder().userId(userId).steamApiKey("apiKey").steamProfileId(null).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+        verify(userRepository).findById(userId);
+        verifyNoInteractions(encryptionService);
+    }
+
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty when Steam Profile ID is blank")
+    void getDecryptedSteamCredentials_ProfileIdBlank_ReturnsEmpty() {
+        // Arrange
+        Long userId = 1L;
+        User user = User.builder().userId(userId).steamApiKey("apiKey").steamProfileId("   ").build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+        verify(userRepository).findById(userId);
+        verifyNoInteractions(encryptionService);
+    }
+
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return credentials when valid and decryption succeeds")
+    void getDecryptedSteamCredentials_ValidCredentials_ReturnsDecrypted() {
+        // Arrange
+        Long userId = 1L;
+        String encryptedApiKey = "encryptedKey";
+        String decryptedApiKey = "decryptedKey";
+        String profileId = "profile123";
+        User user = User.builder().userId(userId).steamApiKey(encryptedApiKey).steamProfileId(profileId).build();
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(encryptionService.decrypt(encryptedApiKey)).thenReturn(decryptedApiKey);
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(decryptedApiKey, result.get().apiKey());
+        assertEquals(profileId, result.get().profileId());
+        verify(userRepository).findById(userId);
+        verify(encryptionService).decrypt(encryptedApiKey);
+    }
+
+    @Test
+    @DisplayName("getDecryptedSteamCredentials should return empty and log error when decryption fails")
+    void getDecryptedSteamCredentials_DecryptionFails_ReturnsEmptyAndLogsError() {
+        // Arrange
+        Long userId = 1L;
+        String encryptedApiKey = "encryptedKey";
+        String profileId = "profile123";
+        User user = User.builder().userId(userId).steamApiKey(encryptedApiKey).steamProfileId(profileId).build();
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        // Simulate decryption failure
+        when(encryptionService.decrypt(encryptedApiKey)).thenThrow(new RuntimeException("Decryption error"));
+
+        // Act
+        Optional<SteamCredentials> result = userService.getDecryptedSteamCredentials(userId);
+
+        // Assert
+        assertTrue(result.isEmpty(), "Result should be empty when decryption fails");
+        verify(userRepository).findById(userId);
+        verify(encryptionService).decrypt(encryptedApiKey);
+        // Logger interaction can be verified if SLF4J test binders are set up,
+        // but for now, the logic ensures an error is logged.
+    }
+}
