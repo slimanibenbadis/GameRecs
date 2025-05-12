@@ -49,6 +49,10 @@ export class ProfileComponent implements OnInit {
       ]],
       bio: ['', [
         Validators.maxLength(500)
+      ]],
+      steamApiKey: [''], // No complex validation, just a string
+      steamProfileId: ['', [
+        Validators.pattern('^[0-9]{17}$') // SteamID64 is 17 digits
       ]]
     });
   }
@@ -67,7 +71,9 @@ export class ProfileComponent implements OnInit {
         this.profileForm.patchValue({
           username: profile.username,
           profilePictureUrl: profile.profilePictureUrl,
-          bio: profile.bio
+          bio: profile.bio,
+          steamProfileId: profile.steamProfileId // Patch Steam Profile ID
+          // Do NOT patch steamApiKey as it's write-only
         });
         this.isLoading = false;
       },
@@ -85,8 +91,14 @@ export class ProfileComponent implements OnInit {
       this.profileForm.patchValue({
         username: this.profile?.username,
         profilePictureUrl: this.profile?.profilePictureUrl,
-        bio: this.profile?.bio
+        bio: this.profile?.bio,
+        steamProfileId: this.profile?.steamProfileId
       });
+      // Clear the API key field when canceling edit mode
+      this.profileForm.get('steamApiKey')?.reset('');
+    } else {
+      // Clear the API key field when entering edit mode initially as well
+      this.profileForm.get('steamApiKey')?.reset('');
     }
     this.isEditMode = !this.isEditMode;
     this.error = undefined;
@@ -110,12 +122,24 @@ export class ProfileComponent implements OnInit {
     const updateData: UpdateProfileRequest = {
       username: formValue.username.toLowerCase(),
       profilePictureUrl: formValue.profilePictureUrl || undefined,
-      bio: formValue.bio || undefined
+      bio: formValue.bio || undefined,
+      steamApiKey: formValue.steamApiKey || undefined, // Include if provided
+      steamProfileId: formValue.steamProfileId || undefined // Include if provided
     };
 
     this.profileService.updateProfile(updateData).subscribe({
       next: (response) => {
         this.profile = response;
+        // Patch the form again *after* successful save to reflect the latest state,
+        // including the potentially updated steamProfileId (but not API key).
+        this.profileForm.patchValue({
+          username: response.username,
+          profilePictureUrl: response.profilePictureUrl,
+          bio: response.bio,
+          steamProfileId: response.steamProfileId
+        });
+        // Clear API key field after successful save
+        this.profileForm.get('steamApiKey')?.reset('');
         this.isLoading = false;
         this.successMessage = 'Profile updated successfully';
         this.isEditMode = false;
@@ -151,6 +175,9 @@ export class ProfileComponent implements OnInit {
       break;
     case 'bio':
       if (errors['maxlength']) return 'Bio cannot exceed 500 characters';
+      break;
+    case 'steamProfileId':
+      if (errors['pattern']) return 'Steam Profile ID must be a 17-digit number';
       break;
     }
     return '';

@@ -23,6 +23,16 @@
         <p class="text-text text-center max-w-2xl">{{ profile.bio || 'No bio available' }}</p>
       </div>
       
+      <!-- Steam Integration Status -->
+      <div class="text-center mb-4">
+        <div *ngIf="profile.steamCredentialsSet" class="text-green-400 mb-2">
+          <i class="pi pi-check-circle mr-2"></i>Steam integration active. Profile ID: {{ profile.steamProfileId }}
+        </div>
+        <div *ngIf="!profile.steamCredentialsSet" class="text-yellow-400 mb-2">
+          <i class="pi pi-exclamation-triangle mr-2"></i>Steam integration not configured.
+        </div>
+      </div>
+
       <div class="flex justify-center" *ngIf="isOwnProfile">
         <p-button label="Edit Profile" icon="pi pi-pencil" (onClick)="toggleEditMode()" styleClass="p-button-primary"></p-button>
       </div>
@@ -67,6 +77,30 @@
           <small class="text-red-400" *ngIf="profileForm.get('bio')?.touched">
             {{ getErrorMessage('bio') }}
           </small>
+        </div>
+
+        <!-- Steam Fields -->
+        <div class="mb-4">
+          <label for="steamProfileId" class="block text-sm font-medium text-text mb-1">Steam Profile ID (17-digit SteamID64)</label>
+          <input pInputText
+                 id="steamProfileId"
+                 formControlName="steamProfileId"
+                 class="w-full"
+                 [ngClass]="{'ng-invalid ng-dirty': profileForm.get('steamProfileId')?.touched && profileForm.get('steamProfileId')?.invalid}">
+          <small class="text-red-400" *ngIf="profileForm.get('steamProfileId')?.touched">
+            {{ getErrorMessage('steamProfileId') }}
+          </small>
+        </div>
+
+        <div class="mb-4">
+          <label for="steamApiKey" class="block text-sm font-medium text-text mb-1">Steam API Key (Optional)</label>
+          <input pInputText
+                 id="steamApiKey"
+                 type="password"
+                 formControlName="steamApiKey"
+                 class="w-full"
+                 placeholder="Enter new key or leave blank to keep existing">
+          <small class="text-gray-400 mt-1 block">Your API key is stored securely and will not be displayed again. Leave blank if you do not wish to change it.</small>
         </div>
 
         <div class="flex justify-end gap-3">

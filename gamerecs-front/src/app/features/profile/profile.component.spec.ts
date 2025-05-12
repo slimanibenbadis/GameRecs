@@ -21,7 +21,7 @@ describe('ProfileComponent', () => {
     profilePictureUrl: 'https://example.com/image.png',
     bio: 'Test bio',
     emailVerified: true,
-    steamProfileId: '1234567890',
+    steamProfileId: '12345678901234567',
     steamCredentialsSet: true
   };
 
@@ -76,7 +76,9 @@ describe('ProfileComponent', () => {
       expect(component.profileForm.value).toEqual({
         username: mockProfile.username,
         profilePictureUrl: mockProfile.profilePictureUrl,
-        bio: mockProfile.bio
+        bio: mockProfile.bio,
+        steamProfileId: mockProfile.steamProfileId,
+        steamApiKey: ''
       });
     }));
 
@@ -89,6 +91,21 @@ describe('ProfileComponent', () => {
       expect(component.error).toBe('Failed to load profile data');
       expect(component.isLoading).toBeFalse();
     }));
+
+    it('should initialize steamApiKey and steamProfileId controls', () => {
+      expect(component.profileForm.get('steamApiKey')).toBeTruthy();
+      expect(component.profileForm.get('steamProfileId')).toBeTruthy();
+    });
+
+    it('should validate steamProfileId pattern', () => {
+      const steamIdControl = component.profileForm.get('steamProfileId');
+      steamIdControl?.setValue('12345');
+      expect(steamIdControl?.errors?.['pattern']).toBeTruthy();
+      steamIdControl?.setValue('abcdefghijklmnopq');
+      expect(steamIdControl?.errors?.['pattern']).toBeTruthy();
+      steamIdControl?.setValue('12345678901234567');
+      expect(steamIdControl?.errors?.['pattern']).toBeFalsy();
+    });
   });
 
   describe('Form Validation', () => {
@@ -149,7 +166,9 @@ describe('ProfileComponent', () => {
       expect(component.profileForm.value).toEqual({
         username: mockProfile.username,
         profilePictureUrl: mockProfile.profilePictureUrl,
-        bio: mockProfile.bio
+        bio: mockProfile.bio,
+        steamProfileId: mockProfile.steamProfileId,
+        steamApiKey: ''
       });
     });
   });
@@ -165,22 +184,45 @@ describe('ProfileComponent', () => {
       const updateData = {
         username: 'newUsername',
         profilePictureUrl: 'https://example.com/new.png',
-        bio: 'new bio'
+        bio: 'new bio',
+        steamProfileId: '98765432109876543',
+        steamApiKey: 'newApiKey'
       };
       
-      const expectedData = {
+      const expectedPayload = {
         username: updateData.username.toLowerCase(),
         profilePictureUrl: updateData.profilePictureUrl,
-        bio: updateData.bio
+        bio: updateData.bio,
+        steamProfileId: updateData.steamProfileId,
+        steamApiKey: updateData.steamApiKey
       };
+
+      const updatedProfileResponse: ProfileResponseDto = {
+        ...mockProfile,
+        username: expectedPayload.username,
+        profilePictureUrl: expectedPayload.profilePictureUrl,
+        bio: expectedPayload.bio,
+        steamProfileId: expectedPayload.steamProfileId,
+        steamCredentialsSet: true
+      };
+      profileService.updateProfile.and.returnValue(of(updatedProfileResponse));
       
       component.profileForm.patchValue(updateData);
       component.onSave();
       tick();
 
-      expect(profileService.updateProfile).toHaveBeenCalledWith(expectedData);
+      expect(profileService.updateProfile).toHaveBeenCalledWith(expectedPayload);
       expect(component.successMessage).toBe('Profile updated successfully');
+      expect(component.error).toBeUndefined();
       expect(component.isEditMode).toBeFalse();
+      expect(component.profileForm.value).toEqual({
+        username: updatedProfileResponse.username,
+        profilePictureUrl: updatedProfileResponse.profilePictureUrl,
+        bio: updatedProfileResponse.bio,
+        steamProfileId: updatedProfileResponse.steamProfileId,
+        steamApiKey: ''
+      });
+      expect(component.profile).toEqual(updatedProfileResponse);
     }));
 
     it('should handle update error', fakeAsync(() => {
@@ -192,6 +234,7 @@ describe('ProfileComponent', () => {
       tick();
 
       expect(component.error).toBe(errorMessage);
+      expect(component.successMessage).toBeUndefined();
       expect(component.isLoading).toBeFalse();
     }));
   });
@@ -212,6 +255,13 @@ describe('ProfileComponent', () => {
       
       expect(component.getErrorMessage('profilePictureUrl'))
         .toBe('Please enter a valid image URL (http/https ending in .png, .jpg, .jpeg, or .gif)');
+    });
+
+    it('should return appropriate error message for steamProfileId', () => {
+      const steamIdControl = component.profileForm.get('steamProfileId');
+      steamIdControl?.setValue('invalid-id');
+      steamIdControl?.markAsTouched();
+      expect(component.getErrorMessage('steamProfileId')).toBe('Steam Profile ID must be a 17-digit number');
     });
 
     it('should return empty string for untouched controls', () => {
