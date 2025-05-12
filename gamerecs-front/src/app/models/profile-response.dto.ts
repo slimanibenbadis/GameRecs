@@ -1,16 +1,17 @@
 export interface ProfileResponseDto {
   username: string;
   email: string;
-  profilePictureUrl: string;
-  bio: string;
+  profilePictureUrl?: string;
+  bio?: string;
   emailVerified: boolean;
-  gamesRated: number;
-  gamesInLibrary: number;
-  joinDate: string;
+  steamProfileId?: string;
+  steamCredentialsSet?: boolean;
 }
 
 export interface UpdateProfileRequest {
   username: string;
   profilePictureUrl?: string;
   bio?: string;
+  steamApiKey?: string;
+  steamProfileId?: string;
 } 

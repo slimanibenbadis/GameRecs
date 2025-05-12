@@ -31,9 +31,8 @@ describe('ProfileService', () => {
       profilePictureUrl: 'http://example.com/profile.jpg',
       bio: 'Test bio',
       emailVerified: true,
-      gamesRated: 10,
-      gamesInLibrary: 25,
-      joinDate: '2023-01-01'
+      steamProfileId: '1234567890',
+      steamCredentialsSet: true
     };
 
     service.getProfile().subscribe(profile => {
@@ -53,9 +52,8 @@ describe('ProfileService', () => {
       profilePictureUrl: 'http://example.com/profile.jpg',
       bio: newBio,
       emailVerified: true,
-      gamesRated: 10,
-      gamesInLibrary: 25,
-      joinDate: '2023-01-01'
+      steamProfileId: '1234567890',
+      steamCredentialsSet: true
     };
 
     service.updateBio(newBio).subscribe(profile => {
@@ -82,9 +80,8 @@ describe('ProfileService', () => {
       profilePictureUrl: 'http://example.com/new-profile.jpg',
       bio: 'New bio information',
       emailVerified: true,
-      gamesRated: 10,
-      gamesInLibrary: 25,
-      joinDate: '2023-01-01'
+      steamProfileId: '1234567890',
+      steamCredentialsSet: true
     };
 
     service.updateProfile(updateRequest).subscribe(profile => {

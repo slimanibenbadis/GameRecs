@@ -21,9 +21,8 @@ describe('ProfileComponent', () => {
     profilePictureUrl: 'https://example.com/image.png',
     bio: 'Test bio',
     emailVerified: true,
-    gamesRated: 0,
-    gamesInLibrary: 0,
-    joinDate: '2024-03-20'
+    steamProfileId: '1234567890',
+    steamCredentialsSet: true
   };
 
   beforeEach(async () => {
