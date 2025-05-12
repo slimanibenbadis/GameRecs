@@ -52,13 +52,10 @@ export class GameLibraryService {
 
   /**
    * Initiates the import of the user's Steam library.
-   * @param steamId The user's 64-bit Steam ID.
    * @returns An Observable that completes when the request is sent.
    */
-  importSteamLibrary(steamId: string): Observable<any> {
-    // The backend expects the steamId as a request parameter
-    const params = { steamId };
-    // No body is needed for this POST request
-    return this.http.post<any>('/api/game-library/import/steam', null, { params });
+  importSteamLibrary(): Observable<any> {
+    // No params or body needed; backend uses authenticated user context
+    return this.http.post<any>('/api/game-library/import/steam', null);
   }
 } 

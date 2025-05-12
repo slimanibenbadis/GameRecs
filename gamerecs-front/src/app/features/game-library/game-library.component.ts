@@ -113,7 +113,7 @@ export class GameLibraryComponent implements OnInit {
 
     this.isLoadingImport = true;
 
-    this.libraryService.importSteamLibrary(this.steamIdToImport.trim()).subscribe({
+    this.libraryService.importSteamLibrary().subscribe({
       next: (response: any) => {
         this.isLoadingImport = false;
         const messageDetail = response?.message || 'Steam library import initiated successfully. It may take a few moments to reflect the changes.';
