@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Game, GameLibraryService, PaginatedGameLibraryResponse } from '../../core/services/game-library.service';
 import { PaginatorModule } from 'primeng/paginator';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { MessagesModule } from 'primeng/messages';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,7 +20,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     MessagesModule,
     InputTextModule,
     ButtonModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    RouterLink
   ],
   templateUrl: './game-library.component.html',
   styleUrls: ['./game-library.component.css'],
@@ -42,7 +43,6 @@ export class GameLibraryComponent implements OnInit {
   totalElements: number = 0;
 
   // Steam Import properties
-  steamIdToImport: string = '';
   isLoadingImport: boolean = false;
 
   constructor(
@@ -50,14 +50,6 @@ export class GameLibraryComponent implements OnInit {
     private readonly router: Router,
     private readonly messageService: MessageService
   ) { }
-
-  /**
-   * Getter to check if the entered Steam ID is invalid (non-empty and not 17 digits).
-   */
-  get isSteamIdInvalid(): boolean {
-    // Only invalid if there is input and it doesn't match the pattern
-    return !!this.steamIdToImport && !/^\d{17}$/.test(this.steamIdToImport.trim());
-  }
 
   ngOnInit(): void {
     this.fetchGameLibrary();
@@ -100,31 +92,24 @@ export class GameLibraryComponent implements OnInit {
    */
   onImportSteamLibrary(): void {
     this.messageService.clear();
-    
-    if (!this.steamIdToImport || this.steamIdToImport.trim() === '') {
-      this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Please enter a valid Steam ID.' });
-      return;
-    }
-
-    if (!/^\d{17}$/.test(this.steamIdToImport.trim())) {
-      this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Please enter a valid 17-digit Steam ID.' });
-      return;
-    }
-
     this.isLoadingImport = true;
+    // Optionally, check if profile indicates credentials are set via ProfileService if complex UX is desired
+    // For now, let backend handle it.
 
-    this.libraryService.importSteamLibrary().subscribe({
+    this.libraryService.importSteamLibrary().subscribe({ // No argument
       next: (response: any) => {
         this.isLoadingImport = false;
         const messageDetail = response?.message || 'Steam library import initiated successfully. It may take a few moments to reflect the changes.';
         this.messageService.add({ severity: 'success', summary: 'Success', detail: messageDetail });
-        this.steamIdToImport = '';
         setTimeout(() => this.fetchGameLibrary(0), 1000); 
       },
       error: (err: any) => {
         this.isLoadingImport = false;
         console.error('Error importing Steam library', err);
-        const detail = err?.error?.message || err?.message || 'Import failed. Please check the Steam ID or try again later.';
+        let detail = err?.error?.message || err?.message || 'Import failed. Please ensure your Steam credentials are set in your profile and try again later.';
+        if (err.status === 400 && err.error?.message?.toLowerCase().includes('credentials not configured')) {
+          detail = 'Steam credentials not found in your profile. Please add them on your profile page.';
+        }
         this.messageService.add({ severity: 'error', summary: 'Error', detail: detail });
       }
     });

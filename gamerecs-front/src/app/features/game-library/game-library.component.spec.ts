@@ -6,6 +6,7 @@ import { By } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GameLibraryComponent', () => {
   let component: GameLibraryComponent;
@@ -15,7 +16,12 @@ describe('GameLibraryComponent', () => {
   beforeEach(async () => {
     const spy = jasmine.createSpyObj('GameLibraryService', ['getGameLibrary']);
     await TestBed.configureTestingModule({
-      imports: [ GameLibraryComponent, FormsModule, PaginatorModule ],
+      imports: [ 
+        GameLibraryComponent, 
+        FormsModule, 
+        PaginatorModule, 
+        RouterTestingModule
+      ],
       providers: [
         { provide: GameLibraryService, useValue: spy }
       ],

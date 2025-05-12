@@ -22,40 +22,24 @@
   <div class="steam-import-section my-6 p-4 bg-surface-100 rounded-lg shadow-md">
     <h2 class="text-xl font-semibold mb-3 text-text">Import from Steam</h2>
     <p class="text-sm text-text opacity-80 mb-4">
-      Enter your 17-digit SteamID64 to add games from your Steam library. 
-      Find your SteamID64 <a href="https://steamid.io/" target="_blank" class="text-primary hover:underline">here</a>.
+      Ensure your Steam API Key and 17-digit SteamID64 are set in your <a routerLink="/profile" class="text-primary hover:underline">profile</a>.
+      Then, click the button below to import your games.
     </p>
     
-    <!-- Import Messages -->
     <p-messages [closable]="true" styleClass="mb-4"></p-messages>
     
-    <div class="flex flex-col sm:flex-row items-center gap-3">
-      <div class="flex-grow w-full sm:w-auto">
-        <label for="steamIdInput" class="sr-only">Steam ID</label>
-        <input id="steamIdInput" 
-               type="text" 
-               pInputText 
-               [(ngModel)]="steamIdToImport" 
-               placeholder="Enter your 17-digit SteamID64" 
-               class="w-full p-inputtext-lg" 
-               [ngClass]="{'ng-invalid ng-dirty': isSteamIdInvalid}">
-        <small *ngIf="isSteamIdInvalid" class="text-red-400 block mt-1">
-          Please enter a valid 17-digit SteamID64.
-        </small>
-      </div>
-      <div class="flex items-center gap-3">
-        <button pButton 
-                label="Import Steam Library" 
-                icon="pi pi-steam" 
-                (click)="onImportSteamLibrary()" 
-                [disabled]="isLoadingImport || !steamIdToImport || isSteamIdInvalid" 
-                styleClass="p-button-primary p-button-lg">
-        </button>
-        <p-progressSpinner *ngIf="isLoadingImport" 
-                          styleClass="w-8 h-8" 
-                          strokeWidth="6">
-        </p-progressSpinner>
-      </div>
+    <div class="flex items-center gap-3">
+      <button pButton 
+              label="Import My Steam Library" 
+              icon="pi pi-steam" 
+              (click)="onImportSteamLibrary()" 
+              [disabled]="isLoadingImport" 
+              styleClass="p-button-primary p-button-lg">
+      </button>
+      <p-progressSpinner *ngIf="isLoadingImport" 
+                        styleClass="w-8 h-8" 
+                        strokeWidth="6">
+      </p-progressSpinner>
     </div>
   </div>
   
