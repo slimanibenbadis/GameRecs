@@ -60,26 +60,29 @@
   </div>
   
   <!-- Game list -->
-  <div *ngIf="library && library.games.length > 0 && !isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div *ngIf="library && library.games.length > 0 && !isLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
     <div *ngFor="let game of library.games" 
-         class="game-card bg-surface-200 rounded-lg overflow-hidden shadow-glow hover:transform hover:scale-105 transition-all duration-300 cursor-pointer" 
+         class="game-card-container group cursor-pointer"
          (click)="navigateToGame(game, $event)"
-         (keydown.enter)="navigateToGame(game, $event)">
-      <div class="relative h-48">
+         (keydown.enter)="navigateToGame(game, $event)"
+         tabindex="0">
+      <div class="aspect-[3/4] bg-surface-200 rounded-lg overflow-hidden shadow-glow group-hover:ring-2 group-hover:ring-primary group-focus:ring-2 group-focus:ring-primary transition-all duration-200">
         <img
           *ngIf="game.coverImageUrl"
           [src]="game.coverImageUrl"
-          alt="{{ game.title }}"
+          alt="{{ game.title }} poster"
           class="w-full h-full object-cover"
         >
-        <div *ngIf="!game.coverImageUrl" class="w-full h-full flex items-center justify-center bg-secondary">
-          <span class="text-text">No Cover Image</span>
-        </div>
+        <img
+          *ngIf="!game.coverImageUrl"
+          src="assets/placeholders/game-poster.svg"
+          alt="Placeholder game poster"
+          class="w-full h-full object-cover"
+        >
       </div>
-      <div class="p-4">
-        <h2 class="game-title text-xl font-semibold text-text mb-2">{{ game.title }}</h2>
-        <p *ngIf="game.releaseDate" class="text-sm text-gray-300">Released: {{ game.releaseDate }}</p>
-        <p *ngIf="game.description" class="text-sm mt-2 text-gray-300 line-clamp-2">{{ game.description }}</p>
+      <div class="mt-2 text-center">
+        <h2 class="game-title text-sm md:text-base font-medium text-text group-hover:text-primary transition-colors duration-200 truncate" title="{{ game.title }}">{{ game.title }}</h2>
+        <p *ngIf="game.releaseDate" class="text-xs text-gray-400">{{ game.releaseDate | date:'yyyy' }}</p>
       </div>
     </div>
   </div>
