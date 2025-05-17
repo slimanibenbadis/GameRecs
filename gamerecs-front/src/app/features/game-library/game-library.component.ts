@@ -25,7 +25,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   ],
   templateUrl: './game-library.component.html',
   styleUrls: ['./game-library.component.css'],
-  providers: [MessageService]
 })
 export class GameLibraryComponent implements OnInit {
 
@@ -46,9 +45,9 @@ export class GameLibraryComponent implements OnInit {
   isLoadingImport: boolean = false;
 
   constructor(
-    private readonly libraryService: GameLibraryService,
-    private readonly router: Router,
-    private readonly messageService: MessageService
+    private libraryService: GameLibraryService,
+    private router: Router,
+    private messageService: MessageService
   ) { }
 
   ngOnInit(): void {

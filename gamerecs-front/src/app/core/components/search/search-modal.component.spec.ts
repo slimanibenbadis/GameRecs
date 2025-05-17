@@ -10,11 +10,14 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { NO_ERRORS_SCHEMA, ElementRef } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { Game } from '../../services/game-library.service';
+import { Router } from '@angular/router';
 
 describe('SearchModalComponent', () => {
   let component: SearchModalComponent;
   let fixture: ComponentFixture<SearchModalComponent>;
   let mockGameService: jasmine.SpyObj<GameService>;
+  let mockRouter: jasmine.SpyObj<Router>;
   
   const mockSearchResponse: GameSearchResponse = {
     games: [
@@ -47,13 +50,15 @@ describe('SearchModalComponent', () => {
       ],
       providers: [
         { provide: GameService, useValue: mockGameService },
-        MessageService
+        MessageService,
+        { provide: Router, useValue: { navigate: jasmine.createSpy() } as jasmine.SpyObj<Router> },
       ],
       schemas: [NO_ERRORS_SCHEMA] // For any unrecognized elements
     }).compileComponents();
 
     fixture = TestBed.createComponent(SearchModalComponent);
     component = fixture.componentInstance;
+    mockRouter = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   it('should create', () => {
@@ -292,6 +297,82 @@ describe('SearchModalComponent', () => {
       expect(mockGameService.triggerIgdbUpdate).toHaveBeenCalledWith('test');
       expect(component.searchResults).toEqual(mockSearchResponse.games);
     }));
+
+    it('should handle generic error during fallback search', fakeAsync(() => {
+      // Arrange
+      mockGameService.updateAndSearch.and.returnValue(
+        throwError(() => new Error('API error'))
+      );
+      mockGameService.searchGames.and.returnValue(
+        throwError(() => ({ status: 500 })) // Simulate a generic error
+      );
+      
+      // Act
+      component.ngOnInit();
+      component.searchControl.setValue('test');
+      tick(300);
+      
+      // Assert
+      expect(mockGameService.updateAndSearch).toHaveBeenCalledWith('test', 0, 50);
+      expect(mockGameService.searchGames).toHaveBeenCalledWith('test', 0, 50);
+      expect(component.isLoading).toBeFalse();
+      expect(component.errorMessage).toBe('Failed to search for games. Please try again later.');
+      expect(component.showError).toBeTrue();
+    }));
+
+    it('should handle error during pagination search', fakeAsync(() => {
+      // Arrange
+      component.currentQuery = 'test'; // Set a current query to simulate pagination
+      mockGameService.searchGames.and.returnValue(
+        throwError(() => ({ status: 500 })) // Simulate a generic error during pagination
+      );
+      
+      // Act
+      component.onPageChange({ page: 1, rows: 50 }); // Trigger pagination search
+      tick(); // Allow observable to complete
+
+      // Assert
+      expect(mockGameService.searchGames).toHaveBeenCalledWith('test', 1, 50);
+      expect(component.isLoading).toBeFalse();
+      expect(component.errorMessage).toBe('Failed to load results. Please try again later.');
+      expect(component.showError).toBeTrue();
+    }));
+
+    it('should handle 400 error during pagination search', fakeAsync(() => {
+      // Arrange
+      component.currentQuery = 'test'; // Set a current query to simulate pagination
+      mockGameService.searchGames.and.returnValue(
+        throwError(() => ({ status: 400 })) // Simulate a 400 error during pagination
+      );
+      
+      // Act
+      component.onPageChange({ page: 1, rows: 50 }); // Trigger pagination search
+      tick(); // Allow observable to complete
+
+      // Assert
+      expect(mockGameService.searchGames).toHaveBeenCalledWith('test', 1, 50);
+      expect(component.isLoading).toBeFalse();
+      expect(component.errorMessage).toBe('Invalid search query. Please try a different search term.');
+      expect(component.showError).toBeTrue();
+    }));
+
+    it('should handle 503 error during pagination search', fakeAsync(() => {
+      // Arrange
+      component.currentQuery = 'test'; // Set a current query to simulate pagination
+      mockGameService.searchGames.and.returnValue(
+        throwError(() => ({ status: 503 })) // Simulate a 503 error during pagination
+      );
+      
+      // Act
+      component.onPageChange({ page: 1, rows: 50 }); // Trigger pagination search
+      tick(); // Allow observable to complete
+
+      // Assert
+      expect(mockGameService.searchGames).toHaveBeenCalledWith('test', 1, 50);
+      expect(component.isLoading).toBeFalse();
+      expect(component.errorMessage).toBe('Game service is currently unavailable. Please try again later.');
+      expect(component.showError).toBeTrue();
+    }));
   });
 
   describe('Error handling', () => {
@@ -444,6 +525,23 @@ describe('SearchModalComponent', () => {
       
       // Assert
       expect(component.close).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to game details page and close modal', () => {
+      // Arrange
+      const mockGame = { gameId: 123, igdbId: 456, title: 'Navigated Game', coverImageUrl: 'url', releaseDate: 'date' } as Game;
+      const mockEvent = { stopPropagation: jasmine.createSpy() } as unknown as Event;
+      spyOn(component, 'close');
+
+      // Act
+      component.navigateToGame(mockGame, mockEvent);
+
+      // Assert
+      expect(mockEvent.stopPropagation).toHaveBeenCalled();
+      expect(component.close).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/games', mockGame.gameId]);
     });
   });
 }); 

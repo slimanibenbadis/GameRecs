@@ -237,6 +237,76 @@ describe('ProfileComponent', () => {
       expect(component.successMessage).toBeUndefined();
       expect(component.isLoading).toBeFalse();
     }));
+
+    it('should successfully update profile with optional fields empty', fakeAsync(() => {
+      const updateData = {
+        username: 'anotherUser',
+        profilePictureUrl: '', // Empty string
+        bio: null, // Null
+        steamProfileId: '', // Empty string
+        steamApiKey: 'anotherApiKey'
+      };
+
+      const expectedPayload = {
+        username: updateData.username.toLowerCase(),
+        profilePictureUrl: undefined, // Should be undefined
+        bio: undefined, // Should be undefined
+        steamProfileId: undefined, // Should be undefined
+        steamApiKey: updateData.steamApiKey
+      };
+
+      const updatedProfileResponse: ProfileResponseDto = {
+        ...mockProfile,
+        username: expectedPayload.username,
+        profilePictureUrl: expectedPayload.profilePictureUrl,
+        bio: expectedPayload.bio,
+        steamProfileId: expectedPayload.steamProfileId,
+        steamCredentialsSet: true // Assuming setting API key sets this
+      };
+      profileService.updateProfile.and.returnValue(of(updatedProfileResponse));
+
+      component.profileForm.patchValue(updateData);
+      component.onSave();
+      tick();
+
+      expect(profileService.updateProfile).toHaveBeenCalledWith(expectedPayload);
+      expect(component.successMessage).toBe('Profile updated successfully');
+      expect(component.error).toBeUndefined();
+      expect(component.isEditMode).toBeFalse();
+      expect(component.profileForm.value).toEqual({
+        username: updatedProfileResponse.username,
+        profilePictureUrl: updatedProfileResponse.profilePictureUrl,
+        bio: updatedProfileResponse.bio,
+        steamProfileId: updatedProfileResponse.steamProfileId,
+        steamApiKey: '' // API key should be cleared
+      });
+      expect(component.profile).toEqual(updatedProfileResponse);
+    }));
+
+    it('should handle update error with no specific message', fakeAsync(() => {
+      profileService.updateProfile.and.returnValue(throwError(() => ({ status: 500 }))); // Error object without nested message
+
+      component.profileForm.patchValue({ username: 'newUsername' });
+      component.onSave();
+      tick();
+
+      expect(component.error).toBe('Failed to update profile'); // Expecting the fallback message
+      expect(component.successMessage).toBeUndefined();
+      expect(component.isLoading).toBeFalse();
+    }));
+
+    it('should handle update error with message', fakeAsync(() => {
+      const errorMessage = 'Specific error from backend';
+      profileService.updateProfile.and.returnValue(throwError(() => ({ error: { message: errorMessage } })));
+
+      component.profileForm.patchValue({ username: 'newUsername' });
+      component.onSave();
+      tick();
+
+      expect(component.error).toBe(errorMessage); // Expecting the specific message
+      expect(component.successMessage).toBeUndefined();
+      expect(component.isLoading).toBeFalse();
+    }));
   });
 
   describe('Error Messages', () => {
@@ -264,7 +334,51 @@ describe('ProfileComponent', () => {
       expect(component.getErrorMessage('steamProfileId')).toBe('Steam Profile ID must be a 17-digit number');
     });
 
+    it('should return appropriate error message for username minimum length', () => {
+      const usernameControl = component.profileForm.get('username');
+      usernameControl?.setValue('ab');
+      usernameControl?.markAsTouched();
+      expect(component.getErrorMessage('username')).toBe('Username must be at least 3 characters');
+    });
+
+    it('should return appropriate error message for username maximum length', () => {
+      const usernameControl = component.profileForm.get('username');
+      usernameControl?.setValue('a'.repeat(21));
+      usernameControl?.markAsTouched();
+      expect(component.getErrorMessage('username')).toBe('Username cannot exceed 20 characters');
+    });
+
+    it('should return appropriate error message for username pattern', () => {
+      const usernameControl = component.profileForm.get('username');
+      usernameControl?.setValue('user@name');
+      usernameControl?.markAsTouched();
+      expect(component.getErrorMessage('username')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
+    });
+
+    it('should return appropriate error message for profile picture URL format', () => {
+      const urlControl = component.profileForm.get('profilePictureUrl');
+      urlControl?.setValue('invalid-url');
+      urlControl?.markAsTouched();
+      
+      expect(component.getErrorMessage('profilePictureUrl'))
+        .toBe('Please enter a valid image URL (http/https ending in .png, .jpg, .jpeg, or .gif)');
+    });
+
+    it('should return appropriate error message for bio maximum length', () => {
+      const bioControl = component.profileForm.get('bio');
+      bioControl?.setValue('a'.repeat(501));
+      bioControl?.markAsTouched();
+      expect(component.getErrorMessage('bio')).toBe('Bio cannot exceed 500 characters');
+    });
+
     it('should return empty string for untouched controls', () => {
+      expect(component.getErrorMessage('username')).toBe('');
+    });
+
+    it('should return empty string for controls with no errors', () => {
+      const usernameControl = component.profileForm.get('username');
+      usernameControl?.setValue('validuser');
+      usernameControl?.markAsTouched();
       expect(component.getErrorMessage('username')).toBe('');
     });
   });
