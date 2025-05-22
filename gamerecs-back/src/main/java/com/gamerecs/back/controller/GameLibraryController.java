@@ -114,4 +114,52 @@ public class GameLibraryController {
             throw new RuntimeException("Failed to import Steam library due to an internal error.", e);
         }
     }
+
+    @Operation(summary = "Add a game to the authenticated user's game library",
+               description = "Adds a game with the specified ID to the game library of the authenticated user. " +
+                             "Requires valid authentication. " +
+                             "Returns HTTP 200 OK with the updated library on success, " +
+                             "HTTP 400 Bad Request for invalid input (e.g., negative gameId), " +
+                             "HTTP 404 Not Found if the game or user's library is not found, " +
+                             "HTTP 401 Unauthorized if the user is not authenticated, or " +
+                             "HTTP 409 Conflict if the game is already in the library.")
+    @PostMapping("/game-library/add/{gameId}")
+    public ResponseEntity<GameLibrary> addGameToUserLibrary(
+            @Parameter(description = "ID of the game to add", required = true, example = "123")
+            @PathVariable Long gameId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        log.info("Received request to add game ID {} to library for user ID: {}", gameId, userDetails.getUserId());
+
+        // 1. Input Validation
+        if (gameId == null || gameId <= 0) {
+            log.warn("Invalid gameId provided: {}", gameId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid game ID");
+        }
+
+        Long userId = userDetails.getUserId();
+
+        try {
+            // 2. Call Service Method
+            GameLibrary updatedLibrary = gameLibraryService.addGameToLibrary(userId, gameId);
+            log.info("Successfully added game ID {} to library for user ID: {}", gameId, userId);
+            // 3. Handle Response - Success
+            return ResponseEntity.ok(updatedLibrary);
+        } catch (ResponseStatusException rse) {
+            // Handle specific exceptions thrown by the service (e.g., UserNotFound, GameNotFound, LibraryNotFound)
+            // These exceptions are already handled by GlobalExceptionHandler based on their HttpStatus
+            log.warn("ResponseStatusException during adding game {} for user {}: {} - {}", gameId, userId, rse.getStatusCode(), rse.getReason());
+            throw rse; // Re-throw to be handled by GlobalExceptionHandler
+        } catch (IllegalArgumentException iae) {
+             // Handle cases like game already in library if service throws IllegalArgumentException for it
+             log.warn("IllegalArgumentException during adding game {} for user {}: {}", gameId, userId, iae.getMessage());
+             // Assuming GlobalExceptionHandler handles specific messages for CONFLICT
+             throw iae; // Re-throw to be handled by GlobalExceptionHandler
+        } catch (Exception e) {
+            // Catch any other unexpected exceptions from the service layer
+            log.error("Unexpected error during adding game {} for user {}: {}", gameId, userId, e.getMessage(), e);
+            // GlobalExceptionHandler will handle these as INTERNAL_SERVER_ERROR
+            throw new RuntimeException("Failed to add game to library due to an internal error.", e);
+        }
+    }
 } 
