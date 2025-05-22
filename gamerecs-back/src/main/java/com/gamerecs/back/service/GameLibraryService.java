@@ -6,6 +6,7 @@ import com.gamerecs.back.model.PaginatedGameLibraryResponse;
 import com.gamerecs.back.model.User;
 import com.gamerecs.back.repository.GameLibraryRepository;
 import com.gamerecs.back.repository.UserRepository;
+import com.gamerecs.back.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,11 +26,13 @@ public class GameLibraryService {
 
     private final GameLibraryRepository gameLibraryRepository;
     private final UserRepository userRepository;
+    private final GameRepository gameRepository;
 
     @Autowired
-    public GameLibraryService(GameLibraryRepository gameLibraryRepository, UserRepository userRepository) {
+    public GameLibraryService(GameLibraryRepository gameLibraryRepository, UserRepository userRepository, GameRepository gameRepository) {
         this.gameLibraryRepository = gameLibraryRepository;
         this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
     }
 
     /**
@@ -168,5 +171,40 @@ public class GameLibraryService {
         response.setPageSize(gamesPage.getSize());
         
         return response;
+    }
+
+    /**
+     * Adds a game to the specified user's game library.
+     *
+     * @param userId the ID of the user whose library to add the game to
+     * @param gameId the ID of the game to add
+     * @return the updated GameLibrary object
+     * @throws ResponseStatusException with HTTP 401 if user not found, 404 if game or library not found.
+     */
+    @Transactional
+    public GameLibrary addGameToLibrary(Long userId, Long gameId) {
+        // Fetch the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        // Fetch the game
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+
+        // Fetch the user's game library
+        GameLibrary library = gameLibraryRepository.findByUser(user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game library not found for user"));
+
+        // Check if the game is already in the library
+        if (library.getGames().contains(game)) {
+            // Game is already in the library, return the existing library (idempotent behavior)
+            return library;
+        }
+
+        // Add the game to the library
+        library.getGames().add(game);
+
+        // Save the updated library
+        return gameLibraryRepository.save(library);
     }
 } 
